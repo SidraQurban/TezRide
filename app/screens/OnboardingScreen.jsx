@@ -16,8 +16,10 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
+import { useNavigation } from "@react-navigation/native";
 
 const OnboardingScreen = () => {
+  const navigation = useNavigation();
   const flatlistRef = useRef();
   const [currentPage, setCurrentPage] = useState(0);
   const [viewableItems, setViewableItems] = useState([]);
@@ -160,6 +162,7 @@ const OnboardingScreen = () => {
         ) : (
           // Get Started
           <TouchableOpacity
+            onPress={() => navigation.navigate("login")}
             style={{
               paddingHorizontal: SIZES.base * 2,
               height: responsiveWidth(14),
