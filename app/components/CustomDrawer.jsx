@@ -4,6 +4,7 @@ import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { COLORS } from "../constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
+  responsiveFontSize,
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
@@ -41,11 +42,26 @@ const CustomDrawer = (props) => {
 
           {/* Drawer Items using map */}
           {drawerItems.map((item, index) => (
-            <DrawerItem
-              key={index}
-              label={item.label}
-              onPress={() => props.navigation.navigate(item.route)}
-            />
+            <View key={index}>
+              <DrawerItem
+                label={item.label}
+                labelStyle={{
+                  fontSize: responsiveFontSize(1.8),
+                  fontWeight: "bold",
+                  color: COLORS.black,
+                }}
+                onPress={() => props.navigation.navigate(item.route)}
+              />
+
+              {/* Divider Line */}
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: "#E0E0E0",
+                  marginHorizontal: 15,
+                }}
+              />
+            </View>
           ))}
         </DrawerContentScrollView>
 
