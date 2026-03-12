@@ -8,6 +8,7 @@ export const COLORS = {
   background: "#fff",
   black: "#000",
   white: "#fff",
+  num: "#dee2e6",
 };
 
 export const SIZES = {

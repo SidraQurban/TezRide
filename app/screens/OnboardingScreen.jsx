@@ -17,6 +17,7 @@ import {
   responsiveWidth,
 } from "react-native-responsive-dimensions";
 import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
 
 const OnboardingScreen = () => {
   const navigation = useNavigation();
@@ -75,7 +76,7 @@ const OnboardingScreen = () => {
             name="left"
             style={{
               fontSize: responsiveFontSize(2.5),
-              color: COLORS.black,
+              color: COLORS.primary,
               opacity: currentPage == 0 ? 0 : 1,
             }}
           />
@@ -84,15 +85,27 @@ const OnboardingScreen = () => {
         {/* Skip Button */}
         {/* hiding skip btn on lasst screen */}
         <TouchableOpacity onPress={handleskipbutton}>
-          <Text
+          <View
             style={{
-              fontSize: responsiveFontSize(2),
-              color: COLORS.black,
+              width: responsiveWidth(15),
+              height: responsiveWidth(9),
+              borderWidth: 1,
+              borderRadius: responsiveWidth(2),
+              borderColor: COLORS.primary,
+              justifyContent: "center",
+              alignItems: "center",
               opacity: currentPage == data.length - 1 ? 0 : 1,
             }}
           >
-            Skip
-          </Text>
+            <Text
+              style={{
+                fontSize: responsiveFontSize(2),
+                color: "#adb5bd",
+              }}
+            >
+              Skip
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -131,74 +144,94 @@ const OnboardingScreen = () => {
         {currentPage != data.length - 1 ? (
           <TouchableOpacity
             onPress={handleNext}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              width: responsiveWidth(15),
-              height: responsiveWidth(15),
-              borderRadius: responsiveWidth(7.5),
-              backgroundColor: COLORS.primary,
-            }}
             activeOpacity={0.8}
+            style={{
+              borderRadius: responsiveWidth(7.5),
+            }}
           >
-            <AntDesign
-              name="right"
+            <LinearGradient
+              colors={[COLORS.primary, COLORS.secondary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={{
-                fontSize: responsiveFontSize(2),
-                color: COLORS.white,
-                opacity: 0.3,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: responsiveWidth(15),
+                height: responsiveWidth(15),
+                borderRadius: responsiveWidth(7.5),
               }}
-            />
-            <AntDesign
-              name="right"
-              style={{
-                fontSize: responsiveFontSize(2.9),
-                color: COLORS.white,
-                marginLeft: -15,
-              }}
-            />
+            >
+              <AntDesign
+                name="right"
+                style={{
+                  fontSize: responsiveFontSize(2),
+                  color: COLORS.white,
+                  opacity: 0.3,
+                }}
+              />
+
+              <AntDesign
+                name="right"
+                style={{
+                  fontSize: responsiveFontSize(2.9),
+                  color: COLORS.white,
+                  marginLeft: -12, // slightly cleaner spacing
+                }}
+              />
+            </LinearGradient>
           </TouchableOpacity>
         ) : (
           // Get Started
+
           <TouchableOpacity
             onPress={() => navigation.navigate("login")}
             style={{
-              paddingHorizontal: SIZES.base * 2,
-              height: responsiveWidth(14),
               borderRadius: responsiveWidth(7),
-              backgroundColor: COLORS.primary,
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
             }}
           >
-            <Text
+            <LinearGradient
+              colors={["#FF5C00", "#ff991c"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={{
-                color: COLORS.white,
-                fontSize: responsiveFontSize(2.2),
-                marginLeft: SIZES.base,
+                paddingHorizontal: SIZES.base * 2,
+                height: responsiveWidth(14),
+                borderRadius: responsiveWidth(7),
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              Get Started
-            </Text>
-            <AntDesign
-              name="right"
-              style={{
-                fontSize: responsiveFontSize(2),
-                color: COLORS.white,
-                opacity: 0.3,
-                marginLeft: SIZES.base,
-              }}
-            />
-            <AntDesign
-              name="right"
-              style={{
-                fontSize: responsiveFontSize(2.9),
-                color: COLORS.white,
-                marginLeft: -15,
-              }}
-            />
+              <Text
+                style={{
+                  color: COLORS.white,
+                  fontSize: responsiveFontSize(2.2),
+                  marginLeft: SIZES.base,
+                }}
+              >
+                Get Started
+              </Text>
+
+              <AntDesign
+                name="right"
+                style={{
+                  fontSize: responsiveFontSize(2),
+                  color: COLORS.white,
+                  opacity: 0.3,
+                  marginLeft: SIZES.base,
+                }}
+              />
+
+              <AntDesign
+                name="right"
+                style={{
+                  fontSize: responsiveFontSize(2.9),
+                  color: COLORS.white,
+                  marginLeft: -15,
+                }}
+              />
+            </LinearGradient>
           </TouchableOpacity>
         )}
       </View>
