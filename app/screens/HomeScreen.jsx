@@ -1,16 +1,16 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { WebView } from "react-native-webview";
 import { COLORS, SIZES } from "../constants";
 import DrawerHeader from "../components/DrawerHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
+import RideOptionsPanel from "../components/RideOptionsPanel";
 
 const HomeScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
-      {/* Main container */}
-      <View style={{ flex: 1, paddingHorizontal: SIZES.base * 0.5 }}>
-        {/* WebView showing dummy map */}
+      <View style={{ flex: 1 }}>
+        {/* MAP */}
         <WebView
           source={{
             html: `
@@ -19,18 +19,36 @@ const HomeScreen = () => {
                 width="100%"
                 height="50%"
                 style="border:0;"
-                allowfullscreen=""
               ></iframe>
             `,
           }}
           style={{ flex: 1 }}
         />
 
-        {/* DrawerHeader on top */}
-        <View style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
+        {/* Drawer Header */}
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+          }}
+        >
           <DrawerHeader />
         </View>
-        {/*  */}
+
+        {/* Floating Ride Panel */}
+        <View
+          style={{
+            position: "absolute",
+            bottom: 20,
+            left: 0,
+            right: 0,
+            height: "46%",
+          }}
+        >
+          <RideOptionsPanel />
+        </View>
       </View>
     </SafeAreaView>
   );

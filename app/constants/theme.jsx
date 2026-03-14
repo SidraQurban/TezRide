@@ -9,6 +9,9 @@ export const COLORS = {
   black: "#000",
   white: "#fff",
   num: "#dee2e6",
+  icon: "#888",
+  serviceBg: "#F2F2F2",
+  active: "#fd9900",
 };
 
 export const SIZES = {

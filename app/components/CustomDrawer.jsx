@@ -67,9 +67,9 @@ const CustomDrawer = (props) => {
 
         {/* Bottom Section */}
         <View style={{ padding: 20 }}>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Text style={{ color: COLORS.primary }}>Logout</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>
