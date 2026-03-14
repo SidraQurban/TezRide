@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Image,
-} from "react-native";
+import { View, Text, TouchableOpacity, TextInput, Image } from "react-native";
 import { Ionicons, Entypo } from "@expo/vector-icons";
 import { COLORS, SIZES } from "../constants";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,33 +8,47 @@ import {
   responsiveWidth,
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
+import { useNavigation } from "@react-navigation/native";
 
 const RideOptionsPanel = () => {
+  const navigation = useNavigation();
+
   const [selectedService, setSelectedService] = useState("ride");
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
+
   const services = [
     {
       id: "delivery",
       label: "DELIVERY",
       image: require("../../assets/delivery.png"),
+      screen: "Delivery",
     },
     {
       id: "ride",
       label: "RIDE",
       image: require("../../assets/rentals.png"),
+      screen: "Ride",
     },
     {
       id: "shops",
       label: "SHOPS",
       image: require("../../assets/rentals.png"),
+      screen: "Shop",
     },
     {
       id: "rentals",
       label: "RENTALS",
       image: require("../../assets/rentals.png"),
+      screen: "Rentals",
     },
   ];
+
+  const handleServicePress = (service) => {
+    setSelectedService(service.id);
+    navigation.navigate(service.screen);
+  };
+
   return (
     <View
       style={{
@@ -59,13 +66,13 @@ const RideOptionsPanel = () => {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: [COLORS.primary, COLORS.secondary],
           padding: responsiveHeight(1.2),
           borderRadius: responsiveHeight(1.5),
           marginBottom: responsiveHeight(0.5),
         }}
       >
         <Ionicons name="pricetag" size={20} color={COLORS.secondary} />
+
         <Text
           style={{
             color: COLORS.white,
@@ -77,24 +84,25 @@ const RideOptionsPanel = () => {
           Get a 30% DISCOUNT on Your Next Car Ride. Book Now!
         </Text>
       </LinearGradient>
+
       {/* Pickup / Dropoff */}
       <View
         style={{
           backgroundColor: COLORS.white,
           borderRadius: responsiveHeight(2),
           padding: responsiveHeight(0.8),
-          marginBottom: SIZES.base * 1,
+          marginBottom: SIZES.base,
           borderWidth: 1,
           borderColor: COLORS.primary,
         }}
       >
+        {/* Pickup */}
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
           }}
         >
-          {/* dot */}
           <View
             style={{
               width: responsiveHeight(1.2),
@@ -126,6 +134,7 @@ const RideOptionsPanel = () => {
             }}
           />
         </View>
+
         {/* separator */}
         <View
           style={{
@@ -146,13 +155,14 @@ const RideOptionsPanel = () => {
 
           <Ionicons name="swap-vertical" size={18} color={COLORS.icon} />
         </View>
+
+        {/* Dropoff */}
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
           }}
         >
-          {/* dot */}
           <View
             style={{
               width: responsiveHeight(1.2),
@@ -172,6 +182,7 @@ const RideOptionsPanel = () => {
               }}
             />
           </View>
+
           <TextInput
             placeholder="Enter Dropoff"
             value={dropoff}
@@ -200,6 +211,7 @@ const RideOptionsPanel = () => {
           </View>
         </View>
       </View>
+
       {/* Saved Location */}
       <View
         style={{
@@ -215,6 +227,7 @@ const RideOptionsPanel = () => {
         }}
       >
         <Ionicons name="bookmark-outline" size={18} color={COLORS.icon} />
+
         <Text
           style={{
             marginLeft: responsiveWidth(1.8),
@@ -224,6 +237,7 @@ const RideOptionsPanel = () => {
           National Stadium, Nati...
         </Text>
       </View>
+
       {/* Services Grid */}
       <View
         style={{
@@ -249,7 +263,7 @@ const RideOptionsPanel = () => {
                 },
                 active && { backgroundColor: COLORS.active },
               ]}
-              onPress={() => setSelectedService(service.id)}
+              onPress={() => handleServicePress(service)}
             >
               <Image
                 source={service.image}

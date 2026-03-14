@@ -6,6 +6,10 @@ import OnboardingScreen from "../screens/OnboardingScreen";
 import LoginScreen from "../screens/LoginScreen";
 import VerifyCodeScreen from "../screens/VerifyCodeScreen";
 import DrawerNavigator from "./DrawerNavigator";
+import DeliveryScreen from "../screens/DeliveryScreen";
+import RideScreen from "../screens/RideScreen";
+import ShopScreen from "../screens/ShopScreen";
+import RentalsScreen from "../screens/RentalsScreen";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -16,6 +20,10 @@ const AppNavigator = () => {
         <Stack.Screen name="login" component={LoginScreen} />
         <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
         <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
+        <Stack.Screen name="Delivery" component={DeliveryScreen} />
+        <Stack.Screen name="Ride" component={RideScreen} />
+        <Stack.Screen name="Shop" component={ShopScreen} />
+        <Stack.Screen name="Rentals" component={RentalsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
