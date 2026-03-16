@@ -14,7 +14,7 @@ const DrawerHeader = () => {
       style={{
         flexDirection: "row",
         paddingHorizontal: SIZES.base * 2,
-        marginTop: responsiveHeight(1),
+        marginTop: responsiveHeight(2),
       }}
     >
       {/* Drawer Menu Button */}
@@ -22,7 +22,7 @@ const DrawerHeader = () => {
         onPress={() => navigation.toggleDrawer()}
         style={{
           backgroundColor: COLORS.background,
-          padding: SIZES.base * 1,
+          padding: SIZES.base * 1.2,
           borderRadius: responsiveHeight(3),
           justifyContent: "center",
           alignItems: "center",

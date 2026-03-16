@@ -4,7 +4,14 @@ import { WebView } from "react-native-webview";
 import { COLORS, SIZES } from "../constants";
 import DrawerHeader from "../components/DrawerHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
-import RideOptionsPanel from "../components/RideOptionsPanel";
+import Banner from "../components/Banner";
+import ServicesSlider from "../components/ServicesSlider";
+import {
+  responsiveHeight,
+  responsiveWidth,
+} from "react-native-responsive-dimensions";
+import PickupDropoff from "../components/PickupDropoff";
+import RecentLocations from "../components/RecentLocations";
 
 const HomeScreen = () => {
   return (
@@ -36,18 +43,20 @@ const HomeScreen = () => {
         >
           <DrawerHeader />
         </View>
-
-        {/* Floating Ride Panel */}
         <View
           style={{
             position: "absolute",
-            bottom: 20,
-            left: 0,
-            right: 0,
-            height: "46%",
+            bottom: 0,
+            width: "100%",
+            height: responsiveHeight(55),
+            paddingHorizontal: responsiveWidth(2),
+            paddingBottom: responsiveHeight(4),
           }}
         >
-          <RideOptionsPanel />
+          <Banner />
+          <PickupDropoff />
+          <ServicesSlider />
+          <RecentLocations />
         </View>
       </View>
     </SafeAreaView>

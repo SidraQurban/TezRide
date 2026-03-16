@@ -22,6 +22,8 @@ const DeliveryScreen = () => {
           }}
           style={{ flex: 1 }}
         />
+        <Header />
+        <DeliverybottomPanel />
       </View>
     </SafeAreaView>
   );

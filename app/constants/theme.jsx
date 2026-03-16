@@ -11,7 +11,7 @@ export const COLORS = {
   num: "#dee2e6",
   icon: "#888",
   serviceBg: "#F2F2F2",
-  active: "#fd9900",
+  active: "#FFEDDC",
 };
 
 export const SIZES = {
