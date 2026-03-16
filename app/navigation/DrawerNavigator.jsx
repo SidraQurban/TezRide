@@ -6,7 +6,6 @@ import MissedCallScreen from "../screens/MissedCallScreen";
 import BookingScreen from "../screens/BookingScreen";
 import WalletScreen from "../screens/WalletScreen";
 import ContactUsScreen from "../screens/ContactUsScreen";
-
 import CustomDrawer from "../components/CustomDrawer";
 
 const Drawer = createDrawerNavigator();
@@ -17,6 +16,10 @@ const DrawerNavigator = () => {
       drawerContent={(props) => <CustomDrawer {...props} />}
       screenOptions={{
         headerShown: false,
+        drawerStyle: {
+          borderTopRightRadius: 0,
+          borderBottomRightRadius: 0,
+        },
       }}
     >
       <Drawer.Screen name="Home" component={HomeScreen} />
