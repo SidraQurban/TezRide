@@ -18,6 +18,7 @@ import { COLORS, SIZES } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import { FONTS } from "../constants/theme";
 
 const countries = [
   { code: "+92", flag: "🇵🇰", name: "Pakistan" },
@@ -60,7 +61,8 @@ const LoginScreen = () => {
           <Text
             style={{
               fontSize: responsiveFontSize(2.3),
-              fontWeight: "450",
+              // fontWeight: "450",
+              fontFamily: FONTS.semiBold,
               textAlign: "center",
             }}
           >
@@ -69,7 +71,7 @@ const LoginScreen = () => {
           <Text
             style={{
               fontSize: responsiveFontSize(2.3),
-              fontWeight: "450",
+              fontFamily: FONTS.semiBold,
               textAlign: "center",
             }}
           >
@@ -101,7 +103,12 @@ const LoginScreen = () => {
             }}
           >
             <View style={{ flexDirection: "row" }}>
-              <Text style={{ fontSize: responsiveFontSize(2.5) }}>
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(2.5),
+                  fontFamily: FONTS.regular,
+                }}
+              >
                 {selectedCountry.flag}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -128,9 +135,9 @@ const LoginScreen = () => {
           <Text
             style={{
               color: COLORS.primary,
-              fontWeight: "bold",
               marginLeft: responsiveWidth(3),
               fontSize: responsiveFontSize(2),
+              fontFamily: FONTS.semiBold,
             }}
           >
             {selectedCountry.code}
@@ -143,6 +150,7 @@ const LoginScreen = () => {
               fontSize: responsiveFontSize(2),
               color: isPhoneComplete ? COLORS.primary : COLORS.black,
               marginLeft: responsiveWidth(2),
+              fontFamily: FONTS.semiBold,
             }}
             placeholder="3XXXXXXXXXX"
             placeholderTextColor={COLORS.num}
@@ -154,8 +162,14 @@ const LoginScreen = () => {
         </View>
 
         {/* Privacy policy */}
-        <View style={{ marginTop: responsiveHeight(45) }}>
-          <Text style={{ color: "#adb5bd", textDecorationLine: "underline" }}>
+        <View style={{ marginTop: SIZES.base * 37 }}>
+          <Text
+            style={{
+              color: "#adb5bd",
+              textDecorationLine: "underline",
+              fontFamily: FONTS.regular,
+            }}
+          >
             Privacy Policy
           </Text>
         </View>
@@ -171,7 +185,7 @@ const LoginScreen = () => {
           style={{
             backgroundColor: COLORS.primary,
             opacity: isPhoneComplete ? 1 : 0.4,
-            marginTop: responsiveHeight(2),
+            marginTop: responsiveHeight(1),
             width: responsiveWidth(85),
             height: responsiveWidth(16),
             borderRadius: responsiveWidth(10),

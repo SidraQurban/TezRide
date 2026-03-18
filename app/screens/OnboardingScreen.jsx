@@ -100,8 +100,9 @@ const OnboardingScreen = () => {
           >
             <Text
               style={{
-                fontSize: responsiveFontSize(2),
+                fontSize: responsiveFontSize(1.8),
                 color: "#adb5bd",
+                fontFamily: FONTS.regular,
               }}
             >
               Skip

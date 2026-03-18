@@ -9,6 +9,7 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import { COLORS, SIZES } from "../constants";
 import { LinearGradient } from "expo-linear-gradient";
+import { FONTS } from "../constants/theme";
 
 const VerifyCodeScreen = ({ navigation, route }) => {
   const { phoneNumber } = route.params || {};
@@ -90,12 +91,20 @@ const VerifyCodeScreen = ({ navigation, route }) => {
         {/* Instruction Text */}
         <View style={{ marginTop: responsiveHeight(5), alignItems: "center" }}>
           <Text
-            style={{ fontSize: responsiveFontSize(2), textAlign: "center" }}
+            style={{
+              fontSize: responsiveFontSize(2),
+              textAlign: "center",
+              fontFamily: FONTS.regular,
+            }}
           >
             Please enter the 4-digit code sent
           </Text>
           <Text
-            style={{ fontSize: responsiveFontSize(2), textAlign: "center" }}
+            style={{
+              fontSize: responsiveFontSize(2),
+              textAlign: "center",
+              fontFamily: FONTS.regular,
+            }}
           >
             to you on WhatsApp on
           </Text>
@@ -105,6 +114,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
               color: COLORS.primary,
               fontWeight: "bold",
               marginTop: 5,
+              fontFamily: FONTS.regular,
             }}
           >
             {phoneNumber}
@@ -128,7 +138,8 @@ const VerifyCodeScreen = ({ navigation, route }) => {
           <Text
             style={{
               fontSize: responsiveFontSize(4),
-              fontWeight: "bold",
+              // fontWeight: "bold",
+              fontFamily: FONTS.semiBold,
               transform: [{ rotate: `-${progress}deg` }],
             }}
           >
@@ -150,14 +161,15 @@ const VerifyCodeScreen = ({ navigation, route }) => {
               key={index}
               ref={(ref) => (inputs.current[index] = ref)}
               style={{
-                width: responsiveWidth(14),
-                height: responsiveWidth(14),
-                borderRadius: 10,
+                width: responsiveWidth(15),
+                height: responsiveWidth(15),
+                borderRadius: 11,
                 borderWidth: 1.5,
                 borderColor: isCodeComplete ? COLORS.primary : "#ccc",
                 textAlign: "center",
                 fontSize: responsiveFontSize(3),
                 color: isCodeComplete ? COLORS.primary : COLORS.black,
+                fontFamily: FONTS.regular,
               }}
               keyboardType="number-pad"
               maxLength={1}
@@ -176,7 +188,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
           disabled={!isCodeComplete}
           style={{
             opacity: isCodeComplete ? 1 : 0.4,
-            marginTop: responsiveHeight(30),
+            marginTop: responsiveHeight(28),
             borderRadius: responsiveWidth(10),
           }}
         >
@@ -196,7 +208,8 @@ const VerifyCodeScreen = ({ navigation, route }) => {
               style={{
                 color: COLORS.white,
                 fontSize: responsiveFontSize(2.2),
-                fontWeight: "600",
+                // fontWeight: "600",
+                fontFamily: FONTS.semiBold,
               }}
             >
               Continue
