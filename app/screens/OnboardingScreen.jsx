@@ -18,6 +18,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import { FONTS } from "../constants/theme";
 
 const OnboardingScreen = () => {
   const navigation = useNavigation();
@@ -206,8 +207,9 @@ const OnboardingScreen = () => {
               <Text
                 style={{
                   color: COLORS.white,
-                  fontSize: responsiveFontSize(2.2),
+                  fontSize: responsiveFontSize(2),
                   marginLeft: SIZES.base,
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Get Started
@@ -266,9 +268,9 @@ const OnboardingScreen = () => {
       >
         <Text
           style={{
-            fontSize: responsiveFontSize(3.5),
+            fontSize: responsiveFontSize(3),
             textAlign: "center",
-            fontWeight: "bold",
+            fontFamily: FONTS.semiBold,
             marginTop: responsiveHeight(-5),
           }}
         >
@@ -276,11 +278,12 @@ const OnboardingScreen = () => {
         </Text>
         <Text
           style={{
-            fontSize: responsiveFontSize(2.2),
+            fontSize: responsiveFontSize(2),
             opacity: 0.4,
             textAlign: "center",
             marginTop: responsiveHeight(1.5),
             lineHeight: responsiveHeight(3.2),
+            fontFamily: FONTS.regular,
           }}
         >
           {item.description}
