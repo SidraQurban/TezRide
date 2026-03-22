@@ -20,6 +20,7 @@ const data = [
   },
 ];
 export default data;
+
 export const drivers = [
   {
     id: "1",
@@ -65,5 +66,44 @@ export const drivers = [
     address: "404 PECHS",
     plate: "DEF 234",
     image: "https://randomuser.me/api/portraits/women/47.jpg",
+  },
+];
+
+export const SearchData = [
+  {
+    id: "1",
+    name: "Dolmen Mall Clifton",
+    address: "Block 4, Clifton, Karachi",
+    distance: "2.1 Km",
+  },
+  {
+    id: "2",
+    name: "LuckyOne Mall",
+    address: "Rashid Minhas Rd, Karachi",
+    distance: "5.4 Km",
+  },
+  {
+    id: "3",
+    name: "Frere Hall",
+    address: "Fatima Jinnah Rd, Saddar, Karachi",
+    distance: "3.2 Km",
+  },
+  {
+    id: "4",
+    name: "Sea View Beach",
+    address: "Clifton Beach, Karachi",
+    distance: "4.8 Km",
+  },
+  {
+    id: "5",
+    name: "National Museum",
+    address: "Burns Rd, Saddar, Karachi",
+    distance: "2.9 Km",
+  },
+  {
+    id: "6",
+    name: "Safari Park",
+    address: "University Rd, Karachi",
+    distance: "6.1 Km",
   },
 ];
