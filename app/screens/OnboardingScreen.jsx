@@ -10,7 +10,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { COLORS, SIZES } from "../constants/index";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
-import data from "../data/onboardingdata";
+import data from "../data/data";
 import {
   responsiveFontSize,
   responsiveHeight,
