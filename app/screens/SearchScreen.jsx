@@ -28,6 +28,7 @@ const SearchScreen = () => {
 
   const renderItem = ({ item, index }) => (
     <TouchableOpacity
+      onPress={() => navigation.navigate("LocationDetails", { location: item })}
       style={{
         flexDirection: "row",
         alignItems: "center",
