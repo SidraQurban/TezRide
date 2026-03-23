@@ -107,3 +107,38 @@ export const SearchData = [
     distance: "6.1 Km",
   },
 ];
+
+export const rideOptions = [
+  {
+    id: "1",
+    type: "Bike",
+    price: 150,
+    nearby: 7,
+    icon: "bicycle",
+    iconLib: "Ionicons",
+  },
+  {
+    id: "2",
+    type: "Rickshaw",
+    price: 200,
+    nearby: 19,
+    icon: "rickshaw",
+    iconLib: "MaterialCommunityIcons",
+  },
+  {
+    id: "3",
+    type: "Standard",
+    price: 280,
+    nearby: 12,
+    icon: "car",
+    iconLib: "Ionicons",
+  },
+  {
+    id: "4",
+    type: "Premium",
+    price: 330,
+    nearby: 4,
+    icon: "car-sport",
+    iconLib: "Ionicons",
+  },
+];
