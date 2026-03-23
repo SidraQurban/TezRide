@@ -9,6 +9,9 @@ import DrawerNavigator from "./DrawerNavigator";
 import SearchScreen from "../screens/SearchScreen";
 import LocationDetailsScreen from "../screens/LocationDetailsScreen";
 import SelectRideScreen from "../screens/SelectRideScreen";
+import PromoScreen from "../screens/PromoScreen";
+import PaymentMethodScreen from "../screens/PaymentMethodScreen";
+import SearchingDirection from "../screens/SearchingDirection";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -25,6 +28,12 @@ const AppNavigator = () => {
           component={LocationDetailsScreen}
         />
         <Stack.Screen name="SelectRide" component={SelectRideScreen} />
+        <Stack.Screen name="Promo" component={PromoScreen} />
+        <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
+        <Stack.Screen
+          name="SearchingDirection"
+          component={SearchingDirection}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

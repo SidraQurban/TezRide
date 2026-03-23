@@ -20,6 +20,7 @@ import { rideOptions } from "../data/data";
 import { LinearGradient } from "expo-linear-gradient";
 
 const RideOptions = () => {
+  const navigation = useNavigation();
   const [selectedCar, setSelectedCar] = useState(null);
   const [promoCode, setPromoCode] = useState("");
 
@@ -144,6 +145,7 @@ const RideOptions = () => {
           }}
         />
         <TouchableOpacity
+          onPress={() => navigation.navigate("Promo")}
           style={{
             marginLeft: responsiveWidth(2),
             width: responsiveWidth(12),
@@ -200,7 +202,10 @@ const RideOptions = () => {
           paddingBottom: responsiveHeight(2),
         }}
       >
-        <TouchableOpacity activeOpacity={0.8}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("PaymentMethod")}
+        >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
             start={{ x: 0, y: 0 }}

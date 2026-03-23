@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { SearchData } from "../data/data";
@@ -11,6 +10,7 @@ import {
   responsiveWidth,
 } from "react-native-responsive-dimensions";
 import SearchInput from "../components/SearchInput";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const SearchScreen = () => {
   const navigation = useNavigation();
@@ -78,85 +78,115 @@ const SearchScreen = () => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={{ flex: 1 }}>
-        {/* ✅ HEADER (MATCHED EXACTLY) */}
-        <View
+    <SafeAreaView
+      style={{
+        flex: 1,
+        paddingHorizontal: responsiveWidth(4),
+        backgroundColor: COLORS.background,
+      }}
+    >
+      {/* HEADER */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: responsiveHeight(6),
+          marginBottom: responsiveHeight(2),
+        }}
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={25} color={COLORS.primary} />
+        </TouchableOpacity>
+
+        <Text
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: responsiveWidth(4),
-            marginTop: responsiveHeight(2), // ✅ SAME as LocationDetails
-            marginBottom: responsiveHeight(2),
+            fontSize: responsiveFontSize(2.2),
+            fontFamily: FONTS.semiBold,
+            marginLeft: responsiveWidth(4),
           }}
         >
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons
-              name="arrow-back"
-              size={responsiveFontSize(2.5)}
-              color={COLORS.primary}
-            />
-          </TouchableOpacity>
+          Search
+        </Text>
+      </View>
 
-          <Text
-            style={{
-              fontSize: responsiveFontSize(2.2),
-              fontFamily: FONTS.semiBold,
-              marginLeft: responsiveWidth(4),
-            }}
-          >
-            Search
-          </Text>
-        </View>
+      {/* SEARCH BAR */}
+      <SearchInput search={search} setSearch={setSearch} />
 
-        {/* SEARCH BAR */}
-        <View style={{ paddingHorizontal: responsiveWidth(4) }}>
-          <SearchInput search={search} setSearch={setSearch} />
-        </View>
-
-        {/* RESULT HEADER */}
-        <View
+      {/* RESULT HEADER */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginVertical: 10,
+        }}
+      >
+        <Text
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginVertical: 10,
-            paddingHorizontal: responsiveWidth(4),
+            fontSize: responsiveFontSize(1.7),
+            fontFamily: FONTS.semiBold,
           }}
         >
+          {filteredData.length} founds
+        </Text>
+
+        <TouchableOpacity onPress={() => setSearch("")}>
           <Text
             style={{
               fontSize: responsiveFontSize(1.7),
-              fontFamily: FONTS.semiBold,
+              color: COLORS.primary,
+              fontFamily: FONTS.regular,
             }}
           >
-            {filteredData.length} founds
+            Clear All
           </Text>
+        </TouchableOpacity>
+      </View>
 
-          <TouchableOpacity onPress={() => setSearch("")}>
+      {/* EMPTY STATE OR RESULTS */}
+      {filteredData.length === 0 ? (
+        <View style={{ flex: 1 }}>
+          <Image
+            source={require("../../assets/notFound.png")}
+            style={{
+              width: responsiveHeight(70),
+              height: responsiveHeight(25),
+              resizeMode: "contain",
+              alignSelf: "center",
+              marginTop: responsiveHeight(5),
+            }}
+          />
+
+          <View style={{ justifyContent: "center", alignItems: "center" }}>
             <Text
               style={{
-                fontSize: responsiveFontSize(1.7),
-                color: COLORS.primary,
-                fontFamily: FONTS.regular,
+                fontFamily: FONTS.semiBold,
+                fontSize: responsiveFontSize(2),
+                marginTop: responsiveHeight(5),
               }}
             >
-              Clear All
+              Not Found
             </Text>
-          </TouchableOpacity>
+            <Text
+              style={{
+                fontFamily: FONTS.regular,
+                textAlign: "center",
+                color: "#777",
+              }}
+            >
+              Sorry, the keyword you entered cannot be found, please check again
+              or search with another keyword.
+            </Text>
+          </View>
         </View>
-
-        {/* RESULTS */}
+      ) : (
         <FlatList
           data={filteredData}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: responsiveWidth(4),
-          }}
         />
-      </View>
+      )}
     </SafeAreaView>
   );
 };

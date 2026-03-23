@@ -52,7 +52,7 @@ export const drivers = [
   {
     id: "4",
     name: "Ahmed Shah",
-    rating: 4.4,
+    rating: 4.6,
     reviews: 90,
     address: "505 DHA",
     plate: "GHI 567",

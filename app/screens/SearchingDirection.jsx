@@ -12,8 +12,9 @@ import { FONTS } from "../constants/theme";
 import { WebView } from "react-native-webview";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ArrivingCard from "../components/ArrivingCard";
 
-const LocationDetailsScreen = () => {
+const SearchingDirection = () => {
   const navigation = useNavigation();
 
   return (
@@ -48,7 +49,7 @@ const LocationDetailsScreen = () => {
                 marginLeft: responsiveWidth(4),
               }}
             >
-              Location Details
+              Searching Direction
             </Text>
           </View>
 
@@ -69,38 +70,10 @@ const LocationDetailsScreen = () => {
             />
           </View>
         </View>
-
-        {/* BOTTOM BUTTON */}
-        <View style={{ alignItems: "center" }}>
-          <TouchableOpacity onPress={() => navigation.navigate("SelectRide")}>
-            <LinearGradient
-              colors={[COLORS.primary, COLORS.secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                width: responsiveWidth(85),
-                height: responsiveHeight(7),
-                borderRadius: responsiveWidth(10),
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: responsiveHeight(-1),
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: responsiveFontSize(2),
-                  color: "#fff",
-                  fontFamily: FONTS.semiBold,
-                }}
-              >
-                Get Direction
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+        <ArrivingCard />
       </View>
     </SafeAreaView>
   );
 };
 
-export default LocationDetailsScreen;
+export default SearchingDirection;
