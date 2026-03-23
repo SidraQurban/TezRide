@@ -12,6 +12,7 @@ import ShopScreen from "../screens/ShopScreen";
 import RentalsScreen from "../screens/RentalsScreen";
 import SearchScreen from "../screens/SearchScreen";
 import LocationDetailsScreen from "../screens/LocationDetailsScreen";
+import SelectRideScreen from "../screens/SelectRideScreen";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -31,6 +32,7 @@ const AppNavigator = () => {
           name="LocationDetails"
           component={LocationDetailsScreen}
         />
+        <Stack.Screen name="SelectRide" component={SelectRideScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

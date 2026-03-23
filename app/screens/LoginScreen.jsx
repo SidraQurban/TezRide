@@ -14,7 +14,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
-import { COLORS, SIZES } from "../constants";
+import { COLORS } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -33,11 +33,9 @@ const LoginScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
 
-  // Check if 11 digits entered
   const isPhoneComplete = phone.length === 10;
 
   const handlePhoneChange = (text) => {
-    // Allow only numbers & max 11 digits
     const cleaned = text.replace(/[^0-9]/g, "");
     if (cleaned.length <= 11) {
       setPhone(cleaned);
@@ -47,62 +45,65 @@ const LoginScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View
-        style={{ flex: 1, alignItems: "center", paddingHorizontal: SIZES.base }}
+        style={{
+          flex: 1,
+          justifyContent: "space-between", // ✅ distributes content properly
+          alignItems: "center",
+          paddingVertical: responsiveHeight(3),
+        }}
       >
-        {/* Logo */}
-        <Image
-          source={require("../../assets/logo.png")}
-          resizeMode="contain"
-          style={{ height: responsiveHeight(20), width: responsiveWidth(80) }}
-        />
-
-        {/* Text Section */}
-        <View style={{ alignItems: "center", marginTop: responsiveHeight(-2) }}>
-          <Text
+        {/* TOP SECTION */}
+        <View style={{ alignItems: "center", width: "100%" }}>
+          {/* Logo */}
+          <Image
+            source={require("../../assets/logo.png")}
+            resizeMode="contain"
             style={{
-              fontSize: responsiveFontSize(2.3),
-              // fontWeight: "450",
-              fontFamily: FONTS.semiBold,
-              textAlign: "center",
+              height: responsiveHeight(18),
+              width: responsiveWidth(70),
             }}
-          >
-            Enter your number to
-          </Text>
-          <Text
-            style={{
-              fontSize: responsiveFontSize(2.3),
-              fontFamily: FONTS.semiBold,
-              textAlign: "center",
-            }}
-          >
-            continue
-          </Text>
-        </View>
+          />
 
-        {/* Phone Input */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginTop: responsiveHeight(4),
-            borderWidth: 1.5,
-            borderColor: isPhoneComplete ? COLORS.primary : "#ccc",
-            borderRadius: 10,
-            paddingHorizontal: 10,
-            height: responsiveHeight(6),
-            width: responsiveWidth(85),
-          }}
-        >
-          {/* Country Code Picker */}
+          {/* Text */}
+          <View
+            style={{ alignItems: "center", marginTop: responsiveHeight(1) }}
+          >
+            <Text
+              style={{
+                fontSize: responsiveFontSize(2.3),
+                fontFamily: FONTS.semiBold,
+                textAlign: "center",
+              }}
+            >
+              Enter your number to
+            </Text>
+            <Text
+              style={{
+                fontSize: responsiveFontSize(2.3),
+                fontFamily: FONTS.semiBold,
+                textAlign: "center",
+              }}
+            >
+              continue
+            </Text>
+          </View>
+
+          {/* Phone Input */}
           <View
             style={{
-              height: responsiveWidth(15),
-              justifyContent: "center",
+              flexDirection: "row",
               alignItems: "center",
-              marginRight: responsiveWidth(2),
+              marginTop: responsiveHeight(4),
+              borderWidth: 1.5,
+              borderColor: isPhoneComplete ? COLORS.primary : "#ccc",
+              borderRadius: responsiveWidth(3),
+              paddingHorizontal: responsiveWidth(3),
+              height: responsiveHeight(6.5),
+              width: responsiveWidth(85),
             }}
           >
-            <View style={{ flexDirection: "row" }}>
+            {/* Country Picker */}
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
                 style={{
                   fontSize: responsiveFontSize(2.5),
@@ -111,111 +112,105 @@ const LoginScreen = () => {
               >
                 {selectedCountry.flag}
               </Text>
+
               <TouchableOpacity onPress={() => setModalVisible(true)}>
                 <Ionicons
                   name="caret-down"
+                  size={responsiveFontSize(2.2)}
                   color={COLORS.primary}
-                  style={{
-                    marginLeft: responsiveWidth(2),
-                    fontSize: responsiveFontSize(2.4),
-                  }}
+                  style={{ marginLeft: responsiveWidth(1.5) }}
                 />
               </TouchableOpacity>
             </View>
+
+            {/* Divider */}
+            <View
+              style={{
+                width: 1,
+                height: "60%",
+                backgroundColor: COLORS.num,
+                marginHorizontal: responsiveWidth(2),
+              }}
+            />
+
+            {/* Code */}
+            <Text
+              style={{
+                color: COLORS.primary,
+                fontSize: responsiveFontSize(2),
+                fontFamily: FONTS.semiBold,
+              }}
+            >
+              {selectedCountry.code}
+            </Text>
+
+            {/* Input */}
+            <TextInput
+              style={{
+                flex: 1,
+                fontSize: responsiveFontSize(2),
+                color: isPhoneComplete ? COLORS.primary : COLORS.black,
+                marginLeft: responsiveWidth(2),
+                fontFamily: FONTS.semiBold,
+              }}
+              placeholder="3XXXXXXXXX"
+              placeholderTextColor={COLORS.num}
+              keyboardType="number-pad"
+              value={phone}
+              onChangeText={handlePhoneChange}
+              maxLength={11}
+            />
           </View>
-
-          <View
-            style={{
-              width: 0.4,
-              height: responsiveHeight(4.5),
-              backgroundColor: COLORS.num,
-            }}
-          />
-
-          <Text
-            style={{
-              color: COLORS.primary,
-              marginLeft: responsiveWidth(3),
-              fontSize: responsiveFontSize(2),
-              fontFamily: FONTS.semiBold,
-            }}
-          >
-            {selectedCountry.code}
-          </Text>
-
-          {/* Phone Number Input */}
-          <TextInput
-            style={{
-              flex: 1,
-              fontSize: responsiveFontSize(2),
-              color: isPhoneComplete ? COLORS.primary : COLORS.black,
-              marginLeft: responsiveWidth(2),
-              fontFamily: FONTS.semiBold,
-            }}
-            placeholder="3XXXXXXXXXX"
-            placeholderTextColor={COLORS.num}
-            keyboardType="number-pad"
-            value={phone}
-            onChangeText={handlePhoneChange}
-            maxLength={11}
-          />
         </View>
 
-        {/* Privacy policy */}
-        <View style={{ marginTop: SIZES.base * 37 }}>
+        {/* BOTTOM SECTION */}
+        <View style={{ alignItems: "center" }}>
+          {/* Privacy */}
           <Text
             style={{
               color: "#adb5bd",
               textDecorationLine: "underline",
               fontFamily: FONTS.regular,
+              marginBottom: responsiveHeight(2),
             }}
           >
             Privacy Policy
           </Text>
-        </View>
 
-        {/* Continue Button */}
-        <TouchableOpacity
-          disabled={!isPhoneComplete}
-          onPress={() =>
-            navigation.navigate("VerifyCode", {
-              phoneNumber: `${selectedCountry.code} ${phone}`,
-            })
-          }
-          style={{
-            backgroundColor: COLORS.primary,
-            opacity: isPhoneComplete ? 1 : 0.4,
-            marginTop: responsiveHeight(1),
-            width: responsiveWidth(85),
-            height: responsiveWidth(16),
-            borderRadius: responsiveWidth(10),
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          {/* Button */}
+          <TouchableOpacity
+            disabled={!isPhoneComplete}
+            onPress={() =>
+              navigation.navigate("VerifyCode", {
+                phoneNumber: `${selectedCountry.code} ${phone}`,
+              })
+            }
             style={{
-              width: responsiveWidth(85),
-              height: responsiveWidth(16),
-              borderRadius: responsiveWidth(10),
-              justifyContent: "center",
-              alignItems: "center",
+              opacity: isPhoneComplete ? 1 : 0.4,
             }}
           >
-            <Ionicons
-              name="checkmark-sharp"
+            <LinearGradient
+              colors={[COLORS.primary, COLORS.secondary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={{
-                fontSize: responsiveFontSize(5),
-                color: COLORS.white,
+                width: responsiveWidth(85),
+                height: responsiveHeight(7), // ✅ fixed (was width before)
+                borderRadius: responsiveWidth(10),
+                justifyContent: "center",
+                alignItems: "center",
               }}
-            />
-          </LinearGradient>
-        </TouchableOpacity>
+            >
+              <Ionicons
+                name="checkmark-sharp"
+                size={responsiveFontSize(4)}
+                color={COLORS.white}
+              />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
-        {/* Country Selection Modal */}
+        {/* MODAL */}
         <Modal visible={modalVisible} transparent animationType="slide">
           <View
             style={{
@@ -228,7 +223,7 @@ const LoginScreen = () => {
             <View
               style={{
                 backgroundColor: COLORS.white,
-                width: responsiveWidth(80),
+                width: responsiveWidth(85),
                 borderRadius: responsiveWidth(4),
                 maxHeight: responsiveHeight(50),
               }}
@@ -258,9 +253,11 @@ const LoginScreen = () => {
                     >
                       {item.flag}
                     </Text>
+
                     <Text style={{ fontSize: responsiveFontSize(2) }}>
                       {item.name}
                     </Text>
+
                     <Text
                       style={{
                         fontSize: responsiveFontSize(2),
