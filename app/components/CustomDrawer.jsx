@@ -13,7 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
-  { label: "Wallet", icon: "wallet-outline", route: "Wallet" },
+  // { label: "Wallet", icon: "wallet-outline", route: "Wallet" },
   { label: "Booking", icon: "calendar-outline", route: "Booking" },
   { label: "Contact Us", icon: "call-outline", route: "ContactUs" },
   {
@@ -22,7 +22,7 @@ const drawerItems = [
     badge: 4,
     route: "Notifications",
   },
-  { label: "Safety", icon: "shield-checkmark-outline", route: "Safety" },
+  // { label: "Safety", icon: "shield-checkmark-outline", route: "Safety" },
   { label: "Settings", icon: "settings-outline", route: "Settings" },
 ];
 

@@ -20,7 +20,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 
-// Updated car options with iconLib for Rickshaw
 const carOptions = [
   {
     id: "1",
@@ -98,7 +97,6 @@ const SelectRideScreen = () => {
             <Ionicons name={item.icon} size={24} color="#fff" />
           )}
         </View>
-
         <View style={{ marginLeft: responsiveWidth(4) }}>
           <Text
             style={{
@@ -153,21 +151,20 @@ const SelectRideScreen = () => {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
       {/* HEADER */}
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
           paddingHorizontal: responsiveWidth(4),
-          marginTop: responsiveHeight(5),
+          marginTop: responsiveHeight(2),
           marginBottom: responsiveHeight(2),
         }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={25} color={COLORS.secondary} />
         </TouchableOpacity>
-
         <Text
           style={{
             fontSize: responsiveFontSize(2.2),
@@ -175,7 +172,7 @@ const SelectRideScreen = () => {
             marginLeft: responsiveWidth(4),
           }}
         >
-          Select Car
+          Select Ride
         </Text>
       </View>
 
@@ -208,7 +205,6 @@ const SelectRideScreen = () => {
             borderRadius: responsiveWidth(3),
           }}
         />
-
         <TouchableOpacity
           style={{
             marginLeft: responsiveWidth(2),
@@ -233,7 +229,6 @@ const SelectRideScreen = () => {
           paddingBottom: responsiveHeight(2),
         }}
       >
-        {/* ROW */}
         <View
           style={{
             flexDirection: "row",
@@ -286,7 +281,7 @@ const SelectRideScreen = () => {
           </LinearGradient>
         </TouchableOpacity>
       </SafeAreaView>
-    </View>
+    </SafeAreaView>
   );
 };
 

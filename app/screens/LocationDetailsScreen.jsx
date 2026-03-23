@@ -21,7 +21,7 @@ const LocationDetailsScreen = () => {
       <View
         style={{
           flex: 1,
-          justifyContent: "space-between", // ✅ keeps button at bottom
+          justifyContent: "space-between",
           paddingBottom: responsiveHeight(2),
         }}
       >
