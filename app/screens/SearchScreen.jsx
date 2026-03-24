@@ -90,7 +90,7 @@ const SearchScreen = () => {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          marginTop: responsiveHeight(6),
+          marginTop: responsiveHeight(2),
           marginBottom: responsiveHeight(2),
         }}
       >

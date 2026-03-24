@@ -9,6 +9,7 @@ import {
 } from "@expo-google-fonts/poppins";
 
 import { View, ActivityIndicator } from "react-native";
+import { StatusBar } from "expo-status-bar";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -27,5 +28,11 @@ export default function App() {
     );
   }
 
-  return <AppNavigator />;
+  return (
+    <>
+      {/* GLOBAL STATUS BAR */}
+      <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
+      <AppNavigator />
+    </>
+  );
 }

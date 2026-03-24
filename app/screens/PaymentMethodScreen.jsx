@@ -27,7 +27,7 @@ const PaymentMethodScreen = () => {
         }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={25} color={COLORS.secondary} />
+          <Ionicons name="arrow-back" size={25} color={COLORS.primary} />
         </TouchableOpacity>
         <Text
           style={{
