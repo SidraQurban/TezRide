@@ -1,3 +1,4 @@
+import "react-native-reanimated";
 import React from "react";
 import AppNavigator from "./app/navigation/AppNavigator";
 import {
@@ -10,6 +11,7 @@ import {
 
 import { View, ActivityIndicator } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -19,7 +21,6 @@ export default function App() {
     Poppins_700Bold,
   });
 
-  //  Wait until fonts load
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -29,10 +30,9 @@ export default function App() {
   }
 
   return (
-    <>
-      {/* GLOBAL STATUS BAR */}
-      <StatusBar style="dark" translucent={false} backgroundColor="#ffffff" />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar style="dark" />
       <AppNavigator />
-    </>
+    </GestureHandlerRootView>
   );
 }

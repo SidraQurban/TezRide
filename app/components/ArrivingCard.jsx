@@ -9,12 +9,10 @@ import {
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 
-const ArrivingCard = () => {
+const ArrivingCard = ({ onClose }) => {
   return (
     <View
       style={{
-        position: "absolute",
-        bottom: 0,
         width: "100%",
         backgroundColor: "#fff",
         borderTopLeftRadius: 35,
@@ -24,18 +22,6 @@ const ArrivingCard = () => {
         paddingHorizontal: responsiveWidth(5),
       }}
     >
-      {/* Drag Line */}
-      <View
-        style={{
-          width: 60,
-          height: 5,
-          backgroundColor: "#E0E0E0",
-          borderRadius: 10,
-          alignSelf: "center",
-          marginBottom: responsiveHeight(1.8),
-        }}
-      />
-
       {/* Header */}
       <View
         style={{
@@ -120,7 +106,6 @@ const ArrivingCard = () => {
 
       {/* Locations */}
       <View style={{ marginBottom: responsiveHeight(2) }}>
-        {/* Current Location */}
         <View style={{ flexDirection: "row", marginBottom: 14 }}>
           <View
             style={{
@@ -143,7 +128,6 @@ const ArrivingCard = () => {
           </View>
         </View>
 
-        {/* Destination */}
         <View style={{ flexDirection: "row" }}>
           <View
             style={{
@@ -176,7 +160,9 @@ const ArrivingCard = () => {
           marginTop: responsiveHeight(1),
         }}
       >
+        {/* ❌ CLOSE */}
         <TouchableOpacity
+          onPress={onClose}
           style={{
             width: 58,
             height: 58,
@@ -189,6 +175,7 @@ const ArrivingCard = () => {
           <Ionicons name="close" size={24} color="#000" />
         </TouchableOpacity>
 
+        {/* CHAT */}
         <TouchableOpacity
           style={{
             width: 65,
@@ -202,6 +189,7 @@ const ArrivingCard = () => {
           <Ionicons name="chatbubble" size={24} color={COLORS.black} />
         </TouchableOpacity>
 
+        {/* CALL */}
         <TouchableOpacity
           style={{
             width: 58,

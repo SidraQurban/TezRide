@@ -10,19 +10,22 @@ import {
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import { WebView } from "react-native-webview";
-import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ArrivingCard from "../components/ArrivingCard";
+import BottomSheet from "@gorhom/bottom-sheet";
+import { useRef, useMemo } from "react";
 
 const SearchingDirection = () => {
   const navigation = useNavigation();
+  const bottomSheetRef = useRef(null);
 
+  // snap points (heights)
+  const snapPoints = useMemo(() => ["10%", "20%", "55%"], []);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View
         style={{
           flex: 1,
-          justifyContent: "space-between",
           paddingBottom: responsiveHeight(2),
         }}
       >
@@ -70,7 +73,23 @@ const SearchingDirection = () => {
             />
           </View>
         </View>
-        <ArrivingCard />
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          enablePanDownToClose={false}
+          animateOnMount={true}
+          enableDynamicSizing={false}
+          handleIndicatorStyle={{
+            width: 60,
+            height: 5,
+            backgroundColor: "#E0E0E0",
+          }}
+        >
+          <ArrivingCard
+            onClose={() => bottomSheetRef.current?.snapToIndex(0)}
+          />
+        </BottomSheet>
       </View>
     </SafeAreaView>
   );
