@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { COLORS } from "../constants";
@@ -13,7 +13,6 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
-  // { label: "Wallet", icon: "wallet-outline", route: "Wallet" },
   { label: "Booking", icon: "calendar-outline", route: "Booking" },
   { label: "Contact Us", icon: "call-outline", route: "ContactUs" },
   {
@@ -22,12 +21,11 @@ const drawerItems = [
     badge: 4,
     route: "Notifications",
   },
-  // { label: "Safety", icon: "shield-checkmark-outline", route: "Safety" },
   { label: "Settings", icon: "settings-outline", route: "Settings" },
 ];
 
 const CustomDrawer = (props) => {
-  const [activeIndex, setActiveIndex] = useState(null);
+  const { state, navigation } = props;
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -90,7 +88,6 @@ const CustomDrawer = (props) => {
                 <Ionicons name="star" size={14} color={COLORS.secondary} />
                 <Ionicons name="star" size={14} color={COLORS.secondary} />
                 <Ionicons name="star-half" size={14} color={COLORS.secondary} />
-
                 <Text
                   style={{
                     marginLeft: 5,
@@ -102,9 +99,10 @@ const CustomDrawer = (props) => {
                 </Text>
               </View>
             </View>
-            {/* Back Icon */}
+
+            {/* Close Drawer */}
             <TouchableOpacity
-              onPress={() => props.navigation.closeDrawer()}
+              onPress={() => navigation.closeDrawer()}
               style={{ marginRight: responsiveWidth(3) }}
             >
               <Ionicons
@@ -117,63 +115,62 @@ const CustomDrawer = (props) => {
 
           {/* Drawer Items */}
           <View style={{ marginTop: responsiveHeight(2) }}>
-            {drawerItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  setActiveIndex(index);
-                  props.navigation.navigate(item.route || ""); // navigate if route exists
-                }}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingVertical: responsiveHeight(1.5),
-                  paddingHorizontal: responsiveWidth(5),
-                  backgroundColor:
-                    activeIndex === index ? COLORS.active : "transparent",
-                  borderRadius: 10,
-                  marginHorizontal: responsiveWidth(2),
-                  marginVertical: responsiveHeight(0.5),
-                }}
-              >
-                <Ionicons
-                  name={item.icon}
-                  size={responsiveFontSize(2.2)}
-                  color={COLORS.black}
-                />
-                <Text
+            {drawerItems.map((item, index) => {
+              const isActive = state.index === index; // active screen
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => navigation.navigate(item.route)}
                   style={{
-                    fontSize: responsiveFontSize(1.9),
-                    marginLeft: responsiveWidth(4),
-                    flex: 1,
-                    color: COLORS.black,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: responsiveHeight(1.5),
+                    paddingHorizontal: responsiveWidth(5),
+                    backgroundColor: isActive ? COLORS.active : "transparent",
+                    borderRadius: 10,
+                    marginHorizontal: responsiveWidth(2),
+                    marginVertical: responsiveHeight(0.5),
                   }}
                 >
-                  {item.label}
-                </Text>
-                {item.badge && (
-                  <View
+                  <Ionicons
+                    name={item.icon}
+                    size={responsiveFontSize(2.2)}
+                    color={COLORS.black}
+                  />
+                  <Text
                     style={{
-                      backgroundColor: "red",
-                      borderRadius: 10,
-                      paddingHorizontal: 6,
-                      paddingVertical: 2,
-                      justifyContent: "center",
-                      alignItems: "center",
+                      fontSize: responsiveFontSize(1.9),
+                      marginLeft: responsiveWidth(4),
+                      flex: 1,
+                      color: COLORS.black,
                     }}
                   >
-                    <Text
+                    {item.label}
+                  </Text>
+                  {item.badge && (
+                    <View
                       style={{
-                        color: "#fff",
-                        fontSize: responsiveFontSize(1.4),
+                        backgroundColor: "red",
+                        borderRadius: 10,
+                        paddingHorizontal: 6,
+                        paddingVertical: 2,
+                        justifyContent: "center",
+                        alignItems: "center",
                       }}
                     >
-                      {item.badge}
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
+                      <Text
+                        style={{
+                          color: "#fff",
+                          fontSize: responsiveFontSize(1.4),
+                        }}
+                      >
+                        {item.badge}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </DrawerContentScrollView>
 
@@ -192,17 +189,13 @@ const CustomDrawer = (props) => {
               end={{ x: 1, y: 0 }}
               style={{
                 alignItems: "center",
-                padding: responsiveHeight(1.2),
                 borderRadius: responsiveHeight(1.5),
                 marginBottom: responsiveHeight(1.5),
                 paddingVertical: responsiveHeight(1.5),
               }}
             >
               <Text
-                style={{
-                  fontSize: responsiveFontSize(2),
-                  fontWeight: "bold",
-                }}
+                style={{ fontSize: responsiveFontSize(2), fontWeight: "bold" }}
               >
                 Logout
               </Text>

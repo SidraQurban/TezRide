@@ -13,8 +13,6 @@ const DrawerHeader = () => {
     <View
       style={{
         flexDirection: "row",
-        paddingHorizontal: SIZES.base * 2,
-        marginTop: responsiveHeight(2),
       }}
     >
       {/* Drawer Menu Button */}
@@ -24,8 +22,6 @@ const DrawerHeader = () => {
           backgroundColor: COLORS.background,
           padding: SIZES.base * 1.2,
           borderRadius: responsiveHeight(3),
-          justifyContent: "center",
-          alignItems: "center",
         }}
       >
         {/* Bars-Staggered SVG Icon */}
