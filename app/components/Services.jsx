@@ -42,6 +42,7 @@ const Services = () => {
         flexWrap: "wrap",
         justifyContent: "space-between",
         padding: SIZES.base * 2,
+        marginTop: -20,
       }}
     >
       {servicesData.map((item) => (
