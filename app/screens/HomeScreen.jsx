@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
@@ -8,16 +8,14 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS } from "../constants";
 import DrawerHeader from "../components/DrawerHeader";
+import Services from "../components/Services";
 import SearchBar from "../components/SearchBar";
-import DriverCard from "../components/DriverCard";
 
 const HomeScreen = () => {
-  const [searchText, setSearchText] = useState("");
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
-      <View style={{ flex: 1 }}>
-        {/* MAP */}
+      {/* MAP SECTION */}
+      <View style={{ height: responsiveHeight(50) }}>
         <WebView
           source={{
             html: `
@@ -32,24 +30,44 @@ const HomeScreen = () => {
           style={{ flex: 1 }}
         />
 
-        {/* DRAWER + SEARCH BAR */}
+        {/* DRAWER OVER MAP */}
         <View
           style={{
             position: "absolute",
             top: responsiveHeight(2),
             left: responsiveWidth(4),
             right: responsiveWidth(4),
-            flexDirection: "row",
-            alignItems: "center",
+            zIndex: 10,
           }}
         >
           <DrawerHeader />
-          <SearchBar searchText={searchText} setSearchText={setSearchText} />
+        </View>
+      </View>
+
+      {/* BOTTOM SECTION */}
+      <View style={{ flex: 1 }}>
+        {/* SEARCH BAR */}
+        <View
+          style={{
+            marginTop: -28,
+            marginBottom: 10,
+            zIndex: 10,
+          }}
+        >
+          <SearchBar />
         </View>
 
-        {/* DRIVER SLIDER */}
-        <View style={{ position: "absolute", bottom: responsiveHeight(3) }}>
-          <DriverCard />
+        {/* SERVICES */}
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: COLORS.white,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            paddingTop: responsiveHeight(1),
+          }}
+        >
+          <Services />
         </View>
       </View>
     </SafeAreaView>

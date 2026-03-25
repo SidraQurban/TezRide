@@ -13,14 +13,19 @@ const SearchBar = () => {
   const navigation = useNavigation();
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() => navigation.navigate("Search")}
       style={{
-        flex: 1,
+        width: "90%",
+        alignSelf: "center",
         flexDirection: "row",
-        marginLeft: 0,
+        alignItems: "center",
         backgroundColor: "#fff",
         borderRadius: 25,
-        overflow: "hidden",
+        paddingHorizontal: responsiveWidth(4),
+        paddingVertical: responsiveHeight(1.5),
+
         elevation: 5,
         shadowColor: "#000",
         shadowOpacity: 0.1,
@@ -28,41 +33,25 @@ const SearchBar = () => {
         marginTop: 13,
       }}
     >
-      {/* Pressable fake input */}
-      <TouchableOpacity
-        style={{
-          flex: 1,
-          paddingHorizontal: responsiveWidth(3),
-          paddingVertical: responsiveHeight(1.5),
-          justifyContent: "center",
-        }}
-        activeOpacity={0.7}
-        onPress={() => navigation.navigate("Search")}
-      >
-        <Text
-          style={{
-            fontSize: responsiveFontSize(1.8),
-            fontFamily: FONTS.regular,
-            color: "#999",
-          }}
-        >
-          Where would you go?
-        </Text>
-      </TouchableOpacity>
+      {/* LEFT CAR ICON */}
+      <Ionicons
+        name="car-sport"
+        size={responsiveFontSize(3.5)}
+        color={COLORS.primary}
+      />
 
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Search")}
-        activeOpacity={0.8}
+      {/* TEXT */}
+      <Text
         style={{
-          backgroundColor: COLORS.primary,
-          paddingHorizontal: responsiveWidth(4),
-          justifyContent: "center",
-          alignItems: "center",
+          marginLeft: 10,
+          fontSize: responsiveFontSize(1.8),
+          fontFamily: FONTS.regular,
+          color: "#999",
         }}
       >
-        <Ionicons name="search" size={responsiveFontSize(2.3)} color="#fff" />
-      </TouchableOpacity>
-    </View>
+        Where would you go?
+      </Text>
+    </TouchableOpacity>
   );
 };
 
