@@ -14,10 +14,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const SearchScreen = () => {
   const navigation = useNavigation();
-  const [search, setSearch] = useState("");
+
+  const [pickup, setPickup] = useState("");
+  const [destination, setDestination] = useState("");
 
   const filteredData = SearchData.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase()),
+    item.name.toLowerCase().includes(pickup.toLowerCase().trim()),
   );
 
   const renderItem = ({ item, index }) => (
@@ -109,8 +111,13 @@ const SearchScreen = () => {
         </Text>
       </View>
 
-      {/* SEARCH BAR */}
-      <SearchInput search={search} setSearch={setSearch} />
+      {/* SEARCH INPUT */}
+      <SearchInput
+        pickup={pickup}
+        setPickup={setPickup}
+        destination={destination}
+        setDestination={setDestination}
+      />
 
       {/* RESULT HEADER */}
       <View
@@ -118,7 +125,7 @@ const SearchScreen = () => {
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
-          marginVertical: 10,
+          marginVertical: responsiveHeight(2),
         }}
       >
         <Text
@@ -127,10 +134,10 @@ const SearchScreen = () => {
             fontFamily: FONTS.semiBold,
           }}
         >
-          {filteredData.length} founds
+          {filteredData.length} results found
         </Text>
 
-        <TouchableOpacity onPress={() => setSearch("")}>
+        <TouchableOpacity onPress={() => setPickup("")}>
           <Text
             style={{
               fontSize: responsiveFontSize(1.7),
@@ -144,7 +151,7 @@ const SearchScreen = () => {
       </View>
 
       {/* EMPTY STATE OR RESULTS */}
-      {filteredData.length === 0 ? (
+      {pickup.trim().length > 0 && filteredData.length === 0 ? (
         <View style={{ flex: 1 }}>
           <Image
             source={require("../../assets/notFound.png")}
@@ -167,6 +174,7 @@ const SearchScreen = () => {
             >
               Not Found
             </Text>
+
             <Text
               style={{
                 fontFamily: FONTS.regular,
@@ -174,8 +182,8 @@ const SearchScreen = () => {
                 color: "#777",
               }}
             >
-              Sorry, the keyword you entered cannot be found, please check again
-              or search with another keyword.
+              Sorry, the keyword you entered cannot be found. Try another
+              search.
             </Text>
           </View>
         </View>
