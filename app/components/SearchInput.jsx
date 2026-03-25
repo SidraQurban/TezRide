@@ -24,6 +24,8 @@ const SearchInput = ({
         shadowOpacity: 0.1,
         shadowRadius: 6,
         shadowOffset: { width: 0, height: 2 },
+        borderWidth: 1,
+        borderColor: COLORS.active,
       }}
     >
       {/* Left Inputs */}

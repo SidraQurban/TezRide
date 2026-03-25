@@ -9,6 +9,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
+
 import SearchInput from "../components/SearchInput";
 import { SafeAreaView } from "react-native-safe-area-context";
 
