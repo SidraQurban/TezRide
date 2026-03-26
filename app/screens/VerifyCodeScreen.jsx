@@ -165,12 +165,14 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                 ref={(ref) => (inputs.current[index] = ref)}
                 style={{
                   width: responsiveWidth(15),
-                  height: responsiveWidth(15),
+                  height: responsiveHeight(7),
                   borderRadius: responsiveWidth(3),
                   borderWidth: 1.5,
                   borderColor: isCodeComplete ? COLORS.primary : "#ccc",
                   textAlign: "center",
                   fontSize: responsiveFontSize(3),
+                  lineHeight: responsiveFontSize(3),
+                  padding: 0,
                   color: isCodeComplete ? COLORS.primary : COLORS.black,
                   fontFamily: FONTS.regular,
                 }}
