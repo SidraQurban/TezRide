@@ -13,6 +13,11 @@ import {
 import SearchInput from "../components/SearchInput";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const recentPlaces = [
+  { id: "1", title: "Home", subtitle: "Gulshan-e-Iqbal, Karachi" },
+  { id: "2", title: "University", subtitle: "Indus University" },
+  { id: "3", title: "Office", subtitle: "Shahrah-e-Faisal" },
+];
 const SearchScreen = () => {
   const navigation = useNavigation();
 
@@ -119,6 +124,27 @@ const SearchScreen = () => {
         destination={destination}
         setDestination={setDestination}
       />
+      {/* Current Location */}
+      <TouchableOpacity
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: responsiveHeight(2),
+        }}
+      >
+        <Ionicons name="locate" size={20} color={COLORS.primary} />
+        <Text
+          style={{
+            marginLeft: responsiveWidth(2),
+            fontSize: responsiveFontSize(1.6),
+            color: COLORS.primary,
+            marginTop: responsiveHeight(0.3),
+            fontFamily: FONTS.semiBold,
+          }}
+        >
+          Use current location
+        </Text>
+      </TouchableOpacity>
 
       {/* RESULT HEADER */}
       <View
