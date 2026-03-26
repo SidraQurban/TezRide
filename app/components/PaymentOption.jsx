@@ -150,7 +150,7 @@ const PaymentOption = () => {
       >
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("SearchingDirection")}
+          onPress={() => navigation.navigate("ConfirmRide")}
         >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
