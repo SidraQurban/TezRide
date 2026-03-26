@@ -10,39 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-
-const promoData = [
-  {
-    id: "1",
-    title: "Special 25% Off",
-    desc: "Special promo only today!",
-    color: "#A259FF",
-  },
-  {
-    id: "2",
-    title: "Discount 30% Off",
-    desc: "New user special promo",
-    color: "#FFC107",
-  },
-  {
-    id: "3",
-    title: "Special 20% Off",
-    desc: "Special promo only today!",
-    color: "#FF5A5F",
-  },
-  {
-    id: "4",
-    title: "Discount 40% Off",
-    desc: "Special promo only valid today!",
-    color: "#4CD964",
-  },
-  {
-    id: "5",
-    title: "Discount 35% Off",
-    desc: "Special promo only valid today!",
-    color: "#FFC107",
-  },
-];
+import { promoData } from "../data/data";
 
 const PromoScreen = () => {
   const navigation = useNavigation();
@@ -163,7 +131,10 @@ const PromoScreen = () => {
           paddingBottom: responsiveHeight(2),
         }}
       >
-        <TouchableOpacity activeOpacity={0.8}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("PaymentMethod")}
+        >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
             start={{ x: 0, y: 0 }}

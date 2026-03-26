@@ -11,42 +11,11 @@ import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
+import { rides } from "../data/data";
 
 const RidesSlider = () => {
   const navigation = useNavigation();
   const [selectedService, setSelectedService] = useState("bike");
-
-  const rides = [
-    {
-      id: "bike",
-      label: "BIKE",
-      image: require("../../assets/bike.png"),
-      eta: "8 mins",
-      price: 150,
-    },
-    {
-      id: "rickshaw",
-      label: "RICKSHAW",
-      image: require("../../assets/auto.png"),
-      eta: "6 mins",
-      price: 200,
-    },
-    {
-      id: "car",
-      label: "CAR",
-      image: require("../../assets/car.png"),
-      eta: "5 mins",
-      price: 280,
-    },
-    {
-      id: "prem",
-      label: "Premium",
-      image: require("../../assets/prem.png"),
-      eta: "4 mins",
-      price: 330,
-    },
-  ];
-
   const selectedRide = rides.find((r) => r.id === selectedService);
 
   return (
@@ -228,7 +197,7 @@ const RidesSlider = () => {
       >
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("ConfirmRide")}
+          onPress={() => navigation.navigate("SearchingDirection")}
         >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}

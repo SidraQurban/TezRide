@@ -6,6 +6,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS, SIZES } from "../constants";
 import { FONTS } from "../constants/theme";
+import { useNavigation } from "@react-navigation/native";
 
 const servicesData = [
   {
@@ -13,6 +14,7 @@ const servicesData = [
     title: "Ride",
     image: require("../../assets/ride.png"),
     bgColor: "#FFE5E5",
+    screen: "Search",
   },
   {
     id: 2,
@@ -35,6 +37,7 @@ const servicesData = [
 ];
 
 const Services = () => {
+  const navigation = useNavigation();
   return (
     <View
       style={{
@@ -48,6 +51,7 @@ const Services = () => {
       {servicesData.map((item) => (
         <TouchableOpacity
           key={item.id}
+          onPress={() => navigation.navigate(item.screen)}
           style={{
             width: responsiveWidth(44), // 2 items per row
             height: 120,

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import {
@@ -62,6 +62,7 @@ const HomeScreen = () => {
 
       {/* QUICK ACCESS + SERVICES */}
       <ScrollView
+        showsVerticalScrollIndicator={false}
         style={{
           flex: 1,
           backgroundColor: COLORS.white,
@@ -78,7 +79,7 @@ const HomeScreen = () => {
             marginBottom: responsiveHeight(2),
           }}
         >
-          <View
+          <TouchableOpacity
             style={{
               backgroundColor: COLORS.white,
               borderRadius: responsiveHeight(2),
@@ -146,7 +147,7 @@ const HomeScreen = () => {
             >
               Karachi
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* SERVICES */}

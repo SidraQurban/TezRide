@@ -9,21 +9,13 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
-
 import SearchInput from "../components/SearchInput";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const recentPlaces = [
-  { id: "1", title: "Home", subtitle: "Gulshan-e-Iqbal, Karachi" },
-  { id: "2", title: "University", subtitle: "Indus University" },
-  { id: "3", title: "Office", subtitle: "Shahrah-e-Faisal" },
-];
 const SearchScreen = () => {
   const navigation = useNavigation();
-
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
-
   const filteredData = SearchData.filter((item) =>
     item.name.toLowerCase().includes(pickup.toLowerCase().trim()),
   );

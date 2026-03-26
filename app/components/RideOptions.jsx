@@ -4,9 +4,9 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
+  Image,
 } from "react-native";
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../constants";
 import {
   responsiveFontSize,
@@ -15,7 +15,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { rideOptions } from "../data/data";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -27,6 +27,7 @@ const RideOptions = () => {
   const selectedPrice = selectedCar
     ? rideOptions.find((c) => c.id === selectedCar).price
     : 0;
+
   const renderCarOption = ({ item }) => (
     <TouchableOpacity
       onPress={() => setSelectedCar(item.id)}
@@ -42,24 +43,29 @@ const RideOptions = () => {
         elevation: 2,
       }}
     >
-      {/* LEFT */}
+      {/* LEFT: Ride Image & Info */}
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <View
           style={{
-            width: responsiveWidth(12),
-            height: responsiveWidth(12),
-            borderRadius: responsiveWidth(6),
-            backgroundColor: COLORS.secondary,
+            width: responsiveWidth(13),
+            height: responsiveWidth(13),
+            borderRadius: responsiveWidth(6.5),
+            backgroundColor:
+              selectedCar === item.id ? COLORS.secondary : COLORS.active, // highlight if selected
             justifyContent: "center",
             alignItems: "center",
           }}
         >
-          {item.iconLib === "MaterialCommunityIcons" ? (
-            <MaterialCommunityIcons name={item.icon} size={24} color="#fff" />
-          ) : (
-            <Ionicons name={item.icon} size={24} color="#fff" />
-          )}
+          <Image
+            source={item.img}
+            style={{
+              width: responsiveWidth(9),
+              height: responsiveWidth(9),
+              resizeMode: "contain",
+            }}
+          />
         </View>
+
         <View style={{ marginLeft: responsiveWidth(4) }}>
           <Text
             style={{
@@ -75,7 +81,7 @@ const RideOptions = () => {
         </View>
       </View>
 
-      {/* RIGHT */}
+      {/* RIGHT: Price & Selection */}
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <Text
           style={{
@@ -112,22 +118,24 @@ const RideOptions = () => {
       </View>
     </TouchableOpacity>
   );
+
   return (
     <View>
-      {/* CAR LIST */}
+      {/* RIDE OPTIONS LIST */}
       <FlatList
         data={rideOptions}
         renderItem={renderCarOption}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: responsiveHeight(2) }}
       />
+
       {/* PROMO CODE */}
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
           marginHorizontal: responsiveWidth(4),
-          marginTop: responsiveHeight(8),
+          marginTop: responsiveHeight(7),
         }}
       >
         <TextInput
@@ -159,7 +167,8 @@ const RideOptions = () => {
           <Ionicons name="add" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
-      {/* distance+time+rs */}
+
+      {/* DISTANCE + TIME + PRICE */}
       <View
         style={{
           paddingHorizontal: responsiveWidth(4),
@@ -194,7 +203,7 @@ const RideOptions = () => {
         </View>
       </View>
 
-      {/* Continue Button */}
+      {/* CONTINUE BUTTON */}
       <View
         style={{
           paddingHorizontal: responsiveWidth(4),

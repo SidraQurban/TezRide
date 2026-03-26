@@ -28,7 +28,7 @@ const paymentMethods = [
   {
     id: "cash",
     name: "Cash (On Arrival)",
-    icon: "https://cdn-icons-png.flaticon.com/512/1170/1170576.png",
+    icon: require("../../assets/pkr.png"),
   },
 ];
 
@@ -57,7 +57,9 @@ const PaymentOption = () => {
             width: responsiveWidth(12),
             height: responsiveWidth(12),
             borderRadius: responsiveWidth(6),
-            backgroundColor: COLORS.secondary,
+            backgroundColor:
+              selectedPayment === item.id ? COLORS.secondary : COLORS.active,
+
             justifyContent: "center",
             alignItems: "center",
           }}

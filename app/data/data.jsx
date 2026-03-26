@@ -114,31 +114,95 @@ export const rideOptions = [
     type: "Bike",
     price: 150,
     nearby: 7,
-    icon: "bicycle",
-    iconLib: "Ionicons",
+
+    img: require("../../assets/bike.png"),
   },
   {
     id: "2",
     type: "Rickshaw",
     price: 200,
     nearby: 19,
-    icon: "rickshaw",
-    iconLib: "MaterialCommunityIcons",
+
+    img: require("../../assets/auto.png"),
   },
   {
     id: "3",
     type: "Standard",
     price: 280,
     nearby: 12,
-    icon: "car",
-    iconLib: "Ionicons",
+
+    img: require("../../assets/car.png"),
   },
   {
     id: "4",
     type: "Premium",
     price: 330,
     nearby: 4,
-    icon: "car-sport",
-    iconLib: "Ionicons",
+
+    img: require("../../assets/prem.png"),
+  },
+];
+
+export const promoData = [
+  {
+    id: "1",
+    title: "Special 25% Off",
+    desc: "Special promo only today!",
+    color: "#A259FF",
+  },
+  {
+    id: "2",
+    title: "Discount 30% Off",
+    desc: "New user special promo",
+    color: "#FFC107",
+  },
+  {
+    id: "3",
+    title: "Special 20% Off",
+    desc: "Special promo only today!",
+    color: "#FF5A5F",
+  },
+  {
+    id: "4",
+    title: "Discount 40% Off",
+    desc: "Special promo only valid today!",
+    color: "#4CD964",
+  },
+  {
+    id: "5",
+    title: "Discount 35% Off",
+    desc: "Special promo only valid today!",
+    color: "#FFC107",
+  },
+];
+
+export const rides = [
+  {
+    id: "bike",
+    label: "BIKE",
+    image: require("../../assets/bike.png"),
+    eta: "8 mins",
+    price: 150,
+  },
+  {
+    id: "rickshaw",
+    label: "RICKSHAW",
+    image: require("../../assets/auto.png"),
+    eta: "6 mins",
+    price: 200,
+  },
+  {
+    id: "car",
+    label: "CAR",
+    image: require("../../assets/car.png"),
+    eta: "5 mins",
+    price: 280,
+  },
+  {
+    id: "prem",
+    label: "Premium",
+    image: require("../../assets/prem.png"),
+    eta: "4 mins",
+    price: 330,
   },
 ];

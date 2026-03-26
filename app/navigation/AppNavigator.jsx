@@ -13,6 +13,7 @@ import PromoScreen from "../screens/PromoScreen";
 import PaymentMethodScreen from "../screens/PaymentMethodScreen";
 import SearchingDirection from "../screens/SearchingDirection";
 import ConfirmRideScreen from "../screens/ConfirmRideScreen";
+import HomeScreen from "../screens/HomeScreen";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -23,6 +24,7 @@ const AppNavigator = () => {
         <Stack.Screen name="login" component={LoginScreen} />
         <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
         <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
+        <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen
           name="LocationDetails"
