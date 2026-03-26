@@ -20,8 +20,8 @@ const DrawerNavigator = () => {
       }}
     >
       <Drawer.Screen name="Home" component={HomeScreen} />
-      <Drawer.Screen name="Booking" component={BookingScreen} />
-      <Drawer.Screen name="ContactUs" component={ContactUsScreen} />
+      {/* <Drawer.Screen name="Booking" component={BookingScreen} /> */}
+      {/* <Drawer.Screen name="ContactUs" component={ContactUsScreen} /> */}
     </Drawer.Navigator>
   );
 };

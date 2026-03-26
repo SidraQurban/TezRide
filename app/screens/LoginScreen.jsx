@@ -139,11 +139,13 @@ const LoginScreen = () => {
                 color: COLORS.primary,
                 fontSize: responsiveFontSize(2),
                 fontFamily: FONTS.semiBold,
+                lineHeight: responsiveFontSize(2.5),
+                includeFontPadding: false,
+                textAlignVertical: "center",
               }}
             >
               {selectedCountry.code}
             </Text>
-
             {/* Input */}
             <TextInput
               style={{
@@ -152,6 +154,9 @@ const LoginScreen = () => {
                 color: isPhoneComplete ? COLORS.primary : COLORS.black,
                 marginLeft: responsiveWidth(2),
                 fontFamily: FONTS.semiBold,
+                includeFontPadding: false,
+                textAlignVertical: "center",
+                paddingVertical: 0,
               }}
               placeholder="3XXXXXXXXX"
               placeholderTextColor={COLORS.num}
@@ -195,7 +200,7 @@ const LoginScreen = () => {
               end={{ x: 1, y: 0 }}
               style={{
                 width: responsiveWidth(85),
-                height: responsiveHeight(7), // ✅ fixed (was width before)
+                height: responsiveHeight(7),
                 borderRadius: responsiveWidth(10),
                 justifyContent: "center",
                 alignItems: "center",
@@ -254,14 +259,20 @@ const LoginScreen = () => {
                       {item.flag}
                     </Text>
 
-                    <Text style={{ fontSize: responsiveFontSize(2) }}>
+                    <Text
+                      style={{
+                        fontSize: responsiveFontSize(1.8),
+                        fontFamily: FONTS.medium,
+                      }}
+                    >
                       {item.name}
                     </Text>
 
                     <Text
                       style={{
-                        fontSize: responsiveFontSize(2),
+                        fontSize: responsiveFontSize(1.8),
                         marginLeft: "auto",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {item.code}

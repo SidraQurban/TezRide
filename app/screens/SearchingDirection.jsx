@@ -41,7 +41,7 @@ const SearchingDirection = () => {
   //confirm cancel
   const confirmCancelRide = () => {
     setShowCancelModal(false);
-    navigation.navigate("Home");
+    navigation.navigate("Search");
   };
 
   useEffect(() => {
@@ -147,9 +147,9 @@ const SearchingDirection = () => {
             <Animated.View
               style={{
                 position: "absolute",
-                width: 150,
-                height: 150,
-                borderRadius: 80,
+                width: 140,
+                height: 140,
+                borderRadius: 70,
                 backgroundColor: "orange",
                 opacity: opacity,
                 transform: [{ scale: scale }],

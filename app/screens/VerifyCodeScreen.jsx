@@ -175,6 +175,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                   padding: 0,
                   color: isCodeComplete ? COLORS.primary : COLORS.black,
                   fontFamily: FONTS.regular,
+                  includeFontPadding: false,
                 }}
                 keyboardType="number-pad"
                 maxLength={1}
