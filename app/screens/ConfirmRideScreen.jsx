@@ -78,11 +78,10 @@ const ConfirmRide = () => {
       <View
         style={{
           position: "absolute",
-          bottom: responsiveHeight(2),
+          bottom: responsiveHeight(6),
           left: responsiveWidth(4),
           right: responsiveWidth(4),
-          zIndex: 5, // make sure button is below bottom sheet
-          top: responsiveHeight(87),
+          zIndex: 5,
         }}
       >
         <TouchableOpacity
@@ -95,8 +94,8 @@ const ConfirmRide = () => {
             end={{ x: 1, y: 0 }}
             style={{
               width: "100%",
-              height: responsiveHeight(7),
-              borderRadius: responsiveWidth(10),
+              paddingVertical: responsiveHeight(2), // responsive height
+              borderRadius: responsiveHeight(3), // proportional radius
               justifyContent: "center",
               alignItems: "center",
             }}

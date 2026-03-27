@@ -100,12 +100,6 @@ export const SearchData = [
     address: "Burns Rd, Saddar, Karachi",
     distance: "2.9 Km",
   },
-  {
-    id: "6",
-    name: "Safari Park",
-    address: "University Rd, Karachi",
-    distance: "6.1 Km",
-  },
 ];
 
 export const rideOptions = [

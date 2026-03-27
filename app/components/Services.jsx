@@ -1,5 +1,5 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
-import React from "react";
+import { View, Text, Image, TouchableOpacity, Modal } from "react-native";
+import React, { useState } from "react";
 import {
   responsiveHeight,
   responsiveWidth,
@@ -7,6 +7,7 @@ import {
 import { COLORS, SIZES } from "../constants";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
+import RentalModal from "./RentalModal";
 
 const servicesData = [
   {
@@ -21,6 +22,7 @@ const servicesData = [
     title: "Delivery",
     image: require("../../assets/delivery.png"),
     bgColor: "#FDE8D7",
+    screen: "Delivery",
   },
   {
     id: 3,
@@ -33,57 +35,80 @@ const servicesData = [
     title: "Shop",
     image: require("../../assets/shop.png"),
     bgColor: "#E6E6FA",
+    screen: "Shops",
   },
 ];
 
 const Services = () => {
   const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handlePress = (item) => {
+    if (item.title === "Rentals") {
+      setModalVisible(true);
+    } else {
+      navigation.navigate(item.screen);
+    }
+  };
+
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-        padding: SIZES.base * 2,
-        marginTop: -20,
-      }}
-    >
-      {servicesData.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          onPress={() => navigation.navigate(item.screen)}
-          style={{
-            width: responsiveWidth(44), // 2 items per row
-            height: 120,
-            backgroundColor: item.bgColor,
-            borderRadius: 16,
-            padding: 12,
-            marginBottom: 12,
-            justifyContent: "space-between",
-          }}
-        >
-          {/* Title */}
-          <Text
+    <View>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          padding: SIZES.base * 2,
+          marginTop: -20,
+        }}
+      >
+        {servicesData.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            onPress={() => handlePress(item)}
             style={{
-              fontSize: 16,
-              color: "#333",
-              fontFamily: FONTS.semiBold,
+              width: responsiveWidth(44), // 2 items per row
+              height: 120,
+              backgroundColor: item.bgColor,
+              borderRadius: 16,
+              padding: 12,
+              marginBottom: 12,
+              justifyContent: "space-between",
             }}
           >
-            {item.title}
-          </Text>
+            {/* Title */}
+            <Text
+              style={{
+                fontSize: 16,
+                color: "#333",
+                fontFamily: FONTS.semiBold,
+              }}
+            >
+              {item.title}
+            </Text>
 
-          {/* Image */}
-          <Image
-            source={item.image}
-            style={{
-              width: "100%",
-              height: responsiveHeight(8),
-              resizeMode: "contain",
-            }}
-          />
-        </TouchableOpacity>
-      ))}
+            {/* Image */}
+            <Image
+              source={item.image}
+              style={{
+                width: "100%",
+                height: responsiveHeight(8),
+                resizeMode: "contain",
+              }}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Rental Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <RentalModal closeModal={() => setModalVisible(false)} />
+      </Modal>
     </View>
   );
 };

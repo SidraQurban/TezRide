@@ -8,8 +8,11 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS } from "../constants";
 import { LinearGradient } from "expo-linear-gradient";
+import { FONTS } from "../constants/theme";
+import { useNavigation } from "@react-navigation/native";
 
-const DeliverybottomPanel = ({ navigation }) => {
+const DeliverybottomPanel = () => {
+  const navigation = useNavigation();
   return (
     <View>
       {/* BOTTOM PANEL */}
@@ -29,8 +32,8 @@ const DeliverybottomPanel = ({ navigation }) => {
         <Text
           style={{
             fontSize: responsiveFontSize(2),
-            fontWeight: "600",
             marginBottom: responsiveHeight(1.2),
+            fontFamily: FONTS.semiBold,
           }}
         >
           Select parcel pickup location
@@ -42,7 +45,8 @@ const DeliverybottomPanel = ({ navigation }) => {
             style={{
               color: COLORS.primary,
               marginBottom: responsiveHeight(1.5),
-              fontWeight: "500",
+              fontFamily: FONTS.semiBold,
+              fontSize: responsiveFontSize(1.7),
             }}
           >
             + Add Another Location
@@ -64,8 +68,9 @@ const DeliverybottomPanel = ({ navigation }) => {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontWeight: "600",
                 marginBottom: responsiveHeight(0.8),
+                fontFamily: FONTS.semiBold,
+                fontSize: responsiveFontSize(1.7),
               }}
             >
               Current location
@@ -74,7 +79,8 @@ const DeliverybottomPanel = ({ navigation }) => {
             <Text
               style={{
                 color: "#777",
-                fontSize: responsiveFontSize(1.5),
+                fontSize: responsiveFontSize(1.6),
+                fontFamily: FONTS.regular,
               }}
             >
               Near 3 Sector 24 Chowrangi industrial area, Karachi
@@ -93,7 +99,8 @@ const DeliverybottomPanel = ({ navigation }) => {
         >
           <Text
             style={{
-              fontWeight: "600",
+              fontFamily: FONTS.semiBold,
+              fontSize: responsiveFontSize(1.7),
             }}
           >
             Home
@@ -102,29 +109,35 @@ const DeliverybottomPanel = ({ navigation }) => {
             style={{
               color: "#777",
               fontSize: responsiveFontSize(1.6),
+              fontFamily: FONTS.regular,
             }}
           >
-            Saeedabad Karachi
+            Clifton, Karachi
           </Text>
         </View>
 
         {/* Confirm button */}
-        <TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("SearchingDirection")}
+        >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
-              padding: 16,
-              borderRadius: 30,
+              width: "100%",
+              height: responsiveHeight(7),
+              borderRadius: responsiveWidth(10),
+              justifyContent: "center",
               alignItems: "center",
             }}
           >
             <Text
               style={{
-                color: "#fff",
-                fontWeight: "bold",
-                letterSpacing: 1,
+                color: COLORS.white,
+                fontFamily: FONTS.semiBold,
+                fontSize: responsiveFontSize(2),
               }}
             >
               CONFIRM LOCATION

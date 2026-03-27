@@ -13,6 +13,7 @@ import Services from "../components/Services";
 import SearchBar from "../components/SearchBar";
 import { Ionicons } from "@expo/vector-icons";
 import { FONTS } from "../constants/theme";
+import LocationModal from "../components/LocationModal";
 
 const HomeScreen = () => {
   return (
@@ -33,7 +34,7 @@ const HomeScreen = () => {
           style={{ flex: 1 }}
         />
 
-        {/* DRAWER HEADER - TOP */}
+        {/* DRAWER HEADER */}
         <View
           style={{
             position: "absolute",
@@ -46,7 +47,7 @@ const HomeScreen = () => {
           <DrawerHeader />
         </View>
 
-        {/* SEARCH BAR - BOTTOM OF MAP */}
+        {/* SEARCH BAR */}
         <View
           style={{
             position: "absolute",
@@ -60,7 +61,7 @@ const HomeScreen = () => {
         </View>
       </View>
 
-      {/* QUICK ACCESS + SERVICES */}
+      {/* CONTENT */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{
@@ -71,7 +72,7 @@ const HomeScreen = () => {
         }}
         contentContainerStyle={{ paddingBottom: responsiveHeight(5) }}
       >
-        {/* Quick Access */}
+        {/* QUICK ACCESS */}
         <View
           style={{
             paddingHorizontal: responsiveWidth(4),
@@ -89,17 +90,18 @@ const HomeScreen = () => {
               shadowColor: "#000",
               shadowOpacity: 0.1,
               shadowRadius: 5,
+              shadowOffset: { width: 0, height: 3 },
               elevation: 3,
-              flexDirection: "column", // column so address is below
+              flexDirection: "column",
               gap: 6,
             }}
           >
-            {/* TOP ROW: HOME + BOOKMARK */}
+            {/* TOP ROW */}
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "space-between", // pushes bookmark to right
+                justifyContent: "space-between",
               }}
             >
               <View
@@ -120,7 +122,6 @@ const HomeScreen = () => {
                 </Text>
               </View>
 
-              {/* Bookmark icon on the right */}
               <Ionicons
                 name="bookmark-outline"
                 size={responsiveFontSize(2)}
@@ -128,7 +129,7 @@ const HomeScreen = () => {
               />
             </View>
 
-            {/* ADDRESS BELOW */}
+            {/* ADDRESS */}
             <Text
               style={{
                 fontFamily: FONTS.semiBold,
@@ -153,6 +154,9 @@ const HomeScreen = () => {
         {/* SERVICES */}
         <Services />
       </ScrollView>
+
+      {/* LOCATION MODAL */}
+      <LocationModal />
     </SafeAreaView>
   );
 };

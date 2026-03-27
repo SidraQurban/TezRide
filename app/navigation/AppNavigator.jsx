@@ -8,11 +8,14 @@ import VerifyCodeScreen from "../screens/VerifyCodeScreen";
 import DrawerNavigator from "./DrawerNavigator";
 import SearchScreen from "../screens/SearchScreen";
 import LocationDetailsScreen from "../screens/LocationDetailsScreen";
-import SelectRideScreen from "../screens/SelectRideScreen";
+// import SelectRideScreen from "../screens/SelectRideScreen";
 import PromoScreen from "../screens/PromoScreen";
-import PaymentMethodScreen from "../screens/PaymentMethodScreen";
+// import PaymentMethodScreen from "../screens/PaymentMethodScreen";
 import SearchingDirection from "../screens/SearchingDirection";
 import ConfirmRideScreen from "../screens/ConfirmRideScreen";
+import DriverProfileScreen from "../screens/DriverProfileScreen";
+import DeliveryScreen from "../screens/DeliveryScreen";
+import ShopsScreen from "../screens/ShopsScreen";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -24,18 +27,21 @@ const AppNavigator = () => {
         <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
         <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
         <Stack.Screen name="Search" component={SearchScreen} />
+        <Stack.Screen name="Delivery" component={DeliveryScreen} />
+        <Stack.Screen name="Shops" component={ShopsScreen} />
         <Stack.Screen
           name="LocationDetails"
           component={LocationDetailsScreen}
         />
-        <Stack.Screen name="SelectRide" component={SelectRideScreen} />
+        {/* <Stack.Screen name="SelectRide" component={SelectRideScreen} /> */}
         <Stack.Screen name="Promo" component={PromoScreen} />
-        <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} />
+        {/* <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} /> */}
         <Stack.Screen name="ConfirmRide" component={ConfirmRideScreen} />
         <Stack.Screen
           name="SearchingDirection"
           component={SearchingDirection}
         />
+        <Stack.Screen name="DriverProfile" component={DriverProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

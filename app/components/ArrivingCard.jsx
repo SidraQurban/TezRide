@@ -8,8 +8,10 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
+import { useNavigation } from "@react-navigation/native";
 
 const ArrivingCard = ({ onClose }) => {
+  const navigation = useNavigation();
   return (
     <View
       style={{
@@ -51,49 +53,51 @@ const ArrivingCard = ({ onClose }) => {
       </View>
 
       {/* Driver Row */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginBottom: responsiveHeight(2),
-        }}
-      >
-        <Image
-          source={{
-            uri: "https://randomuser.me/api/portraits/men/46.jpg",
-          }}
+      <TouchableOpacity onPress={() => navigation.navigate("DriverProfile")}>
+        <View
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: 26,
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: responsiveHeight(2),
           }}
-        />
-
-        <View style={{ marginLeft: 12, flex: 1 }}>
-          <Text
-            style={{
-              fontFamily: FONTS.semiBold,
-              fontSize: responsiveFontSize(1.9),
+        >
+          <Image
+            source={{
+              uri: "https://randomuser.me/api/portraits/men/46.jpg",
             }}
-          >
-            Usman Tariq
-          </Text>
-
-          <Text
             style={{
-              color: "#8A8A8A",
-              fontSize: responsiveFontSize(1.5),
+              width: 52,
+              height: 52,
+              borderRadius: 26,
             }}
-          >
-            Mercedes-Benz E-Class
-          </Text>
-        </View>
+          />
 
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Ionicons name="star" size={16} color="#FFC107" />
-          <Text style={{ marginLeft: 4, fontSize: 13 }}>4.6</Text>
+          <View style={{ marginLeft: 12, flex: 1 }}>
+            <Text
+              style={{
+                fontFamily: FONTS.semiBold,
+                fontSize: responsiveFontSize(1.9),
+              }}
+            >
+              Usman Tariq
+            </Text>
+
+            <Text
+              style={{
+                color: "#8A8A8A",
+                fontSize: responsiveFontSize(1.5),
+              }}
+            >
+              Mercedes-Benz E-Class
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Ionicons name="star" size={16} color="#FFC107" />
+            <Text style={{ marginLeft: 4, fontSize: 13 }}>4.6</Text>
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Divider */}
       <View
@@ -105,7 +109,7 @@ const ArrivingCard = ({ onClose }) => {
       />
 
       {/* Locations */}
-      <View style={{ marginBottom: responsiveHeight(2) }}>
+      <View>
         <View style={{ flexDirection: "row", marginBottom: 14 }}>
           <View
             style={{
@@ -150,7 +154,34 @@ const ArrivingCard = ({ onClose }) => {
           </View>
         </View>
       </View>
-
+      {/* SHARE RIDE (RIGHT SIDE) */}
+      <View
+        style={{
+          width: "100%",
+          alignItems: "flex-end",
+          marginBottom: responsiveHeight(1),
+        }}
+      >
+        {/* Share My Ride Row */}
+        <TouchableOpacity
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Ionicons name="share-social" size={24} color={COLORS.secondary} />
+          <Text
+            style={{
+              marginLeft: 6,
+              color: COLORS.black,
+              fontFamily: FONTS.semiBold,
+              fontSize: responsiveFontSize(1.7),
+            }}
+          >
+            Share my ride
+          </Text>
+        </TouchableOpacity>
+      </View>
       {/* Bottom Buttons */}
       <View
         style={{
