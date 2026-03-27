@@ -19,7 +19,7 @@ const DrawerHeader = () => {
       <TouchableOpacity
         onPress={() => navigation.toggleDrawer()}
         style={{
-          backgroundColor: COLORS.background,
+          backgroundColor: COLORS.active,
           padding: SIZES.base * 1.2,
           borderRadius: responsiveHeight(3),
         }}

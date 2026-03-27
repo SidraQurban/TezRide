@@ -200,7 +200,7 @@ export const rides = [
   },
   {
     id: "prem",
-    label: "Premium",
+    label: "Comfort",
     image: require("../../assets/prem.png"),
     eta: "4 mins",
     price: 330,

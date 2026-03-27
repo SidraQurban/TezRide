@@ -22,6 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ArrivingCard from "../components/ArrivingCard";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
+import BackBtn from "../components/BackBtn";
 
 const SearchingDirection = () => {
   const navigation = useNavigation();
@@ -66,10 +67,10 @@ const SearchingDirection = () => {
   });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View style={{ flex: 1, paddingBottom: responsiveHeight(2) }}>
         {/* HEADER */}
-        <View
+        {/* <View
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -91,6 +92,15 @@ const SearchingDirection = () => {
           >
             Searching Direction
           </Text>
+        </View> */}
+        <View
+          style={{
+            position: "absolute",
+            left: responsiveWidth(4),
+            zIndex: 10,
+          }}
+        >
+          <BackBtn />
         </View>
 
         {/* MAP + OVERLAY */}

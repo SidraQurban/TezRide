@@ -80,6 +80,8 @@ const SearchInput = ({
               placeholder="Enter Destination"
               value={destination}
               onChangeText={setDestination}
+              returnKeyType="search"
+              onSubmitEditing={() => setDestination(destination.trim())}
               style={{
                 fontSize: 14,
                 fontFamily: FONTS.medium,

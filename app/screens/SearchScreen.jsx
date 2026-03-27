@@ -11,18 +11,19 @@ import {
 } from "react-native-responsive-dimensions";
 import SearchInput from "../components/SearchInput";
 import { SafeAreaView } from "react-native-safe-area-context";
+import BackBtn from "../components/BackBtn";
 
 const SearchScreen = () => {
   const navigation = useNavigation();
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const filteredData = SearchData.filter((item) =>
-    item.name.toLowerCase().includes(pickup.toLowerCase().trim()),
+    item.name.toLowerCase().includes(destination.toLowerCase().trim()),
   );
 
   const renderItem = ({ item, index }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate("LocationDetails", { location: item })}
+      onPress={() => navigation.navigate("ConfirmRide", { location: item })}
       style={{
         flexDirection: "row",
         alignItems: "center",
@@ -86,7 +87,7 @@ const SearchScreen = () => {
       }}
     >
       {/* HEADER */}
-      <View
+      {/* <View
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -107,7 +108,8 @@ const SearchScreen = () => {
         >
           Search
         </Text>
-      </View>
+      </View> */}
+      <BackBtn />
 
       {/* SEARCH INPUT */}
       <SearchInput
@@ -156,7 +158,7 @@ const SearchScreen = () => {
           {filteredData.length} results found
         </Text>
 
-        <TouchableOpacity onPress={() => setPickup("")}>
+        <TouchableOpacity onPress={() => setDestination("")}>
           <Text
             style={{
               fontSize: responsiveFontSize(1.7),
@@ -170,7 +172,7 @@ const SearchScreen = () => {
       </View>
 
       {/* EMPTY STATE OR RESULTS */}
-      {pickup.trim().length > 0 && filteredData.length === 0 ? (
+      {destination.trim().length > 0 && filteredData.length === 0 ? (
         <View style={{ flex: 1 }}>
           <Image
             source={require("../../assets/notFound.png")}

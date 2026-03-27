@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { ScrollView, TouchableOpacity, Image, Text, View } from "react-native";
+import { TouchableOpacity, Image, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { MaterialIcons } from "@expo/vector-icons";
 import {
   responsiveHeight,
   responsiveWidth,
@@ -9,9 +8,9 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
-import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { rides } from "../data/data";
+import { ScrollView } from "react-native-gesture-handler";
 
 const RidesSlider = () => {
   const navigation = useNavigation();
@@ -20,15 +19,16 @@ const RidesSlider = () => {
 
   return (
     <View>
-      {/* SERVICES SLIDER */}
+      {/* SERVICES SLIDER ) */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
-          paddingVertical: responsiveHeight(1),
+          paddingBottom: responsiveHeight(1),
           marginLeft: responsiveWidth(1),
         }}
-        style={{ flexGrow: 0 }}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
       >
         {rides.map((service) => {
           const active = selectedService === service.id;
@@ -36,69 +36,69 @@ const RidesSlider = () => {
             <TouchableOpacity
               key={service.id}
               onPress={() => setSelectedService(service.id)}
-              style={[
-                {
-                  height: responsiveHeight(16),
-                  width: responsiveWidth(33),
-                  backgroundColor: COLORS.serviceBg,
-                  borderRadius: 18,
-                  padding: responsiveHeight(1),
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginRight: responsiveWidth(3),
-                },
-                active && {
-                  backgroundColor: COLORS.active,
-                  borderWidth: 2,
-                  borderColor: COLORS.primary,
-                },
-              ]}
+              activeOpacity={0.9}
+              style={{
+                height: responsiveHeight(17),
+                width: responsiveWidth(35),
+                borderRadius: 20,
+                marginRight: responsiveWidth(3),
+                padding: responsiveHeight(1.2),
+                justifyContent: "space-between",
+                backgroundColor: active ? COLORS.active : COLORS.white,
+                borderWidth: active ? 2 : 0,
+                borderColor: COLORS.primary,
+                elevation: 4,
+                shadowColor: "#000",
+                shadowOpacity: 0.08,
+                shadowRadius: 6,
+              }}
             >
-              {/* Tick Icon */}
               {active && (
-                <View style={{ position: "absolute", top: 8, right: 8 }}>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={20}
-                    color={COLORS.secondary}
-                  />
-                </View>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={COLORS.primary}
+                  style={{ position: "absolute", top: 8, right: 8 }}
+                />
               )}
 
               <Image
                 source={service.image}
                 style={{
-                  width: responsiveWidth(18),
-                  height: responsiveHeight(6),
+                  width: responsiveWidth(20),
+                  height: responsiveHeight(7),
                   resizeMode: "contain",
+                  alignSelf: "center",
                 }}
               />
+
               <Text
                 style={{
-                  marginTop: 4,
-                  fontSize: responsiveFontSize(1.5),
-                  color: active ? COLORS.primary : "#555",
+                  fontSize: responsiveFontSize(1.6),
                   fontFamily: FONTS.bold,
+                  textAlign: "center",
+                  color: "#222",
                 }}
               >
                 {service.label}
               </Text>
+
               <View style={{ alignItems: "center" }}>
                 <Text
                   style={{
-                    fontSize: responsiveFontSize(1.4),
+                    fontSize: responsiveFontSize(1.3),
                     color: "#777",
-                    fontFamily: FONTS.semiBold,
+                    fontFamily: FONTS.regular,
                   }}
                 >
                   {service.eta}
                 </Text>
+
                 <Text
                   style={{
-                    fontSize: responsiveFontSize(1.5),
-                    fontWeight: "600",
-                    color: "#000",
+                    fontSize: responsiveFontSize(1.6),
                     fontFamily: FONTS.bold,
+                    color: COLORS.primary,
                   }}
                 >
                   Rs. {service.price}
@@ -109,119 +109,123 @@ const RidesSlider = () => {
         })}
       </ScrollView>
 
-      {/* LOCATION DETAILS & PRICE */}
+      {/* LOCATION CARD (UPDATED) */}
       <View
         style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingHorizontal: responsiveWidth(4),
-          marginTop: responsiveHeight(1),
+          marginHorizontal: responsiveWidth(2),
+          padding: responsiveWidth(3.5),
+          backgroundColor: "#fff",
+          borderRadius: 15,
+          elevation: 2,
+          marginBottom: responsiveHeight(1),
         }}
       >
-        <View>
+        {/* TOP ROW: LOCATION TITLE + PRICE */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: responsiveHeight(0.5),
+          }}
+        >
           <Text
             style={{
-              fontSize: responsiveFontSize(2),
               fontFamily: FONTS.semiBold,
+              fontSize: responsiveFontSize(1.9),
             }}
           >
             Locations
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginTop: responsiveHeight(1),
-            }}
-          >
-            <MaterialIcons
-              name="location-pin"
-              size={18}
-              color={COLORS.primary}
-              style={{ marginRight: 6 }}
-            />
-            <Text
-              style={{
-                fontSize: responsiveFontSize(1.6),
-                fontFamily: FONTS.regular,
-              }}
-            >
-              Pickup: 123 Main St., Karachi
-            </Text>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginTop: responsiveHeight(0.8),
-            }}
-          >
-            <MaterialIcons
-              name="location-pin"
-              size={18}
-              color={COLORS.icon}
-              style={{ marginRight: 6 }}
-            />
-            <Text
-              style={{
-                fontSize: responsiveFontSize(1.6),
-                fontFamily: FONTS.regular,
-              }}
-            >
-              Drop: 456 University Rd., Karachi
-            </Text>
-          </View>
-        </View>
 
-        {/* Price */}
-        <View>
+          {/* SELECTED PRICE TOP RIGHT */}
           <Text
             style={{
-              fontSize: responsiveFontSize(2),
               fontFamily: FONTS.bold,
+              fontSize: responsiveFontSize(1.9),
               color: COLORS.primary,
             }}
           >
             Rs. {selectedRide.price}
           </Text>
         </View>
-      </View>
 
-      {/* CONFIRM BUTTON */}
-      <View
-        style={{
-          paddingHorizontal: responsiveWidth(4),
-          marginTop: responsiveHeight(3),
-        }}
-      >
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate("SearchingDirection")}
-        >
-          <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+        {/* Pickup */}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
             style={{
-              width: "100%",
-              height: responsiveHeight(7),
-              borderRadius: responsiveWidth(10),
-              justifyContent: "center",
-              alignItems: "center",
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: COLORS.primary,
+              marginRight: 8,
+            }}
+          />
+          <Text style={{ fontFamily: FONTS.medium }}>Current Location</Text>
+        </View>
+
+        {/* Line */}
+        <View
+          style={{
+            height: 18,
+            width: 1,
+            backgroundColor: "#ccc",
+            marginLeft: 4,
+            marginVertical: 4,
+          }}
+        />
+
+        {/* Drop */}
+        <View
+          style={{ flexDirection: "row", alignItems: "center", marginLeft: -2 }}
+        >
+          <Ionicons
+            name="location-sharp"
+            size={16}
+            color={COLORS.primary}
+            style={{ marginRight: 6 }}
+          />
+          <Text style={{ fontFamily: FONTS.medium }}>Destination address</Text>
+        </View>
+
+        {/* BOTTOM ROW: ETA + APPLY PROMO */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: responsiveHeight(1),
+          }}
+        >
+          <Text
+            style={{
+              fontSize: responsiveFontSize(1.4),
+              color: "#777",
             }}
           >
-            <Text
-              style={{
-                color: "#fff",
-                fontFamily: FONTS.semiBold,
-                fontSize: responsiveFontSize(2),
-              }}
-            >
-              Confirm Ride
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            ETA: 3 min • 5.4 km
+          </Text>
+
+          {/*   PROMO SECTIOn  */}
+          <TouchableOpacity onPress={() => navigation.navigate("Promo")}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text
+                style={{
+                  fontFamily: FONTS.medium,
+                  marginRight: 4,
+                  color: COLORS.primary,
+                }}
+              >
+                Apply Promo
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={COLORS.primary}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

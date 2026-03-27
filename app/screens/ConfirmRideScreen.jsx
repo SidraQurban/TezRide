@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useMemo, useRef } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 import { SafeAreaView } from "react-native-safe-area-context";
+import BottomSheet from "@gorhom/bottom-sheet";
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -12,15 +13,20 @@ import {
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import RidesSlider from "../components/RidesSlider";
+import { LinearGradient } from "expo-linear-gradient";
+import BackBtn from "../components/BackBtn";
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
+  const bottomSheetRef = useRef(null);
+  const snapPoints = useMemo(() => ["55%", "56%", "56%"], []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={{ flex: 1, paddingBottom: responsiveHeight(2) }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      {/* MAIN CONTENT */}
+      <View style={{ flex: 1 }}>
         {/* HEADER */}
-        <View
+        {/* <View
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -41,13 +47,22 @@ const ConfirmRide = () => {
           >
             Ride Details
           </Text>
+        </View> */}
+        <View
+          style={{
+            position: "absolute",
+            left: responsiveWidth(4),
+            zIndex: 10,
+          }}
+        >
+          <BackBtn />
         </View>
 
         {/* MAP */}
         <View
           style={{
-            height: responsiveHeight(40),
-            marginBottom: responsiveHeight(1),
+            height: responsiveHeight(60),
+            marginBottom: responsiveHeight(0.5),
           }}
         >
           <WebView
@@ -57,10 +72,68 @@ const ConfirmRide = () => {
             style={{ flex: 1 }}
           />
         </View>
-
-        {/* SERVICES SLIDER */}
-        <RidesSlider />
       </View>
+
+      {/* CONFIRM BUTTON STICKED TO BOTTOM */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: responsiveHeight(2),
+          left: responsiveWidth(4),
+          right: responsiveWidth(4),
+          zIndex: 5, // make sure button is below bottom sheet
+          top: responsiveHeight(87),
+        }}
+      >
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("SearchingDirection")}
+        >
+          <LinearGradient
+            colors={[COLORS.primary, COLORS.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              width: "100%",
+              height: responsiveHeight(7),
+              borderRadius: responsiveWidth(10),
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: FONTS.semiBold,
+                fontSize: responsiveFontSize(2),
+              }}
+            >
+              Confirm Ride
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+
+      {/* BOTTOM SHEET ABOVE BUTTON */}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={0}
+        snapPoints={snapPoints}
+        enablePanDownToClose={false}
+        animateOnMount={true}
+        enableDynamicSizing={false}
+        enableContentPanningGesture={true}
+        handleIndicatorStyle={{
+          width: 60,
+          height: 5,
+          backgroundColor: "#E0E0E0",
+        }}
+        style={{
+          zIndex: 10, // ensures sheet is above button
+        }}
+      >
+        <RidesSlider onClose={() => bottomSheetRef.current?.snapToIndex(0)} />
+      </BottomSheet>
     </SafeAreaView>
   );
 };

@@ -133,7 +133,7 @@ const PromoScreen = () => {
       >
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("PaymentMethod")}
+          onPress={() => navigation.goBack()}
         >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}

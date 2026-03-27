@@ -17,7 +17,7 @@ const LocationDetailsScreen = () => {
   const navigation = useNavigation();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View
         style={{
           flex: 1,
