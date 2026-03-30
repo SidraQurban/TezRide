@@ -19,9 +19,9 @@ const DrawerHeader = () => {
       <TouchableOpacity
         onPress={() => navigation.toggleDrawer()}
         style={{
-          backgroundColor: COLORS.active,
+          // backgroundColor: COLORS.active,
           padding: SIZES.base * 1.2,
-          borderRadius: responsiveHeight(3),
+          // borderRadius: responsiveHeight(3),
         }}
       >
         {/* Bars-Staggered SVG Icon */}

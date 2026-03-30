@@ -95,9 +95,9 @@ const SearchingDirection = () => {
         </View> */}
         <View
           style={{
-            position: "absolute",
-            left: responsiveWidth(4),
-            zIndex: 10,
+            // position: "absolute",
+            left: responsiveWidth(1.5),
+            // zIndex: 10,
           }}
         >
           <BackBtn />

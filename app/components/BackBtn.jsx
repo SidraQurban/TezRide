@@ -1,31 +1,49 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, Image } from "react-native";
 import React from "react";
-import { responsiveHeight } from "react-native-responsive-dimensions";
+import {
+  responsiveHeight,
+  responsiveWidth,
+} from "react-native-responsive-dimensions";
 import { useNavigation } from "@react-navigation/native";
 import { COLORS, SIZES } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
 
 const BackBtn = () => {
   const navigation = useNavigation();
+
   return (
     <View
       style={{
-        flexDirection: "row",
-        marginTop: responsiveHeight(2),
+        height: responsiveHeight(5),
         marginBottom: responsiveHeight(1),
+        justifyContent: "center",
+        alignItems: "center",
+        position: "relative",
       }}
     >
-      {/* back Button */}
+      {/* Back Button (Left Corner) */}
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={{
-          backgroundColor: COLORS.active,
-          padding: SIZES.base * 1.2,
-          borderRadius: responsiveHeight(3),
+          position: "absolute",
+          left: responsiveWidth(1.5),
+          top: 0,
+          bottom: 0,
+          justifyContent: "center",
         }}
       >
-        <Ionicons name="chevron-back-sharp" size={25} color={COLORS.primary} />
+        <Ionicons name="arrow-back-outline" size={25} color={COLORS.primary} />
       </TouchableOpacity>
+
+      {/* Center Logo */}
+      <Image
+        source={require("../../assets/logo.png")}
+        style={{
+          width: responsiveWidth(40),
+          height: responsiveHeight(20),
+          resizeMode: "contain",
+        }}
+      />
     </View>
   );
 };

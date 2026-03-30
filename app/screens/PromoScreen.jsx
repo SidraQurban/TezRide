@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { promoData } from "../data/data";
+import BackBtn from "../components/BackBtn";
 
 const PromoScreen = () => {
   const navigation = useNavigation();
@@ -92,7 +93,7 @@ const PromoScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       {/* Header */}
-      <View
+      {/* <View
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -113,6 +114,11 @@ const PromoScreen = () => {
         >
           Add Promo
         </Text>
+      </View> */}
+      <View
+        style={{ left: responsiveWidth(4), paddingBottom: responsiveHeight(1) }}
+      >
+        <BackBtn />
       </View>
 
       {/* Promo List */}
