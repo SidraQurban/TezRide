@@ -42,6 +42,7 @@ const BackBtn = () => {
           width: responsiveWidth(40),
           height: responsiveHeight(20),
           resizeMode: "contain",
+          right: responsiveWidth(1),
         }}
       />
     </View>

@@ -200,3 +200,52 @@ export const rides = [
     price: 330,
   },
 ];
+
+export const categoriesData = [
+  "Food",
+  "Grocery",
+  "Pharmacy",
+  "Electronics",
+  "Bakery",
+  "Fruits",
+  "Meat",
+];
+
+export const shopsData = [
+  {
+    id: 1,
+    name: "Avenue Bakery",
+    rating: 4.8,
+    image: require("../../assets/bakery2.webp"),
+    products: [
+      { id: 1, name: "Bread", emoji: "🍞" },
+      { id: 2, name: "Apples", emoji: "🍎" },
+      { id: 3, name: "Milk", emoji: "🥛" },
+      { id: 4, name: "Medicines", emoji: "💊" },
+    ],
+  },
+  {
+    id: 2,
+    name: "Daily Fresh Mart",
+    rating: 4.6,
+    image: require("../../assets/mart.jpg"),
+    products: [
+      { id: 1, name: "Banana", emoji: "🍌" },
+      { id: 2, name: "Eggs", emoji: "🥚" },
+      { id: 3, name: "Juice", emoji: "🧃" },
+      { id: 4, name: "Rice", emoji: "🍚" },
+    ],
+  },
+  {
+    id: 3,
+    name: "Health Pharmacy",
+    rating: 4.7,
+    image: require("../../assets/pharmacy.jpg"),
+    products: [
+      { id: 1, name: "Tablet", emoji: "💊" },
+      { id: 2, name: "Syrup", emoji: "🧴" },
+      { id: 3, name: "Mask", emoji: "😷" },
+      { id: 4, name: "Vitamins", emoji: "💊" },
+    ],
+  },
+];

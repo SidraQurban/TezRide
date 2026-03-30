@@ -23,10 +23,10 @@ const DeliveryScreen = () => {
         {/* BACK BUTTON */}
         <View
           style={{
-            position: "absolute",
-            top: responsiveHeight(2),
+            // position: "absolute",
+            // top: responsiveHeight(2),
             left: responsiveWidth(4),
-            zIndex: 10,
+            // zIndex: 10,
           }}
         >
           <BackBtn />

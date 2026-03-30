@@ -1,45 +1,83 @@
-import { Text, View } from "react-native";
+import React from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import {
   responsiveFontSize,
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
-import BackBtn from "../components/BackBtn";
 import { COLORS } from "../constants";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { FONTS } from "../constants/theme";
+import BackBtn from "../components/BackBtn";
+import Categories from "../components/Categories";
+import Shops from "../components/Shops";
+import { shopsData } from "../data/data";
 
 const ShopsScreen = () => {
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: COLORS.background,
-      }}
-    >
-      {/* MAIN CONTAINER */}
-      <View style={{ flex: 1 }}>
-        {/* BACK BUTTON */}
-        <View
-          style={{
-            left: responsiveWidth(4),
-            paddingBottom: responsiveHeight(1),
-          }}
-        >
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+      {/* HEADER */}
+      <View style={{ backgroundColor: "#F5F5F5", zIndex: 10 }}>
+        <View style={{ left: responsiveWidth(4) }}>
           <BackBtn />
         </View>
-        <View style={{ alignItems: "center" }}>
-          <Text
-            style={{
-              marginTop: responsiveHeight(20),
-              fontFamily: FONTS.bold,
-              fontSize: responsiveFontSize(2),
-            }}
+
+        {/* SEARCH */}
+        <View
+          style={{
+            marginHorizontal: responsiveWidth(4),
+            marginTop: responsiveHeight(1),
+            flexDirection: "row",
+            alignItems: "center",
+            borderWidth: 1.5,
+            borderColor: "#FF6B00",
+            borderRadius: responsiveHeight(3),
+            paddingLeft: responsiveWidth(3),
+            height: responsiveHeight(6),
+            backgroundColor: "#fff",
+          }}
+        >
+          <TouchableOpacity
+            style={{ justifyContent: "center", alignItems: "center" }}
           >
-            Work in progress
-          </Text>
+            <Ionicons name="search" size={22} color={COLORS.primary} />
+          </TouchableOpacity>
+          <TextInput
+            placeholder="Search items or stores"
+            style={{ flex: 1, marginLeft: responsiveWidth(4) }}
+          />
         </View>
+
+        <Categories />
       </View>
+
+      {/* SHOP LIST */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: responsiveHeight(5) }}
+      >
+        {/* <Text
+          style={{
+            marginTop: responsiveHeight(2),
+            marginHorizontal: responsiveWidth(4),
+            fontSize: responsiveFontSize(2),
+            fontFamily: FONTS.bold,
+          }}
+        >
+          Shops
+        </Text> */}
+
+        {shopsData.map((shop) => (
+          <Shops key={shop.id} shop={shop} />
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 };

@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { FONTS } from "../constants/theme";
 import LocationModal from "../components/LocationModal";
 
-const HomeScreen = () => {
+const Settings = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       {/* MAP SECTION */}
@@ -147,4 +147,4 @@ const HomeScreen = () => {
   );
 };
 
-export default HomeScreen;
+export default Settings;
