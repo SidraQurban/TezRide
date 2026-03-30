@@ -16,6 +16,7 @@ import ConfirmRideScreen from "../screens/ConfirmRideScreen";
 import DriverProfileScreen from "../screens/DriverProfileScreen";
 import DeliveryScreen from "../screens/DeliveryScreen";
 import ShopsScreen from "../screens/ShopsScreen";
+import HireDriverScreen from "../screens/HireDriverScreen";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -28,6 +29,7 @@ const AppNavigator = () => {
         <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
         <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen name="Delivery" component={DeliveryScreen} />
+        <Stack.Screen name="HireDriver" component={HireDriverScreen} />
         <Stack.Screen name="Shops" component={ShopsScreen} />
         <Stack.Screen
           name="LocationDetails"

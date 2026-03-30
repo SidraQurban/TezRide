@@ -4,14 +4,15 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
-import { FONTS } from "../constants/theme";
+import { COLORS, FONTS } from "../constants/theme";
+import { Ionicons } from "@expo/vector-icons";
 
-const Shops = ({ shop }) => {
+const ShopCard = ({ shop }) => {
   return (
     <View
       style={{
         marginHorizontal: responsiveWidth(4),
-        marginTop: responsiveHeight(4),
+        marginTop: responsiveHeight(0.5),
         marginBottom: responsiveHeight(2),
         backgroundColor: "#fff",
         borderRadius: responsiveHeight(2),
@@ -30,7 +31,7 @@ const Shops = ({ shop }) => {
         resizeMode="cover"
       />
 
-      {/* INFO */}
+      {/* SHOP INFO */}
       <View
         style={{
           flexDirection: "row",
@@ -38,12 +39,31 @@ const Shops = ({ shop }) => {
           marginTop: responsiveHeight(1),
         }}
       >
-        <Text style={{ fontFamily: FONTS.bold, fontSize: responsiveHeight(2) }}>
+        <Text
+          style={{
+            fontFamily: FONTS.bold,
+            fontSize: responsiveHeight(1.9),
+          }}
+        >
           {shop.name}
         </Text>
-        <Text style={{ color: "#FFB800", fontSize: responsiveHeight(2) }}>
-          ⭐ {shop.rating}
-        </Text>
+        {/* RATING + icon */}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Ionicons
+            name="star"
+            size={responsiveHeight(2)}
+            color={COLORS.secondary}
+          />
+          <Text
+            style={{
+              color: COLORS.secondary,
+              fontSize: responsiveHeight(2),
+              marginLeft: 4,
+            }}
+          >
+            {shop.rating}
+          </Text>
+        </View>
       </View>
 
       {/* PRODUCTS */}
@@ -66,6 +86,7 @@ const Shops = ({ shop }) => {
       >
         {shop.products.map((product) => (
           <View key={product.id} style={{ alignItems: "center" }}>
+            {/* PRODUCT IMAGE BOX */}
             <View
               style={{
                 width: responsiveWidth(14),
@@ -76,11 +97,23 @@ const Shops = ({ shop }) => {
                 alignItems: "center",
               }}
             >
-              <Text style={{ fontSize: responsiveHeight(2) }}>
-                {product.emoji}
-              </Text>
+              <Image
+                source={product.image}
+                style={{
+                  width: responsiveWidth(15),
+                  height: responsiveWidth(15),
+                }}
+                resizeMode="contain"
+              />
             </View>
-            <Text style={{ fontSize: responsiveHeight(1.5), marginTop: 4 }}>
+
+            {/* PRODUCT NAME */}
+            <Text
+              style={{
+                fontSize: responsiveHeight(1.5),
+                marginTop: 4,
+              }}
+            >
               {product.name}
             </Text>
           </View>
@@ -90,4 +123,4 @@ const Shops = ({ shop }) => {
   );
 };
 
-export default Shops;
+export default ShopCard;

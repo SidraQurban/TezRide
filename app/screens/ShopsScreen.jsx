@@ -17,7 +17,7 @@ import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import BackBtn from "../components/BackBtn";
 import Categories from "../components/Categories";
-import Shops from "../components/Shops";
+import ShopCard from "../components/ShopCard";
 import { shopsData } from "../data/data";
 
 const ShopsScreen = () => {
@@ -55,13 +55,15 @@ const ShopsScreen = () => {
           />
         </View>
 
-        <Categories />
+        <View style={{ marginBottom: responsiveHeight(2) }}>
+          <Categories />
+        </View>
       </View>
 
       {/* SHOP LIST */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: responsiveHeight(5) }}
+        contentContainerStyle={{ paddingBottom: responsiveHeight(5) }} // important for spacing at bottom
       >
         {/* <Text
           style={{
@@ -71,11 +73,11 @@ const ShopsScreen = () => {
             fontFamily: FONTS.bold,
           }}
         >
-          Shops
+          Shop List
         </Text> */}
 
         {shopsData.map((shop) => (
-          <Shops key={shop.id} shop={shop} />
+          <ShopCard key={shop.id} shop={shop} />
         ))}
       </ScrollView>
     </SafeAreaView>

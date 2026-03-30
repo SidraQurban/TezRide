@@ -218,10 +218,10 @@ export const shopsData = [
     rating: 4.8,
     image: require("../../assets/bakery2.webp"),
     products: [
-      { id: 1, name: "Bread", emoji: "🍞" },
-      { id: 2, name: "Apples", emoji: "🍎" },
-      { id: 3, name: "Milk", emoji: "🥛" },
-      { id: 4, name: "Medicines", emoji: "💊" },
+      { id: 1, name: "Bread", image: require("../../assets/bread.png") },
+      { id: 2, name: "Apples", image: require("../../assets/apples.png") },
+      { id: 3, name: "Milk", image: require("../../assets/milk.png") },
+      { id: 4, name: "Chocolates", image: require("../../assets/choc.png") },
     ],
   },
   {
@@ -230,10 +230,10 @@ export const shopsData = [
     rating: 4.6,
     image: require("../../assets/mart.jpg"),
     products: [
-      { id: 1, name: "Banana", emoji: "🍌" },
-      { id: 2, name: "Eggs", emoji: "🥚" },
-      { id: 3, name: "Juice", emoji: "🧃" },
-      { id: 4, name: "Rice", emoji: "🍚" },
+      { id: 1, name: "Banana", image: require("../../assets/bananas.png") },
+      { id: 2, name: "Eggs", image: require("../../assets/eggs.png") },
+      { id: 3, name: "Vegetables", image: require("../../assets/veges.png") },
+      { id: 4, name: "Rice", image: require("../../assets/rice.png") },
     ],
   },
   {
@@ -242,10 +242,14 @@ export const shopsData = [
     rating: 4.7,
     image: require("../../assets/pharmacy.jpg"),
     products: [
-      { id: 1, name: "Tablet", emoji: "💊" },
-      { id: 2, name: "Syrup", emoji: "🧴" },
-      { id: 3, name: "Mask", emoji: "😷" },
-      { id: 4, name: "Vitamins", emoji: "💊" },
+      {
+        id: 1,
+        name: "Medicines",
+        image: require("../../assets/meds.png"),
+      },
+      { id: 2, name: "Syrup", image: require("../../assets/syrup.png") },
+      { id: 3, name: "Mask", image: require("../../assets/mask.png") },
+      { id: 4, name: "Syringe", image: require("../../assets/syringe.png") },
     ],
   },
 ];

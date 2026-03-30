@@ -7,7 +7,6 @@ import {
 import { COLORS, SIZES } from "../constants";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
-import RentalModal from "./RentalModal";
 
 const servicesData = [
   {
@@ -29,6 +28,7 @@ const servicesData = [
     title: "Hire Driver",
     image: require("../../assets/rentals.png"),
     bgColor: "#DFF3E3",
+    screen: "HireDriver",
   },
   {
     id: 4,
@@ -44,11 +44,12 @@ const Services = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handlePress = (item) => {
-    if (item.title === "Rentals") {
-      setModalVisible(true);
-    } else {
-      navigation.navigate(item.screen);
-    }
+    navigation.navigate(item.screen);
+    // if (item.title === "Rentals") {
+    //   setModalVisible(true);
+    // } else {
+    //   navigation.navigate(item.screen);
+    // }
   };
 
   return (
@@ -101,14 +102,14 @@ const Services = () => {
       </View>
 
       {/* Rental Modal */}
-      <Modal
+      {/* <Modal
         visible={modalVisible}
         transparent
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
         <RentalModal closeModal={() => setModalVisible(false)} />
-      </Modal>
+      </Modal> */}
     </View>
   );
 };

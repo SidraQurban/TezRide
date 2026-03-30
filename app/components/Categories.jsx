@@ -39,7 +39,7 @@ const Categories = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
-          paddingRight: responsiveWidth(4), // ✅ end spacing fix
+          paddingRight: responsiveWidth(4),
         }}
         style={{ marginTop: responsiveHeight(1) }}
       >
@@ -55,12 +55,16 @@ const Categories = () => {
                 paddingHorizontal: responsiveWidth(4),
                 paddingVertical: responsiveHeight(0.8),
                 borderRadius: responsiveHeight(3),
-                backgroundColor: isSelected ? "#FF6B00" : "#EDEDED",
+                backgroundColor: isSelected ? COLORS.active : "#EDEDED",
+                borderWidth: isSelected ? 1.5 : 0,
+                borderColor: isSelected ? COLORS.primary : "transparent",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
               <Text
                 style={{
-                  color: isSelected ? "#fff" : "#333",
+                  color: COLORS.black,
                 }}
               >
                 {item}
