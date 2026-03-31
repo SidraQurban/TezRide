@@ -8,8 +8,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, FONTS } from "../constants/theme";
 import { vehicles } from "../data/data";
+import { useTranslation } from "react-i18next";
 
 const VehicleType = () => {
+  const { t } = useTranslation();
   const [vehicle, setVehicle] = useState("Car");
 
   return (
@@ -22,11 +24,12 @@ const VehicleType = () => {
           fontFamily: FONTS.semiBold,
         }}
       >
-        I need a driver for:
+        {t("need_driver_for")}
       </Text>
       <View
         style={{
           flexDirection: "row",
+          flexWrap: "wrap",
           marginTop: responsiveHeight(1),
         }}
       >
@@ -39,7 +42,8 @@ const VehicleType = () => {
               paddingVertical: responsiveHeight(1.5),
               paddingHorizontal: responsiveWidth(5),
               borderRadius: responsiveWidth(10),
-              marginRight: label !== "Car" ? responsiveWidth(2) : 0,
+              marginRight: responsiveWidth(2),
+              marginBottom: responsiveHeight(1),
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
@@ -64,7 +68,7 @@ const VehicleType = () => {
                 lineHeight: responsiveHeight(2),
               }}
             >
-              {label}
+              {t(label.toLowerCase())}
             </Text>
           </TouchableOpacity>
         ))}

@@ -9,6 +9,7 @@ import {
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 
 const TimeSelector = ({
   timeOptions,
@@ -23,7 +24,9 @@ const TimeSelector = ({
   showEndPicker,
   setShowEndPicker,
   formatTime,
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <View
     style={{
       backgroundColor: COLORS.white,
@@ -41,10 +44,10 @@ const TimeSelector = ({
         marginBottom: responsiveHeight(1),
       }}
     >
-      When do you need a driver?
+      {t("when_need_driver")}
     </Text>
 
-    <View style={{ flexDirection: "row", marginBottom: responsiveHeight(2) }}>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: responsiveHeight(2) }}>
       {timeOptions.map((option, index) => (
         <TouchableOpacity
           key={option}
@@ -54,8 +57,8 @@ const TimeSelector = ({
             paddingVertical: responsiveHeight(1.2),
             paddingHorizontal: responsiveWidth(5),
             borderRadius: responsiveWidth(20),
-            marginRight:
-              index !== timeOptions.length - 1 ? responsiveWidth(3) : 0,
+            marginRight: responsiveWidth(3),
+            marginBottom: responsiveHeight(1),
             borderWidth: time === option ? responsiveWidth(0.3) : 0,
             borderColor: COLORS.primary,
           }}
@@ -67,7 +70,7 @@ const TimeSelector = ({
               fontFamily: FONTS.medium,
             }}
           >
-            {option}
+            {t(option)}
           </Text>
         </TouchableOpacity>
       ))}
@@ -82,7 +85,7 @@ const TimeSelector = ({
             fontFamily: FONTS.medium,
           }}
         >
-          Start Time
+          {t("start_time")}
         </Text>
         <TouchableOpacity onPress={() => setShowStartPicker(true)}>
           <LinearGradient
@@ -130,7 +133,7 @@ const TimeSelector = ({
             fontFamily: FONTS.medium,
           }}
         >
-          End Time
+          {t("end_time")}
         </Text>
         <TouchableOpacity onPress={() => setShowEndPicker(true)}>
           <LinearGradient
@@ -170,6 +173,6 @@ const TimeSelector = ({
       </View>
     </View>
   </View>
-);
+)};
 
 export default TimeSelector;

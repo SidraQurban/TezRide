@@ -8,8 +8,10 @@ import {
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
+import { useTranslation } from "react-i18next";
 
 const DriverProfile = () => {
+  const { t } = useTranslation();
   return (
     <View>
       {/* PROFILE */}
@@ -30,7 +32,7 @@ const DriverProfile = () => {
             fontFamily: FONTS.semiBold,
           }}
         >
-          Usman Tariq
+          {t("driver_name")}
         </Text>
 
         {/* PHONE */}
@@ -70,9 +72,9 @@ const DriverProfile = () => {
         }}
       >
         {[
-          { icon: "star", value: "4.9", label: "Ratings" },
-          { icon: "car", value: "279", label: "Trips" },
-          { icon: "time", value: "5", label: "Years" },
+          { icon: "star", value: "4.9", label: t("ratings") },
+          { icon: "car", value: "279", label: t("trips") },
+          { icon: "time", value: "5", label: t("years") },
         ].map((item, index) => (
           <View key={index} style={{ alignItems: "center" }}>
             <View
@@ -122,9 +124,9 @@ const DriverProfile = () => {
           }}
         >
           <Text style={{ color: "#777", fontFamily: FONTS.regular }}>
-            Member Since
+            {t("member_since")}
           </Text>
-          <Text style={{ fontFamily: FONTS.medium }}>July 19, 2027</Text>
+          <Text style={{ fontFamily: FONTS.medium }}>{t("member_date")}</Text>
         </View>
 
         <View
@@ -135,10 +137,10 @@ const DriverProfile = () => {
           }}
         >
           <Text style={{ color: "#777", fontFamily: FONTS.regular }}>
-            Car Model
+            {t("car_model")}
           </Text>
           <Text style={{ fontFamily: FONTS.medium }}>
-            Mercedes-Benz E-class
+            {t("driver_car")}
           </Text>
         </View>
 
@@ -149,7 +151,7 @@ const DriverProfile = () => {
           }}
         >
           <Text style={{ color: "#777", fontFamily: FONTS.regular }}>
-            Plate Number
+            {t("plate_number")}
           </Text>
           <Text style={{ fontFamily: FONTS.medium }}>HSW 4736 XK</Text>
         </View>

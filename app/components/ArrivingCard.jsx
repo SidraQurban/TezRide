@@ -9,9 +9,12 @@ import {
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
+import i18n from "../locales/i18n";
 
 const ArrivingCard = ({ onClose }) => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   return (
     <View
       style={{
@@ -39,7 +42,7 @@ const ArrivingCard = ({ onClose }) => {
             fontFamily: FONTS.semiBold,
           }}
         >
-          Driver is Arriving...
+          {t("driver_arriving")}
         </Text>
 
         <Text
@@ -48,7 +51,7 @@ const ArrivingCard = ({ onClose }) => {
             color: "#8A8A8A",
           }}
         >
-          2 mins
+          2 {t("mins")}
         </Text>
       </View>
 
@@ -66,9 +69,9 @@ const ArrivingCard = ({ onClose }) => {
               uri: "https://randomuser.me/api/portraits/men/46.jpg",
             }}
             style={{
-              width: 52,
-              height: 52,
-              borderRadius: 26,
+              width: responsiveWidth(13),
+              height: responsiveWidth(13),
+              borderRadius: responsiveWidth(6.5),
             }}
           />
 
@@ -79,7 +82,7 @@ const ArrivingCard = ({ onClose }) => {
                 fontSize: responsiveFontSize(1.9),
               }}
             >
-              Usman Tariq
+              {t("driver_name")}
             </Text>
 
             <Text
@@ -88,7 +91,7 @@ const ArrivingCard = ({ onClose }) => {
                 fontSize: responsiveFontSize(1.5),
               }}
             >
-              Mercedes-Benz E-Class
+              {t("driver_car")}
             </Text>
           </View>
 
@@ -113,9 +116,9 @@ const ArrivingCard = ({ onClose }) => {
         <View style={{ flexDirection: "row", marginBottom: 14 }}>
           <View
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
+              width: responsiveWidth(9),
+              height: responsiveWidth(9),
+              borderRadius: responsiveWidth(4.5),
               backgroundColor: COLORS.secondary,
               alignItems: "center",
               justifyContent: "center",
@@ -126,18 +129,18 @@ const ArrivingCard = ({ onClose }) => {
 
           <View style={{ marginLeft: 12 }}>
             <Text style={{ fontFamily: FONTS.medium, fontSize: 14 }}>
-              My Current Location
+              {t("my_current_location")}
             </Text>
-            <Text style={{ color: "#8A8A8A", fontSize: 12 }}>0 Km</Text>
+            <Text style={{ color: "#8A8A8A", fontSize: 12 }}>0 {t("km")}</Text>
           </View>
         </View>
 
         <View style={{ flexDirection: "row" }}>
           <View
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
+              width: responsiveWidth(9),
+              height: responsiveWidth(9),
+              borderRadius: responsiveWidth(4.5),
               backgroundColor: COLORS.secondary,
               alignItems: "center",
               justifyContent: "center",
@@ -148,9 +151,9 @@ const ArrivingCard = ({ onClose }) => {
 
           <View style={{ marginLeft: 12 }}>
             <Text style={{ fontFamily: FONTS.medium, fontSize: 14 }}>
-              Soft Bank Buildings
+              {t("soft_bank_buildings")}
             </Text>
-            <Text style={{ color: "#8A8A8A", fontSize: 12 }}>4 Km</Text>
+            <Text style={{ color: "#8A8A8A", fontSize: 12 }}>4 {t("km")}</Text>
           </View>
         </View>
       </View>
@@ -165,20 +168,20 @@ const ArrivingCard = ({ onClose }) => {
         {/* Share My Ride Row */}
         <TouchableOpacity
           style={{
-            flexDirection: "row",
+            flexDirection: i18n.language === "ur" ? "row-reverse" : "row",
             alignItems: "center",
           }}
         >
           <Ionicons name="share-social" size={24} color={COLORS.secondary} />
           <Text
             style={{
-              marginLeft: 6,
+              marginHorizontal: 6,
               color: COLORS.black,
               fontFamily: FONTS.semiBold,
               fontSize: responsiveFontSize(1.7),
             }}
           >
-            Share my ride
+            {t("share_my_ride")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -195,9 +198,9 @@ const ArrivingCard = ({ onClose }) => {
         <TouchableOpacity
           onPress={onClose}
           style={{
-            width: 58,
-            height: 58,
-            borderRadius: 29,
+            width: responsiveWidth(15),
+            height: responsiveWidth(15),
+            borderRadius: responsiveWidth(7.5),
             backgroundColor: "#F2F2F2",
             alignItems: "center",
             justifyContent: "center",
@@ -209,9 +212,9 @@ const ArrivingCard = ({ onClose }) => {
         {/* CHAT */}
         <TouchableOpacity
           style={{
-            width: 65,
-            height: 65,
-            borderRadius: 32.5,
+            width: responsiveWidth(16),
+            height: responsiveWidth(16),
+            borderRadius: responsiveWidth(8),
             backgroundColor: COLORS.secondary,
             alignItems: "center",
             justifyContent: "center",
@@ -223,9 +226,9 @@ const ArrivingCard = ({ onClose }) => {
         {/* CALL */}
         <TouchableOpacity
           style={{
-            width: 58,
-            height: 58,
-            borderRadius: 29,
+            width: responsiveWidth(15),
+            height: responsiveWidth(15),
+            borderRadius: responsiveWidth(7.5),
             backgroundColor: COLORS.secondary,
             alignItems: "center",
             justifyContent: "center",

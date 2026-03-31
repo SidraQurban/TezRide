@@ -23,9 +23,11 @@ import ArrivingCard from "../components/ArrivingCard";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
+import { useTranslation } from "react-i18next";
 
 const SearchingDirection = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -122,91 +124,104 @@ const SearchingDirection = () => {
           <View
             style={{
               position: "absolute",
-              top: responsiveHeight(40),
-              left: responsiveWidth(45),
-              transform: [{ translateX: -80 }, { translateY: -80 }],
+              top: responsiveHeight(18),
+              left: 0,
+              right: 0,
               alignItems: "center",
-              justifyContent: "center",
+              elevation: 1, // Add very small elevation to ensure webview is under it, but bottom sheet overrides it
             }}
           >
-            {/* CANCEL BUTTON */}
-            <TouchableOpacity
-              onPress={handleCancelRide}
-              style={{
-                position: "absolute",
-                top: responsiveHeight(1),
-                right: responsiveWidth(1),
-                width: responsiveWidth(10),
-                height: responsiveWidth(10),
-                borderRadius: responsiveWidth(5),
-                backgroundColor: "#fff",
-                alignItems: "center",
-                justifyContent: "center",
-                elevation: 5,
-                shadowColor: "#000",
-                shadowOpacity: 0.2,
-                shadowOffset: { width: 0, height: 2 },
-                shadowRadius: 4,
-                zIndex: 10,
-              }}
-            >
-              <Ionicons name="close" size={20} color="red" />
-            </TouchableOpacity>
-
-            {/* PULSE */}
-            <Animated.View
-              style={{
-                position: "absolute",
-                width: 140,
-                height: 140,
-                borderRadius: 70,
-                backgroundColor: "orange",
-                opacity: opacity,
-                transform: [{ scale: scale }],
-              }}
-            />
-
-            {/* STATIC CIRCLE */}
+            {/* Inner Wrapper to bind the absolute Cancel button strictly to the circle */}
             <View
               style={{
+                position: "relative",
                 width: 140,
                 height: 140,
-                borderRadius: 75,
-                borderWidth: 4,
-                borderColor: "orange",
-                alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "#fff",
+                alignItems: "center",
               }}
             >
-              <Image
-                source={require("../../assets/auto.png")}
+              {/* PULSE */}
+              <Animated.View
                 style={{
-                  width: responsiveWidth(26),
-                  height: responsiveHeight(26),
-                  resizeMode: "contain",
+                  position: "absolute",
+                  width: 140,
+                  height: 140,
+                  borderRadius: 70,
+                  backgroundColor: "orange",
+                  opacity: opacity,
+                  transform: [{ scale: scale }],
                 }}
               />
+
+              {/* STATIC CIRCLE */}
+              <View
+                style={{
+                  width: 140,
+                  height: 140,
+                  borderRadius: 75,
+                  borderWidth: 4,
+                  borderColor: "orange",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <Image
+                  source={require("../../assets/auto.png")}
+                  style={{
+                    width: responsiveWidth(26),
+                    height: responsiveHeight(26),
+                    resizeMode: "contain",
+                  }}
+                />
+              </View>
+
+              {/* CANCEL BUTTON pinned to the circle */}
+              <TouchableOpacity
+                onPress={handleCancelRide}
+                style={{
+                  position: "absolute",
+                  top: -5,
+                  right: -5,
+                  width: responsiveWidth(10),
+                  height: responsiveWidth(10),
+                  borderRadius: responsiveWidth(5),
+                  backgroundColor: "#fff",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  elevation: 5,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.2,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowRadius: 4,
+                  zIndex: 10,
+                }}
+              >
+                <Ionicons name="close" size={20} color="red" />
+              </TouchableOpacity>
             </View>
 
-            {/* TEXT */}
-            <Text
-              style={{
-                marginTop: responsiveHeight(1),
-                fontSize: responsiveFontSize(2),
-                fontFamily: FONTS.semiBold,
-              }}
-            >
-              Finding nearby drivers...
-            </Text>
-            <Text
-              style={{
-                fontSize: responsiveFontSize(2),
-                fontFamily: FONTS.medium,
-              }}
-            >
-              Your ride will arrive shortly
-            </Text>
+            {/* TEXT underneath */}
+            <View style={{ alignItems: "center" }}>
+              <Text
+                style={{
+                  marginTop: responsiveHeight(2),
+                  fontSize: responsiveFontSize(2),
+                  fontFamily: FONTS.semiBold,
+                }}
+              >
+                {t("finding_drivers")}
+              </Text>
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(2),
+                  fontFamily: FONTS.medium,
+                }}
+              >
+                {t("ride_arrive_shortly")}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -215,6 +230,7 @@ const SearchingDirection = () => {
           ref={bottomSheetRef}
           index={0}
           snapPoints={snapPoints}
+          style={{ zIndex: 999, elevation: 999 }}
           enablePanDownToClose={false}
           animateOnMount={true}
           enableDynamicSizing={false}
@@ -261,7 +277,7 @@ const SearchingDirection = () => {
                   marginBottom: responsiveHeight(2),
                 }}
               >
-                Thinking of cancelling your ride?
+                {t("cancel_ride_title")}
               </Text>
               <Text
                 style={{
@@ -271,8 +287,7 @@ const SearchingDirection = () => {
                   marginBottom: responsiveHeight(3),
                 }}
               >
-                Your driver is on the way to pick you up. Cancelling now could
-                cause delays
+                {t("cancel_ride_desc")}
               </Text>
 
               {/* BUTTONS */}
@@ -296,7 +311,7 @@ const SearchingDirection = () => {
                   }}
                 >
                   <Text style={{ fontFamily: FONTS.semiBold, color: "#000" }}>
-                    No
+                    {t("no_btn")}
                   </Text>
                 </TouchableOpacity>
 
@@ -323,7 +338,7 @@ const SearchingDirection = () => {
                     }}
                   >
                     <Text style={{ fontFamily: FONTS.semiBold, color: "#fff" }}>
-                      Yes, Cancel
+                      {t("yes_cancel_btn")}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>

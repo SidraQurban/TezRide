@@ -71,33 +71,33 @@ export const drivers = [
 export const SearchData = [
   {
     id: "1",
-    name: "Dolmen Mall Clifton",
-    address: "Block 4, Clifton, Karachi",
-    distance: "2.1 Km",
+    name: "dolmen_mall",
+    address: "dolmen_address",
+    distance: "2.1 ",
   },
   {
     id: "2",
-    name: "LuckyOne Mall",
-    address: "Rashid Minhas Rd, Karachi",
-    distance: "5.4 Km",
+    name: "luckyone_mall",
+    address: "luckyone_address",
+    distance: "5.4 ",
   },
   {
     id: "3",
-    name: "Frere Hall",
-    address: "Fatima Jinnah Rd, Saddar, Karachi",
-    distance: "3.2 Km",
+    name: "frere_hall",
+    address: "frere_address",
+    distance: "3.2 ",
   },
   {
     id: "4",
-    name: "Sea View Beach",
-    address: "Clifton Beach, Karachi",
-    distance: "4.8 Km",
+    name: "sea_view",
+    address: "sea_view_address",
+    distance: "4.8 ",
   },
   {
     id: "5",
-    name: "National Museum",
-    address: "Burns Rd, Saddar, Karachi",
-    distance: "2.9 Km",
+    name: "national_museum",
+    address: "national_museum_address",
+    distance: "2.9 ",
   },
 ];
 
@@ -139,32 +139,32 @@ export const rideOptions = [
 export const promoData = [
   {
     id: "1",
-    title: "Special 25% Off",
-    desc: "Special promo only today!",
+    title: "promo_special_25",
+    desc: "promo_desc_today",
     color: "#A259FF",
   },
   {
     id: "2",
-    title: "Discount 30% Off",
-    desc: "New user special promo",
+    title: "promo_discount_30",
+    desc: "promo_desc_new_user",
     color: "#FFC107",
   },
   {
     id: "3",
-    title: "Special 20% Off",
-    desc: "Special promo only today!",
+    title: "promo_special_20",
+    desc: "promo_desc_today",
     color: "#FF5A5F",
   },
   {
     id: "4",
-    title: "Discount 40% Off",
-    desc: "Special promo only valid today!",
+    title: "promo_discount_40",
+    desc: "promo_desc_valid",
     color: "#4CD964",
   },
   {
     id: "5",
-    title: "Discount 35% Off",
-    desc: "Special promo only valid today!",
+    title: "promo_discount_35",
+    desc: "promo_desc_valid",
     color: "#FFC107",
   },
 ];
@@ -259,8 +259,8 @@ export const vehicles = [
   { label: "Car", icon: "car" },
 ];
 
-export const timeOptions = ["Morning", "Evening", "Full Day"];
+export const timeOptions = ["morning", "evening", "full_day"];
 
-export const driverPreferences = ["Male", "Female", "No Preference"];
+export const driverPreferences = ["male", "female", "no_preference"];
 
 export const pkgWeight = ["Light (0-5kg)", "Medium (5-15kg)", "Heavy (>15kg)"];

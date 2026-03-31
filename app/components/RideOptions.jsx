@@ -18,9 +18,11 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { rideOptions } from "../data/data";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 
 const RideOptions = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [selectedCar, setSelectedCar] = useState(null);
   const [promoCode, setPromoCode] = useState("");
 
@@ -73,10 +75,10 @@ const RideOptions = () => {
               fontSize: responsiveFontSize(2),
             }}
           >
-            {item.type}
+            {t(item.type.toLowerCase().replace(" ", "_"))}
           </Text>
           <Text style={{ color: "gray", fontSize: responsiveFontSize(1.5) }}>
-            {item.nearby} nearby
+            {item.nearby} {t("nearby")}
           </Text>
         </View>
       </View>
@@ -139,7 +141,7 @@ const RideOptions = () => {
         }}
       >
         <TextInput
-          placeholder="Enter your promo code"
+          placeholder={t("enter_promo_code")}
           value={promoCode}
           onChangeText={setPromoCode}
           style={{
@@ -186,12 +188,12 @@ const RideOptions = () => {
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="location-outline" size={18} color="gray" />
-            <Text style={{ marginLeft: 5, color: "gray" }}>4.5 Km</Text>
+            <Text style={{ marginLeft: 5, color: "gray" }}>4.5 {t("km")}</Text>
           </View>
 
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="time-outline" size={18} color="gray" />
-            <Text style={{ marginLeft: 5, color: "gray" }}>4 mins</Text>
+            <Text style={{ marginLeft: 5, color: "gray" }}>4 {t("mins")}</Text>
           </View>
 
           <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -234,7 +236,7 @@ const RideOptions = () => {
                 fontSize: responsiveFontSize(2),
               }}
             >
-              Continue
+              {t("continue_btn")}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

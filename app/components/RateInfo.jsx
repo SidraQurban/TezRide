@@ -6,8 +6,11 @@ import {
   responsiveWidth,
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
+import { useTranslation } from "react-i18next";
 
-const RateInfo = ({ driverRate, duration, totalPrice }) => (
+const RateInfo = ({ driverRate, duration, totalPrice }) => {
+  const { t } = useTranslation();
+  return (
   <View
     style={{
       backgroundColor: COLORS.white,
@@ -23,7 +26,7 @@ const RateInfo = ({ driverRate, duration, totalPrice }) => (
       <Text
         style={{ fontFamily: FONTS.regular, fontSize: responsiveFontSize(1.5) }}
       >
-        Driver rate
+        {t("driver_rate_label")}
       </Text>
       <Text
         style={{
@@ -32,7 +35,7 @@ const RateInfo = ({ driverRate, duration, totalPrice }) => (
           fontSize: responsiveFontSize(1.7),
         }}
       >
-        Rs.{driverRate} / hour
+        Rs.{driverRate} / {t("hour")}
       </Text>
     </View>
 
@@ -40,7 +43,7 @@ const RateInfo = ({ driverRate, duration, totalPrice }) => (
       <Text
         style={{ fontFamily: FONTS.regular, fontSize: responsiveFontSize(1.5) }}
       >
-        Duration
+        {t("duration")}
       </Text>
       <Text
         style={{
@@ -49,7 +52,7 @@ const RateInfo = ({ driverRate, duration, totalPrice }) => (
           fontSize: responsiveFontSize(1.7),
         }}
       >
-        {duration.toFixed(1)} Hours
+        {duration.toFixed(1)} {t("hours")}
       </Text>
     </View>
 
@@ -57,7 +60,7 @@ const RateInfo = ({ driverRate, duration, totalPrice }) => (
       <Text
         style={{ fontFamily: FONTS.regular, fontSize: responsiveFontSize(1.5) }}
       >
-        Total price
+        {t("total_price")}
       </Text>
       <Text
         style={{
@@ -70,6 +73,6 @@ const RateInfo = ({ driverRate, duration, totalPrice }) => (
       </Text>
     </View>
   </View>
-);
+)};
 
 export default RateInfo;

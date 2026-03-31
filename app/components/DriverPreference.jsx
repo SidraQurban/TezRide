@@ -6,8 +6,11 @@ import {
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
 import { COLORS, FONTS } from "../constants/theme";
+import { useTranslation } from "react-i18next";
 
-const DriverPreference = ({ driverPreferences, gender, setGender }) => (
+const DriverPreference = ({ driverPreferences, gender, setGender }) => {
+  const { t } = useTranslation();
+  return (
   <View>
     <Text
       style={{
@@ -16,11 +19,12 @@ const DriverPreference = ({ driverPreferences, gender, setGender }) => (
         fontFamily: FONTS.semiBold,
       }}
     >
-      Driver Preference
+      {t("driver_preference")}
     </Text>
     <View
       style={{
         flexDirection: "row",
+        flexWrap: "wrap",
         marginTop: responsiveHeight(1.5),
         marginBottom: responsiveHeight(2),
       }}
@@ -34,8 +38,8 @@ const DriverPreference = ({ driverPreferences, gender, setGender }) => (
             paddingVertical: responsiveHeight(1.2),
             paddingHorizontal: responsiveWidth(5),
             borderRadius: responsiveWidth(20),
-            marginRight:
-              index !== driverPreferences.length - 1 ? responsiveWidth(3) : 0,
+            marginRight: responsiveWidth(3),
+            marginBottom: responsiveHeight(1),
             borderWidth: gender === option ? responsiveWidth(0.3) : 0,
             borderColor: COLORS.primary,
           }}
@@ -48,12 +52,12 @@ const DriverPreference = ({ driverPreferences, gender, setGender }) => (
               lineHeight: responsiveHeight(2),
             }}
           >
-            {option}
+            {t(option)}
           </Text>
         </TouchableOpacity>
       ))}
     </View>
   </View>
-);
+)};
 
 export default DriverPreference;

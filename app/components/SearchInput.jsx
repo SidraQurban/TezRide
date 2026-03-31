@@ -6,6 +6,7 @@ import {
   responsiveFontSize,
   responsiveHeight,
 } from "react-native-responsive-dimensions";
+import { useTranslation } from "react-i18next";
 
 const SearchInput = ({
   pickup,
@@ -14,6 +15,7 @@ const SearchInput = ({
   setDestination,
   onSwapLocations,
 }) => {
+  const { t } = useTranslation();
   return (
     <View
       style={{
@@ -42,11 +44,11 @@ const SearchInput = ({
             <Text
               style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
             >
-              From
+              {t("from_location")}
             </Text>
 
             <TextInput
-              placeholder="Enter Pickup"
+              placeholder={t("enter_pickup")}
               placeholderTextColor="#999"
               value={pickup}
               onChangeText={setPickup}
@@ -79,11 +81,11 @@ const SearchInput = ({
             <Text
               style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
             >
-              To
+              {t("to_location")}
             </Text>
 
             <TextInput
-              placeholder="Enter Destination"
+              placeholder={t("enter_destination")}
               placeholderTextColor="#999"
               value={destination}
               onChangeText={setDestination}

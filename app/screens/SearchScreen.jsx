@@ -13,13 +13,15 @@ import SearchInput from "../components/SearchInput";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BackBtn from "../components/BackBtn";
 import CurrentLocation from "../components/CurrentLocation";
+import { useTranslation } from "react-i18next";
 
 const SearchScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const filteredData = SearchData.filter((item) =>
-    item.name.toLowerCase().includes(destination.toLowerCase().trim()),
+    t(item.name).toLowerCase().includes(destination.toLowerCase().trim()),
   );
 
   const renderItem = ({ item, index }) => (
@@ -53,7 +55,7 @@ const SearchScreen = () => {
             fontFamily: FONTS.semiBold,
           }}
         >
-          {item.name}
+          {t(item.name)}
         </Text>
         <Text
           style={{
@@ -63,7 +65,7 @@ const SearchScreen = () => {
             fontFamily: FONTS.regular,
           }}
         >
-          {item.address}
+          {t(item.address)}
         </Text>
       </View>
 
@@ -74,7 +76,7 @@ const SearchScreen = () => {
           fontFamily: FONTS.regular,
         }}
       >
-        {item.distance}
+        {item.distance}{t("km")}
       </Text>
     </TouchableOpacity>
   );
@@ -137,7 +139,7 @@ const SearchScreen = () => {
             fontFamily: FONTS.semiBold,
           }}
         >
-          {filteredData.length} results found
+          {filteredData.length} {t("results_found")}
         </Text>
 
         <TouchableOpacity onPress={() => setDestination("")}>
@@ -148,7 +150,7 @@ const SearchScreen = () => {
               fontFamily: FONTS.regular,
             }}
           >
-            Clear All
+            {t("clear_all")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -175,7 +177,7 @@ const SearchScreen = () => {
                 marginTop: responsiveHeight(5),
               }}
             >
-              Not Found
+              {t("not_found")}
             </Text>
 
             <Text
@@ -185,8 +187,7 @@ const SearchScreen = () => {
                 color: "#777",
               }}
             >
-              Sorry, the keyword you entered cannot be found. Try another
-              search.
+              {t("not_found_desc")}
             </Text>
           </View>
         </View>

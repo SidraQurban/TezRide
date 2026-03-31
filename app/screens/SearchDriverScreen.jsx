@@ -23,9 +23,11 @@ import ArrivingCard from "../components/ArrivingCard";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
+import { useTranslation } from "react-i18next";
 
 const SearchDriverScreen = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -122,91 +124,94 @@ const SearchDriverScreen = () => {
           <View
             style={{
               position: "absolute",
-              top: responsiveHeight(40),
-              left: responsiveWidth(40),
-              transform: [{ translateX: -80 }, { translateY: -80 }],
+              top: responsiveHeight(18),
+              left: 0,
+              right: 0,
               alignItems: "center",
-              justifyContent: "center",
+              elevation: 1, // ensure webview stays under natively
             }}
           >
-            {/* CANCEL BUTTON */}
-            <TouchableOpacity
-              onPress={handleCancelRide}
-              style={{
-                position: "absolute",
-                top: responsiveHeight(1),
-                right: responsiveWidth(1),
-                width: responsiveWidth(10),
-                height: responsiveWidth(10),
-                borderRadius: responsiveWidth(5),
-                backgroundColor: "#fff",
-                alignItems: "center",
-                justifyContent: "center",
-                elevation: 5,
-                shadowColor: "#000",
-                shadowOpacity: 0.2,
-                shadowOffset: { width: 0, height: 2 },
-                shadowRadius: 4,
-                zIndex: 10,
-              }}
-            >
-              <Ionicons name="close" size={20} color="red" />
-            </TouchableOpacity>
-
-            {/* PULSE */}
-            <Animated.View
-              style={{
-                position: "absolute",
-                width: 140,
-                height: 140,
-                borderRadius: 70,
-                backgroundColor: "orange",
-                opacity: opacity,
-                transform: [{ scale: scale }],
-              }}
-            />
-
-            {/* STATIC CIRCLE */}
+            {/* Inner Wrapper strictly to bound cancel button */}
             <View
               style={{
+                position: "relative",
                 width: 140,
                 height: 140,
-                borderRadius: 75,
-                borderWidth: 4,
-                borderColor: "orange",
-                alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "#fff",
+                alignItems: "center",
               }}
             >
-              <Image
-                source={require("../../assets/driver.png")}
+              {/* CANCEL BUTTON */}
+              <TouchableOpacity
+                onPress={handleCancelRide}
                 style={{
-                  width: responsiveWidth(70),
-                  height: responsiveHeight(70),
-                  resizeMode: "contain",
+                  position: "absolute",
+                  top: -5,
+                  right: -5,
+                  width: responsiveWidth(10),
+                  height: responsiveWidth(10),
+                  borderRadius: responsiveWidth(5),
+                  backgroundColor: "#fff",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  elevation: 5,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.2,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowRadius: 4,
+                  zIndex: 10,
+                }}
+              >
+                <Ionicons name="close" size={20} color="red" />
+              </TouchableOpacity>
+
+              {/* PULSE */}
+              <Animated.View
+                style={{
+                  position: "absolute",
+                  width: 140,
+                  height: 140,
+                  borderRadius: 70,
+                  backgroundColor: "orange",
+                  opacity: opacity,
+                  transform: [{ scale: scale }],
                 }}
               />
+
+              {/* STATIC CIRCLE */}
+              <View
+                style={{
+                  width: 140,
+                  height: 140,
+                  borderRadius: 75,
+                  borderWidth: 4,
+                  borderColor: "orange",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <Image
+                  source={require("../../assets/driver.png")}
+                  style={{
+                    width: responsiveWidth(70),
+                    height: responsiveHeight(70),
+                    resizeMode: "contain",
+                  }}
+                />
+              </View>
             </View>
 
             {/* TEXT */}
             <Text
               style={{
-                marginTop: responsiveHeight(1),
+                marginTop: responsiveHeight(2),
                 fontSize: responsiveFontSize(2),
                 fontFamily: FONTS.semiBold,
               }}
             >
-              Connecting you with a driver…
+              {t("connecting_driver")}
             </Text>
-            {/* <Text
-              style={{
-                fontSize: responsiveFontSize(2),
-                fontFamily: FONTS.medium,
-              }}
-            >
-              Your ride will arrive shortly
-            </Text> */}
           </View>
         </View>
 
@@ -215,6 +220,7 @@ const SearchDriverScreen = () => {
           ref={bottomSheetRef}
           index={0}
           snapPoints={snapPoints}
+          style={{ zIndex: 999, elevation: 999 }}
           enablePanDownToClose={false}
           animateOnMount={true}
           enableDynamicSizing={false}
@@ -261,7 +267,7 @@ const SearchDriverScreen = () => {
                   marginBottom: responsiveHeight(2),
                 }}
               >
-                Cancel Driver Request?
+                {t("cancel_drv_title")}
               </Text>
               <Text
                 style={{
@@ -271,8 +277,7 @@ const SearchDriverScreen = () => {
                   marginBottom: responsiveHeight(3),
                 }}
               >
-                Your personal driver is being assigned. Cancelling now may delay
-                your ride.
+                {t("cancel_drv_msg")}
               </Text>
 
               {/* BUTTONS */}
@@ -296,7 +301,7 @@ const SearchDriverScreen = () => {
                   }}
                 >
                   <Text style={{ fontFamily: FONTS.semiBold, color: "#000" }}>
-                    No
+                    {t("no_cancel")}
                   </Text>
                 </TouchableOpacity>
 
@@ -323,7 +328,7 @@ const SearchDriverScreen = () => {
                     }}
                   >
                     <Text style={{ fontFamily: FONTS.semiBold, color: "#fff" }}>
-                      Yes, Cancel
+                      {t("yes_cancel")}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>

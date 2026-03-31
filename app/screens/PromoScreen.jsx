@@ -12,9 +12,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { promoData } from "../data/data";
 import BackBtn from "../components/BackBtn";
+import { useTranslation } from "react-i18next";
 
 const PromoScreen = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [selectedPromo, setSelectedPromo] = useState(null);
 
   const renderPromo = ({ item }) => (
@@ -52,7 +54,7 @@ const PromoScreen = () => {
               fontSize: responsiveFontSize(2),
             }}
           >
-            {item.title}
+            {t(item.title)}
           </Text>
           <Text
             style={{
@@ -61,7 +63,7 @@ const PromoScreen = () => {
               color: "gray",
             }}
           >
-            {item.desc}
+            {t(item.desc)}
           </Text>
         </View>
       </View>
@@ -160,7 +162,7 @@ const PromoScreen = () => {
                 fontSize: responsiveFontSize(2),
               }}
             >
-              Apply Promo
+              {t("apply_promo")}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

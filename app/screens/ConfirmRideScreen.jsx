@@ -15,9 +15,11 @@ import { FONTS } from "../constants/theme";
 import RidesSlider from "../components/RidesSlider";
 import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
+import { useTranslation } from "react-i18next";
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["55%", "56%", "56%"], []);
 
@@ -107,7 +109,7 @@ const ConfirmRide = () => {
                 fontSize: responsiveFontSize(2),
               }}
             >
-              Confirm Ride
+              {t("confirm_ride")}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

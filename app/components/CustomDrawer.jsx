@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { DrawerContentScrollView } from "@react-navigation/drawer";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
+import { DrawerContentScrollView, useDrawerStatus } from "@react-navigation/drawer";
 import { COLORS } from "../constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -33,15 +33,23 @@ const CustomDrawer = (props) => {
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ur" : "en";
     i18n.changeLanguage(newLang);
-    if (newLang === "ur" && !I18nManager.isRTL) {
-      I18nManager.forceRTL(true);
-    } else if (newLang === "en" && I18nManager.isRTL) {
-      I18nManager.forceRTL(false);
+    const isRtl = newLang === "ur";
+    
+    if (isRtl !== I18nManager.isRTL) {
+      I18nManager.allowRTL(isRtl);
+      I18nManager.forceRTL(isRtl);
+      Alert.alert(
+        "Restart Required",
+        "The app needs to reload for the language change to fully take effect.",
+        [{ text: "OK" }],
+      );
     }
   };
 
+  const isDrawerHidden = useDrawerStatus() === 'closed';
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white, opacity: isDrawerHidden ? 0 : 1 }}>
       <View style={{ flex: 1, backgroundColor: COLORS.background }}>
         <DrawerContentScrollView
           {...props}
@@ -93,7 +101,7 @@ const CustomDrawer = (props) => {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  marginTop: 2,
+                  marginTop: responsiveHeight(0.5),
                 }}
               >
                 <Ionicons name="star" size={14} color={COLORS.secondary} />
@@ -103,7 +111,7 @@ const CustomDrawer = (props) => {
                 <Ionicons name="star-half" size={14} color={COLORS.secondary} />
                 <Text
                   style={{
-                    marginLeft: 5,
+                    marginLeft: responsiveWidth(1.5),
                     fontSize: responsiveFontSize(1.6),
                     color: "#777",
                   }}
@@ -140,7 +148,7 @@ const CustomDrawer = (props) => {
                     paddingVertical: responsiveHeight(1.5),
                     paddingHorizontal: responsiveWidth(5),
                     backgroundColor: isActive ? COLORS.active : "transparent",
-                    borderRadius: 10,
+                    borderRadius: responsiveWidth(3),
                     marginHorizontal: responsiveWidth(2),
                     marginVertical: responsiveHeight(0.5),
                   }}
@@ -164,9 +172,9 @@ const CustomDrawer = (props) => {
                     <View
                       style={{
                         backgroundColor: "red",
-                        borderRadius: 10,
-                        paddingHorizontal: 6,
-                        paddingVertical: 2,
+                        borderRadius: responsiveWidth(3),
+                        paddingHorizontal: responsiveWidth(2),
+                        paddingVertical: responsiveHeight(0.4),
                         justifyContent: "center",
                         alignItems: "center",
                       }}
@@ -216,7 +224,7 @@ const CustomDrawer = (props) => {
               elevation: 2,
             }}
           >
-            <Ionicons name="globe-outline" size={responsiveFontSize(2.2)} color={COLORS.primary} style={{ marginRight: 8 }} />
+            <Ionicons name="globe-outline" size={responsiveFontSize(2.2)} color={COLORS.primary} style={{ marginRight: responsiveWidth(2.5) }} />
             <Text
               style={{
                 fontSize: responsiveFontSize(1.8),

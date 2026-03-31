@@ -11,9 +11,11 @@ import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 import { rides } from "../data/data";
 import { ScrollView } from "react-native-gesture-handler";
+import { useTranslation } from "react-i18next";
 
 const RidesSlider = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [selectedService, setSelectedService] = useState("bike");
   const selectedRide = rides.find((r) => r.id === selectedService);
 
@@ -80,7 +82,7 @@ const RidesSlider = () => {
                   color: "#222",
                 }}
               >
-                {service.label}
+                {t(service.label.toLowerCase())}
               </Text>
 
               <View style={{ alignItems: "center" }}>
@@ -91,7 +93,7 @@ const RidesSlider = () => {
                     fontFamily: FONTS.regular,
                   }}
                 >
-                  {service.eta}
+                  {service.eta.split(" ")[0]} {t("mins")}
                 </Text>
 
                 <Text
@@ -135,7 +137,7 @@ const RidesSlider = () => {
               fontSize: responsiveFontSize(1.9),
             }}
           >
-            Locations
+            {t("locations")}
           </Text>
 
           {/* SELECTED PRICE TOP RIGHT */}
@@ -161,7 +163,7 @@ const RidesSlider = () => {
               marginRight: 8,
             }}
           />
-          <Text style={{ fontFamily: FONTS.medium }}>Current Location</Text>
+          <Text style={{ fontFamily: FONTS.medium }}>{t("current_location")}</Text>
         </View>
 
         {/* Line */}
@@ -185,7 +187,7 @@ const RidesSlider = () => {
             color={COLORS.primary}
             style={{ marginRight: 6 }}
           />
-          <Text style={{ fontFamily: FONTS.medium }}>Destination address</Text>
+          <Text style={{ fontFamily: FONTS.medium }}>{t("destination_address")}</Text>
         </View>
 
         {/* BOTTOM ROW: ETA + APPLY PROMO */}
@@ -203,7 +205,7 @@ const RidesSlider = () => {
               color: "#777",
             }}
           >
-            ETA: 3 min • 5.4 km
+            {t("eta")}: 3 {t("mins")} • 5.4 {t("km")}
           </Text>
 
           {/*   PROMO SECTIOn  */}
@@ -216,7 +218,7 @@ const RidesSlider = () => {
                   color: COLORS.primary,
                 }}
               >
-                Apply Promo
+                {t("apply_promo")}
               </Text>
               <Ionicons
                 name="chevron-forward"

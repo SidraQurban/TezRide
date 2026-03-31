@@ -17,12 +17,14 @@ import { driverPreferences, timeOptions } from "../data/data";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const HireDriverScreen = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [pickup, setPickup] = useState("");
-  const [time, setTime] = useState("Morning");
-  const [gender, setGender] = useState("No Preference");
+  const [time, setTime] = useState("morning");
+  const [gender, setGender] = useState("no_preference");
   const [startTime, setStartTime] = useState(new Date(2023, 1, 1, 9, 0));
   const [endTime, setEndTime] = useState(new Date(2023, 1, 1, 17, 0));
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -74,7 +76,7 @@ const HireDriverScreen = () => {
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons name="location-outline" size={20} color={COLORS.icon} />
           <TextInput
-            placeholder="Enter pickup location"
+            placeholder={t("enter_pickup")}
             value={pickup}
             onChangeText={setPickup}
             style={{
@@ -150,7 +152,7 @@ const HireDriverScreen = () => {
               fontSize: responsiveFontSize(2),
             }}
           >
-            Request Driver
+            {t("request_driver")}
           </Text>
         </LinearGradient>
       </TouchableOpacity>

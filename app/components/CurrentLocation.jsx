@@ -8,27 +8,32 @@ import {
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
 
-const CurrentLocation = () => (
-  <TouchableOpacity
-    style={{
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: responsiveHeight(1),
-    }}
-  >
-    <Ionicons name="locate" size={20} color={COLORS.primary} />
-    <Text
+import { useTranslation } from "react-i18next";
+
+const CurrentLocation = () => {
+  const { t } = useTranslation();
+  return (
+    <TouchableOpacity
       style={{
-        marginLeft: responsiveWidth(2),
-        fontSize: responsiveFontSize(1.6),
-        color: COLORS.primary,
-        marginTop: responsiveHeight(0.3),
-        fontFamily: FONTS.semiBold,
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: responsiveHeight(1),
       }}
     >
-      Use current location
-    </Text>
-  </TouchableOpacity>
-);
+      <Ionicons name="locate" size={20} color={COLORS.primary} />
+      <Text
+        style={{
+          marginLeft: responsiveWidth(2),
+          fontSize: responsiveFontSize(1.6),
+          color: COLORS.primary,
+          marginTop: responsiveHeight(0.3),
+          fontFamily: FONTS.semiBold,
+        }}
+      >
+        {t("use_current_location")}
+      </Text>
+    </TouchableOpacity>
+  );
+};
 
 export default CurrentLocation;
