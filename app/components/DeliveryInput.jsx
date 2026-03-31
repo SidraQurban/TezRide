@@ -4,7 +4,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { COLORS, FONTS } from "../constants/theme";
 import { responsiveFontSize } from "react-native-responsive-dimensions";
 
-const SearchInput = ({
+const DeliveryInput = ({
   pickup,
   setPickup,
   destination,
@@ -38,11 +38,11 @@ const SearchInput = ({
             <Text
               style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
             >
-              From
+              Pickup
             </Text>
 
             <TextInput
-              placeholder="Enter Pickup"
+              placeholder="Enter Pickup location"
               value={pickup}
               onChangeText={setPickup}
               returnKeyType="search"
@@ -74,11 +74,11 @@ const SearchInput = ({
             <Text
               style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
             >
-              To
+              Drop-off
             </Text>
 
             <TextInput
-              placeholder="Enter Destination"
+              placeholder="Enter Drop-off location"
               value={destination}
               onChangeText={setDestination}
               returnKeyType="search"
@@ -113,4 +113,4 @@ const SearchInput = ({
   );
 };
 
-export default SearchInput;
+export default DeliveryInput;

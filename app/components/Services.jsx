@@ -26,7 +26,7 @@ const servicesData = [
   {
     id: 3,
     title: "Hire Driver",
-    image: require("../../assets/rentals.png"),
+    image: require("../../assets/drivers.png"),
     bgColor: "#DFF3E3",
     screen: "HireDriver",
   },

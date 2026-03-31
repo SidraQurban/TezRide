@@ -67,6 +67,8 @@ const HireDriverScreen = () => {
           padding: responsiveHeight(1),
           elevation: 3,
           width: responsiveWidth(90),
+          borderWidth: 1,
+          borderColor: COLORS.primary,
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>

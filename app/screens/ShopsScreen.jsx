@@ -37,7 +37,7 @@ const ShopsScreen = () => {
             flexDirection: "row",
             alignItems: "center",
             borderWidth: 1.5,
-            borderColor: "#FF6B00",
+            borderColor: COLORS.primary,
             borderRadius: responsiveHeight(3),
             paddingLeft: responsiveWidth(3),
             height: responsiveHeight(6),

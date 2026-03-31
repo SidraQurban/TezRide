@@ -25,7 +25,7 @@ const SearchBar = () => {
         borderRadius: 25,
         paddingHorizontal: responsiveWidth(4),
         paddingVertical: responsiveHeight(1.5),
-        borderColor: COLORS.secondary,
+        borderColor: COLORS.primary,
         borderWidth: 1,
         elevation: 5,
         shadowColor: "#000",
