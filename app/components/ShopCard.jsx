@@ -14,7 +14,7 @@ const ShopCard = ({ shop }) => {
         marginHorizontal: responsiveWidth(4),
         marginTop: responsiveHeight(0.5),
         marginBottom: responsiveHeight(2),
-        backgroundColor: "#fff",
+        backgroundColor: COLORS.white,
         borderRadius: responsiveHeight(2),
         padding: responsiveWidth(3),
         elevation: 3,
@@ -57,8 +57,10 @@ const ShopCard = ({ shop }) => {
           <Text
             style={{
               color: COLORS.secondary,
-              fontSize: responsiveHeight(2),
+              fontSize: responsiveHeight(1.9),
               marginLeft: 4,
+              fontFamily: FONTS.medium,
+              includeFontPadding: false,
             }}
           >
             {shop.rating}
@@ -72,6 +74,8 @@ const ShopCard = ({ shop }) => {
           marginTop: responsiveHeight(1),
           color: "#666",
           fontSize: responsiveHeight(1.5),
+          fontFamily: FONTS.medium,
+          includeFontPadding: false,
         }}
       >
         Product Preview
@@ -110,8 +114,10 @@ const ShopCard = ({ shop }) => {
             {/* PRODUCT NAME */}
             <Text
               style={{
-                fontSize: responsiveHeight(1.5),
+                fontSize: responsiveHeight(1.4),
                 marginTop: 4,
+                fontFamily: FONTS.regular,
+                includeFontPadding: false,
               }}
             >
               {product.name}

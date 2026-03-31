@@ -1,13 +1,11 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   responsiveWidth,
   responsiveHeight,
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import BackBtn from "../components/BackBtn";
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 

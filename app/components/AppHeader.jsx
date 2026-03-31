@@ -11,7 +11,7 @@ import { Image } from "react-native";
 
 const AppHeader = () => {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View
         style={{
           height: responsiveHeight(5),

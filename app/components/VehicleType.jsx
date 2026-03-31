@@ -1,0 +1,76 @@
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import {
+  responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
+} from "react-native-responsive-dimensions";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS, FONTS } from "../constants/theme";
+import { vehicles } from "../data/data";
+
+const VehicleType = () => {
+  const [vehicle, setVehicle] = useState("Car");
+
+  return (
+    <View>
+      {/* Vehicle Type Selection */}
+      <Text
+        style={{
+          marginTop: responsiveHeight(2),
+          fontSize: responsiveFontSize(1.8),
+          fontFamily: FONTS.semiBold,
+        }}
+      >
+        I need a driver for:
+      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          marginTop: responsiveHeight(1),
+        }}
+      >
+        {vehicles.map(({ label, icon }) => (
+          <TouchableOpacity
+            key={label}
+            onPress={() => setVehicle(label)}
+            style={{
+              backgroundColor: vehicle === label ? COLORS.active : "#E5E5E5",
+              paddingVertical: responsiveHeight(1.5),
+              paddingHorizontal: responsiveWidth(5),
+              borderRadius: responsiveWidth(10),
+              marginRight: label !== "Car" ? responsiveWidth(2) : 0,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              borderWidth: vehicle === label ? responsiveWidth(0.3) : 0,
+              borderColor: COLORS.primary,
+            }}
+          >
+            <Ionicons
+              name={icon}
+              size={responsiveFontSize(2.3)}
+              color={COLORS.black}
+              style={{
+                marginRight: responsiveWidth(1),
+                marginLeft: -responsiveWidth(1),
+              }} // responsive margins
+            />
+            <Text
+              style={{
+                color: COLORS.black,
+                fontSize: responsiveFontSize(1.6),
+                fontFamily: FONTS.medium,
+                lineHeight: responsiveHeight(2),
+              }}
+            >
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+export default VehicleType;

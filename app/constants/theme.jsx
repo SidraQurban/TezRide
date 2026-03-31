@@ -13,6 +13,7 @@ export const COLORS = {
   icon: "#888",
   serviceBg: "#F2F2F2",
   active: "#FFEDDC",
+  bgColor: "#F5F5F5",
 };
 
 export const FONTS = {

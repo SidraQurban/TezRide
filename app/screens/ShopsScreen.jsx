@@ -22,9 +22,9 @@ import { shopsData } from "../data/data";
 
 const ShopsScreen = () => {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bgColor }}>
       {/* HEADER */}
-      <View style={{ backgroundColor: "#F5F5F5", zIndex: 10 }}>
+      <View style={{ backgroundColor: COLORS.bgColor, zIndex: 10 }}>
         <View style={{ left: responsiveWidth(4) }}>
           <BackBtn />
         </View>
@@ -51,7 +51,15 @@ const ShopsScreen = () => {
           </TouchableOpacity>
           <TextInput
             placeholder="Search items or stores"
-            style={{ flex: 1, marginLeft: responsiveWidth(4) }}
+            style={{
+              flex: 1,
+              marginLeft: responsiveWidth(4),
+              fontFamily: FONTS.regular,
+              fontSize: responsiveFontSize(1.8),
+              includeFontPadding: false,
+              textAlignVertical: "center",
+              paddingVertical: 0,
+            }}
           />
         </View>
 

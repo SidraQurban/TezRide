@@ -12,6 +12,7 @@ import {
 import SearchInput from "../components/SearchInput";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BackBtn from "../components/BackBtn";
+import CurrentLocation from "../components/CurrentLocation";
 
 const SearchScreen = () => {
   const navigation = useNavigation();
@@ -119,26 +120,7 @@ const SearchScreen = () => {
         setDestination={setDestination}
       />
       {/* Current Location */}
-      <TouchableOpacity
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginTop: responsiveHeight(2),
-        }}
-      >
-        <Ionicons name="locate" size={20} color={COLORS.primary} />
-        <Text
-          style={{
-            marginLeft: responsiveWidth(2),
-            fontSize: responsiveFontSize(1.6),
-            color: COLORS.primary,
-            marginTop: responsiveHeight(0.3),
-            fontFamily: FONTS.semiBold,
-          }}
-        >
-          Use current location
-        </Text>
-      </TouchableOpacity>
+      <CurrentLocation />
 
       {/* RESULT HEADER */}
       <View

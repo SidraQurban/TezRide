@@ -17,6 +17,7 @@ import DriverProfileScreen from "../screens/DriverProfileScreen";
 import DeliveryScreen from "../screens/DeliveryScreen";
 import ShopsScreen from "../screens/ShopsScreen";
 import HireDriverScreen from "../screens/HireDriverScreen";
+import SearchDriverScreen from "../screens/SearchDriverScreen";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -44,6 +45,7 @@ const AppNavigator = () => {
           component={SearchingDirection}
         />
         <Stack.Screen name="DriverProfile" component={DriverProfileScreen} />
+        <Stack.Screen name="SearchDriver" component={SearchDriverScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { COLORS, FONTS } from "../constants/theme";
+import { responsiveFontSize } from "react-native-responsive-dimensions";
 
 const SearchInput = ({
   pickup,
@@ -47,10 +48,10 @@ const SearchInput = ({
               returnKeyType="search"
               onSubmitEditing={() => setPickup(pickup.trim())}
               style={{
-                fontSize: 14,
+                fontSize: responsiveFontSize(1.8),
                 fontFamily: FONTS.medium,
                 paddingVertical: 2,
-                color: "#000",
+                color: COLORS.black,
               }}
             />
           </View>
@@ -83,10 +84,10 @@ const SearchInput = ({
               returnKeyType="search"
               onSubmitEditing={() => setDestination(destination.trim())}
               style={{
-                fontSize: 14,
+                fontSize: responsiveFontSize(1.8),
                 fontFamily: FONTS.medium,
                 paddingVertical: 2,
-                color: "#000",
+                color: COLORS.black,
               }}
             />
           </View>

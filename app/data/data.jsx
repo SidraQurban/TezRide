@@ -253,3 +253,13 @@ export const shopsData = [
     ],
   },
 ];
+
+export const vehicles = [
+  { label: "Bike", icon: "bicycle-sharp" },
+  { label: "Auto", icon: "car-outline" },
+  { label: "Car", icon: "car" },
+];
+
+export const timeOptions = ["Morning", "Evening", "Full Day"];
+
+export const driverPreferences = ["Male", "Female", "No Preference"];

@@ -49,6 +49,7 @@ const HomeScreen = () => {
       >
         <Services />
       </View>
+      <LocationModal />
     </View>
   );
 };

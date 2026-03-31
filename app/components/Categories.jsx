@@ -1,20 +1,10 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import {
   responsiveFontSize,
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import BackBtn from "../components/BackBtn";
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import { categoriesData } from "../data/data";
@@ -65,6 +55,8 @@ const Categories = () => {
               <Text
                 style={{
                   color: COLORS.black,
+                  fontFamily: FONTS.medium,
+                  fontSize: responsiveFontSize(1.6),
                 }}
               >
                 {item}
