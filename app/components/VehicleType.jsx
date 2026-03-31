@@ -46,6 +46,7 @@ const VehicleType = () => {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
+              minWidth: responsiveWidth(23),
               borderWidth: vehicle === label ? responsiveWidth(0.3) : 0,
               borderColor: COLORS.primary,
             }}

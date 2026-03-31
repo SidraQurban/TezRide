@@ -65,6 +65,9 @@ const TimeSelector = ({
               borderRadius: responsiveWidth(20),
               marginRight: responsiveWidth(3),
               marginBottom: responsiveHeight(1),
+              minWidth: responsiveWidth(23),
+              alignItems: "center",
+              justifyContent: "center",
               borderWidth: time === option ? responsiveWidth(0.3) : 0,
               borderColor: COLORS.primary,
             }}

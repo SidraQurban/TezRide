@@ -40,6 +40,9 @@ const DriverPreference = ({ driverPreferences, gender, setGender }) => {
               borderRadius: responsiveWidth(20),
               marginRight: responsiveWidth(3),
               marginBottom: responsiveHeight(1),
+              minWidth: responsiveWidth(23),
+              alignItems: "center",
+              justifyContent: "center",
               borderWidth: gender === option ? responsiveWidth(0.3) : 0,
               borderColor: COLORS.primary,
             }}
