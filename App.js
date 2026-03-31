@@ -1,5 +1,6 @@
 import "react-native-reanimated";
-import React from "react";
+import "react-native-gesture-handler";
+import React, { useEffect } from "react";
 import AppNavigator from "./app/navigation/AppNavigator";
 import {
   useFonts,
@@ -13,9 +14,13 @@ import {
   ActivityIndicator,
   Platform,
   StatusBar as RNStatusBar,
+  I18nManager,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+import "./app/locales/i18n";
+import i18n from "./app/locales/i18n";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -24,6 +29,15 @@ export default function App() {
     Poppins_600SemiBold,
     Poppins_700Bold,
   });
+
+  useEffect(() => {
+    const languageCode = i18n.language;
+    if (languageCode === "ur" && !I18nManager.isRTL) {
+      I18nManager.forceRTL(true);
+    } else if (languageCode === "en" && I18nManager.isRTL) {
+      I18nManager.forceRTL(false);
+    }
+  }, []);
 
   const backgroundColor = "#fff"; // change dynamically if needed
 

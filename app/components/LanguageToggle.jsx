@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  TouchableOpacity,
-  Text,
-  I18nManager,
-  Alert,
-  StyleSheet,
-} from "react-native";
+import { TouchableOpacity, Text, I18nManager, Alert } from "react-native";
 import i18n from "../locales/i18n";
+import { COLORS } from "../constants";
 
 const LanguageToggle = () => {
   const [currentLang, setCurrentLang] = useState(i18n.language);
@@ -37,8 +32,24 @@ const LanguageToggle = () => {
   };
 
   return (
-    <TouchableOpacity style={styles.button} onPress={toggleLanguage}>
-      <Text style={styles.text}>
+    <TouchableOpacity
+      onPress={toggleLanguage}
+      style={{
+        // paddingVertical: 8,
+        // paddingHorizontal: 16,
+        backgroundColor: COLORS.primary,
+        borderRadius: 8,
+        alignSelf: "flex-start",
+        margin: 10,
+      }}
+    >
+      <Text
+        style={{
+          color: "#fff",
+          fontWeight: "600",
+          fontSize: 16,
+        }}
+      >
         {currentLang === "en" ? "اردو" : "English"}
       </Text>
     </TouchableOpacity>
@@ -46,19 +57,3 @@ const LanguageToggle = () => {
 };
 
 export default LanguageToggle;
-
-const styles = StyleSheet.create({
-  button: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    alignSelf: "flex-start", // adjust as needed
-    margin: 10,
-  },
-  text: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-});

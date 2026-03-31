@@ -1,21 +1,20 @@
 const data = [
   {
     _id: "1",
-    title: "Book Rides Instantly Anywhere",
-    description:
-      "Skip the waiting. Connect with the nearest driver for a quick pickup.",
+    title: "onboard_title1",
+    description: "onboard_desc1",
     img: require("../../assets/1st.png"),
   },
   {
     _id: "2",
-    title: "Affordable and Transparent Pricing",
-    description: "Check your fare upfront and pay only for what you travel.",
+    title: "onboard_title2",
+    description: "onboard_desc2",
     img: require("../../assets/2nd.png"),
   },
   {
     _id: "3",
-    title: "Safe and Verified Drivers",
-    description: "Travel confidently with trusted drivers.",
+    title: "onboard_title3",
+    description: "onboard_desc3",
     img: require("../../assets/3rd.png"),
   },
 ];

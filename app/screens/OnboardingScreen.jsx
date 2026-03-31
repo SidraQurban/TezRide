@@ -9,7 +9,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { COLORS, SIZES } from "../constants/index";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import data from "../data/data";
 import {
   responsiveFontSize,
@@ -19,9 +19,22 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
+import { useTranslation } from "react-i18next";
+import { I18nManager } from "react-native";
 
 const OnboardingScreen = () => {
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ur" : "en";
+    i18n.changeLanguage(newLang);
+    if (newLang === "ur" && !I18nManager.isRTL) {
+      I18nManager.forceRTL(true);
+    } else if (newLang === "en" && I18nManager.isRTL) {
+      I18nManager.forceRTL(false);
+    }
+  };
   const flatlistRef = useRef();
   const [currentPage, setCurrentPage] = useState(0);
   const [viewableItems, setViewableItems] = useState([]);
@@ -67,48 +80,77 @@ const OnboardingScreen = () => {
           paddingHorizontal: SIZES.base * 2,
         }}
       >
-        {/* Back Button */}
-        <TouchableOpacity
-          style={{ padding: SIZES.base }}
-          onPress={handleBackButton}
+        <View
+          style={{ flexDirection: "row", alignItems: "center", marginLeft: -5 }}
         >
-          {/* hiding back btn on 1st screen  */}
-          <AntDesign
-            name="left"
+          {/* Sleek Language Toggle */}
+          <TouchableOpacity
+            onPress={toggleLanguage}
+            activeOpacity={0.7}
             style={{
-              fontSize: responsiveFontSize(2.5),
-              color: COLORS.primary,
-              opacity: currentPage == 0 ? 0 : 1,
-            }}
-          />
-        </TouchableOpacity>
-
-        {/* Skip Button */}
-        {/* hiding skip btn on lasst screen */}
-        <TouchableOpacity onPress={handleskipbutton}>
-          <View
-            style={{
-              width: responsiveWidth(15),
-              height: responsiveWidth(9),
-              borderWidth: 1,
-              borderRadius: responsiveWidth(2),
-              borderColor: COLORS.primary,
-              justifyContent: "center",
+              flexDirection: "row",
               alignItems: "center",
-              opacity: currentPage == data.length - 1 ? 0 : 1,
+              backgroundColor: "#F3F4F6",
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              borderRadius: 20,
+              paddingVertical: 6,
+              paddingHorizontal: 14,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 3,
+              elevation: 2,
             }}
           >
+            <Ionicons
+              name="globe-outline"
+              size={18}
+              color={COLORS.primary}
+              style={{ marginRight: 6 }}
+            />
             <Text
               style={{
-                fontSize: responsiveFontSize(1.8),
-                color: "#adb5bd",
-                fontFamily: FONTS.regular,
+                fontSize: responsiveFontSize(1.6),
+                color: COLORS.primary,
+                fontFamily: FONTS.medium,
+                marginTop: 2,
               }}
             >
-              Skip
+              {i18n.language === "en" ? "اردو" : "EN"}
             </Text>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {/* Skip Button */}
+          {/* hiding skip btn on lasst screen */}
+          <TouchableOpacity onPress={handleskipbutton}>
+            <View
+              style={{
+                paddingHorizontal: responsiveWidth(4),
+                paddingVertical: responsiveHeight(0.8),
+                borderWidth: 1,
+                borderRadius: responsiveWidth(2),
+                borderColor: COLORS.primary,
+                justifyContent: "center",
+                alignItems: "center",
+                opacity: currentPage == data.length - 1 ? 0 : 1,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(1.8),
+                  color: "#adb5bd",
+                  fontFamily: FONTS.regular,
+                  textAlign: "center"
+                }}
+              >
+                {t("skip")}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -213,7 +255,7 @@ const OnboardingScreen = () => {
                   fontFamily: FONTS.medium,
                 }}
               >
-                Get Started
+                {t("get_started")}
               </Text>
 
               <AntDesign
@@ -275,7 +317,7 @@ const OnboardingScreen = () => {
             marginTop: responsiveHeight(-5),
           }}
         >
-          {item.title}
+          {t(item.title)}
         </Text>
         <Text
           style={{
@@ -287,7 +329,7 @@ const OnboardingScreen = () => {
             fontFamily: FONTS.regular,
           }}
         >
-          {item.description}
+          {t(item.description)}
         </Text>
       </View>
     </View>

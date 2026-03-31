@@ -18,5 +18,24 @@
   "onboard_desc2": "Check your fare upfront and pay only for what you travel.",
 
   "onboard_title3": "Safe and Verified Drivers",
-  "onboard_desc3": "Travel confidently with trusted drivers."
+  "onboard_desc3": "Travel confidently with trusted drivers.",
+
+  "morning": "Morning",
+  "evening": "Evening",
+  "full_day": "Full Day",
+  "male": "Male",
+  "female": "Female",
+  "no_preference": "No Preference",
+  "light_weight": "Light (0-5kg)",
+  "medium_weight": "Medium (5-15kg)",
+  "heavy_weight": "Heavy (>15kg)",
+  "login": "Login",
+  "signup": "Sign Up",
+  "search": "Search",
+  "book_now": "Book Now",
+  "confirm_ride": "Confirm Ride",
+  "payment": "Payment Method",
+  "settings": "Settings",
+  "profile": "Profile",
+  "home": "Home"
 }
