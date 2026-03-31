@@ -10,6 +10,8 @@ import {
 } from "react-native-responsive-dimensions";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
+import { I18nManager } from "react-native";
 
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
@@ -26,6 +28,17 @@ const drawerItems = [
 
 const CustomDrawer = (props) => {
   const { state, navigation } = props;
+  const { t, i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ur" : "en";
+    i18n.changeLanguage(newLang);
+    if (newLang === "ur" && !I18nManager.isRTL) {
+      I18nManager.forceRTL(true);
+    } else if (newLang === "en" && I18nManager.isRTL) {
+      I18nManager.forceRTL(false);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -73,7 +86,7 @@ const CustomDrawer = (props) => {
                   color: COLORS.black,
                 }}
               >
-                User
+                {t("user")}
               </Text>
 
               <View
@@ -145,7 +158,7 @@ const CustomDrawer = (props) => {
                       color: COLORS.black,
                     }}
                   >
-                    {item.label}
+                    {t(item.label.toLowerCase().replace(" ", "_"))}
                   </Text>
                   {item.badge && (
                     <View
@@ -182,6 +195,40 @@ const CustomDrawer = (props) => {
             borderColor: "#E0E0E0",
           }}
         >
+          {/* Sleek Language Toggle UI */}
+          <TouchableOpacity
+            onPress={toggleLanguage}
+            activeOpacity={0.7}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#F3F4F6",
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              borderRadius: responsiveHeight(1.5),
+              paddingVertical: responsiveHeight(1.5),
+              marginBottom: responsiveHeight(1.5),
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 3,
+              elevation: 2,
+            }}
+          >
+            <Ionicons name="globe-outline" size={responsiveFontSize(2.2)} color={COLORS.primary} style={{ marginRight: 8 }} />
+            <Text
+              style={{
+                fontSize: responsiveFontSize(1.8),
+                color: COLORS.primary,
+                fontFamily: "System",
+                fontWeight: "600"
+              }}
+            >
+              {i18n.language === "en" ? "اردو" : "English"}
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity>
             <LinearGradient
               colors={[COLORS.primary, COLORS.secondary]}
@@ -197,7 +244,7 @@ const CustomDrawer = (props) => {
               <Text
                 style={{ fontSize: responsiveFontSize(2), fontWeight: "bold" }}
               >
-                Logout
+                {t("logout")}
               </Text>
             </LinearGradient>
           </TouchableOpacity>

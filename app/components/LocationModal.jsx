@@ -7,9 +7,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, FONTS } from "../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 
 const LocationModal = () => {
   const [locationModalVisible, setLocationModalVisible] = useState(true);
+  const { t } = useTranslation();
 
   return (
     <View>
@@ -97,7 +99,7 @@ const LocationModal = () => {
                 marginTop: responsiveHeight(2),
               }}
             >
-              Enable Location
+              {t("enable_location_title")}
             </Text>
 
             {/* DESCRIPTION */}
@@ -111,7 +113,7 @@ const LocationModal = () => {
                 lineHeight: 20,
               }}
             >
-              We need location access to find the nearest ride around you.
+              {t("enable_location_desc")}
             </Text>
 
             {/* ENABLE BUTTON */}
@@ -139,7 +141,7 @@ const LocationModal = () => {
                     fontSize: responsiveFontSize(1.6),
                   }}
                 >
-                  Enable location
+                  {t("enable_location_btn")}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>

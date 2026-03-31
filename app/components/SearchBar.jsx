@@ -8,9 +8,11 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS, FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const SearchBar = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   return (
     <TouchableOpacity
@@ -50,7 +52,7 @@ const SearchBar = () => {
           color: "#999",
         }}
       >
-        Where would you go?
+        {t("search_placeholder")}
       </Text>
     </TouchableOpacity>
   );

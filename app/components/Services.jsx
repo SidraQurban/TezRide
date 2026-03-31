@@ -7,6 +7,7 @@ import {
 import { COLORS, SIZES } from "../constants";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const servicesData = [
   {
@@ -55,6 +56,7 @@ const servicesData = [
 
 const Services = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   // const handlePress = (item) => {
   // navigation.navigate(item.screen);
@@ -98,7 +100,7 @@ const Services = () => {
                 fontFamily: FONTS.semiBold,
               }}
             >
-              {item.title}
+              {t(item.title.toLowerCase().replace(" ", "_"))}
             </Text>
 
             {/* Image */}
