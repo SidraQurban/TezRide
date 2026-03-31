@@ -1,5 +1,5 @@
 {
-    "skip": "Skip",
+  "skip": "Skip",
   "get_started": "Get Started",
 
   "onboard_title1": "Book Rides Instantly Anywhere",
@@ -72,7 +72,7 @@
   "car_model": "Car Model",
   "plate_number": "Plate Number",
   "request_driver": "Request Driver",
-  "need_driver_for": "I need a driver for:",
+  "need_driver_for": "Your Vehicle:",
   "when_need_driver": "When do you need a driver?",
   "start_time": "Start Time",
   "end_time": "End Time",

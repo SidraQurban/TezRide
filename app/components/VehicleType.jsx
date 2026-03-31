@@ -19,7 +19,7 @@ const VehicleType = () => {
       {/* Vehicle Type Selection */}
       <Text
         style={{
-          marginTop: responsiveHeight(2),
+          marginTop: responsiveHeight(1),
           fontSize: responsiveFontSize(1.8),
           fontFamily: FONTS.semiBold,
         }}
@@ -43,7 +43,6 @@ const VehicleType = () => {
               paddingHorizontal: responsiveWidth(5),
               borderRadius: responsiveWidth(10),
               marginRight: responsiveWidth(2),
-              marginBottom: responsiveHeight(1),
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
