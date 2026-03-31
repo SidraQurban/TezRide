@@ -6,13 +6,26 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { COLORS, SIZES } from "../constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
+import { useTranslation } from "react-i18next";
+import { I18nManager } from "react-native";
 
 const VerifyCodeScreen = ({ navigation, route }) => {
+  const { t, i18n } = useTranslation();
   const { phoneNumber } = route.params || {};
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ur" : "en";
+    i18n.changeLanguage(newLang);
+    if (newLang === "ur" && !I18nManager.isRTL) {
+      I18nManager.forceRTL(true);
+    } else if (newLang === "en" && I18nManager.isRTL) {
+      I18nManager.forceRTL(false);
+    }
+  };
 
   const [timer, setTimer] = useState(30);
   const [code, setCode] = useState(["", "", "", ""]);
@@ -64,6 +77,41 @@ const VerifyCodeScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      {/* Sleek Language Toggle UI (Right Corner) */}
+      <View style={{ width: "100%", alignItems: "flex-end", paddingHorizontal: responsiveWidth(5), paddingTop: responsiveHeight(1) }}>
+        <TouchableOpacity
+          onPress={toggleLanguage}
+          activeOpacity={0.7}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#F3F4F6",
+            borderWidth: 1,
+            borderColor: "#E5E7EB",
+            borderRadius: 20,
+            paddingVertical: 6,
+            paddingHorizontal: 14,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 3,
+            elevation: 2,
+          }}
+        >
+          <Ionicons name="globe-outline" size={14} color={COLORS.primary} style={{ marginRight: 6 }} />
+          <Text
+            style={{
+              fontSize: responsiveFontSize(1.6),
+              color: COLORS.primary,
+              fontFamily: FONTS.medium,
+              marginTop: 2,
+            }}
+          >
+            {i18n.language === "en" ? "اردو" : "EN"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View
         style={{
           flex: 1,
@@ -75,18 +123,6 @@ const VerifyCodeScreen = ({ navigation, route }) => {
       >
         {/* TOP CONTENT */}
         <View style={{ alignItems: "center", width: "100%" }}>
-          {/* Back Button */}
-          <TouchableOpacity
-            style={{ alignSelf: "flex-start" }}
-            onPress={() => navigation.goBack()}
-          >
-            <AntDesign
-              name="left"
-              size={responsiveFontSize(2.5)}
-              color={COLORS.primary}
-              style={{ padding: responsiveWidth(3) }}
-            />
-          </TouchableOpacity>
 
           {/* Instruction Text */}
           <View
@@ -102,7 +138,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                 fontFamily: FONTS.regular,
               }}
             >
-              Please enter the 4-digit code sent
+              {t("verify_desc_1")}
             </Text>
             <Text
               style={{
@@ -111,7 +147,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                 fontFamily: FONTS.regular,
               }}
             >
-              to you on WhatsApp on
+              {t("verify_desc_2")}
             </Text>
             <Text
               style={{
@@ -218,7 +254,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                   fontFamily: FONTS.semiBold,
                 }}
               >
-                Continue
+                {t("continue_btn")}
               </Text>
             </LinearGradient>
           </TouchableOpacity>

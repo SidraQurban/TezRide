@@ -1,13 +1,4 @@
 {
-  "welcome": "خوش آمدید",
-  "search_placeholder": "اشیاء یا اسٹورز تلاش کریں",
-  "ride": "رائیڈ",
-  "delivery": "ڈیلیوری",
-  "rent_driver": "ڈرائیور کرایہ پر",
-  "shop": "دکان",
-  "cargo": "کارگو",
-  "grocery": "گروسری",
-
   "skip": "اسکپ کریں",
   "get_started": "شروع کریں",
 
@@ -20,22 +11,11 @@
   "onboard_title3": "محفوظ اور تصدیق شدہ ڈرائیورز",
   "onboard_desc3": "اعتماد کے ساتھ محفوظ ڈرائیورز کے ساتھ سفر کریں۔",
 
-  "morning": "صبح",
-  "evening": "شام",
-  "full_day": "پورا دن",
-  "male": "مرد",
-  "female": "عورت",
-  "no_preference": "کوئی ترجیح نہیں",
-  "light_weight": "ہلکا (0-5kg)",
-  "medium_weight": "درمیانہ (5-15kg)",
-  "heavy_weight": "بھاری (>15kg)",
-  "login": "لاگ ان",
-  "signup": "سائن اپ",
-  "search": "تلاش کریں",
-  "book_now": "ابھی بک کریں",
-  "confirm_ride": "رائیڈ کنفرم کریں",
-  "payment": "طریقہ ادائیگی",
-  "settings": "ترتیبات",
-  "profile": "پروفائل",
-  "home": "ہوم"
+  "enter_number": "آگے بڑھنے کے لئے",
+  "continue_text": "اپنا نمبر درج کریں",
+  "privacy_policy": "پرائیویسی پالیسی",
+  "phone_placeholder": "3XXXXXXXXX",
+  "verify_desc_1": "براہ کرم 4 ہندسوں کا کوڈ درج کریں جو",
+  "verify_desc_2": "آپ کو واٹس ایپ پر بھیجا گیا ہے",
+  "continue_btn": "جاری رکھیں"
 }

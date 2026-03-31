@@ -19,6 +19,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
+import { useTranslation } from "react-i18next";
+import { I18nManager } from "react-native";
 
 const countries = [
   { code: "+92", flag: "🇵🇰", name: "Pakistan" },
@@ -28,10 +30,21 @@ const countries = [
 ];
 
 const LoginScreen = () => {
+  const { t, i18n } = useTranslation();
   const [phone, setPhone] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ur" : "en";
+    i18n.changeLanguage(newLang);
+    if (newLang === "ur" && !I18nManager.isRTL) {
+      I18nManager.forceRTL(true);
+    } else if (newLang === "en" && I18nManager.isRTL) {
+      I18nManager.forceRTL(false);
+    }
+  };
 
   const isPhoneComplete = phone.length === 10;
 
@@ -44,6 +57,41 @@ const LoginScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      {/* Sleek Language Toggle UI (Right Corner) */}
+      <View style={{ width: "100%", alignItems: "flex-end", paddingHorizontal: responsiveWidth(5), paddingTop: responsiveHeight(1) }}>
+        <TouchableOpacity
+          onPress={toggleLanguage}
+          activeOpacity={0.7}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#F3F4F6",
+            borderWidth: 1,
+            borderColor: "#E5E7EB",
+            borderRadius: 20,
+            paddingVertical: 6,
+            paddingHorizontal: 14,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 3,
+            elevation: 2,
+          }}
+        >
+          <Ionicons name="globe-outline" size={14} color={COLORS.primary} style={{ marginRight: 6 }} />
+          <Text
+            style={{
+              fontSize: responsiveFontSize(1.6),
+              color: COLORS.primary,
+              fontFamily: FONTS.medium,
+              marginTop: 2,
+            }}
+          >
+            {i18n.language === "en" ? "اردو" : "EN"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View
         style={{
           flex: 1,
@@ -75,7 +123,7 @@ const LoginScreen = () => {
                 textAlign: "center",
               }}
             >
-              Enter your number to
+              {t("enter_number")}
             </Text>
             <Text
               style={{
@@ -84,7 +132,7 @@ const LoginScreen = () => {
                 textAlign: "center",
               }}
             >
-              continue
+              {t("continue_text")}
             </Text>
           </View>
 
@@ -158,7 +206,7 @@ const LoginScreen = () => {
                 textAlignVertical: "center",
                 paddingVertical: 0,
               }}
-              placeholder="3XXXXXXXXX"
+              placeholder={t("phone_placeholder")}
               placeholderTextColor={COLORS.num}
               keyboardType="number-pad"
               value={phone}
@@ -179,7 +227,7 @@ const LoginScreen = () => {
               marginBottom: responsiveHeight(2),
             }}
           >
-            Privacy Policy
+            {t("privacy_policy")}
           </Text>
 
           {/* Button */}

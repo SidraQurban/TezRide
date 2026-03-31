@@ -1,14 +1,5 @@
 {
-  "welcome": "Welcome",
-  "search_placeholder": "Search items or stores",
-  "ride": "Ride",
-  "delivery": "Delivery",
-  "rent_driver": "Rent Driver",
-  "shop": "Shop",
-  "cargo": "Cargo",
-  "grocery": "Grocery",
-
-  "skip": "Skip",
+    "skip": "Skip",
   "get_started": "Get Started",
 
   "onboard_title1": "Book Rides Instantly Anywhere",
@@ -20,22 +11,11 @@
   "onboard_title3": "Safe and Verified Drivers",
   "onboard_desc3": "Travel confidently with trusted drivers.",
 
-  "morning": "Morning",
-  "evening": "Evening",
-  "full_day": "Full Day",
-  "male": "Male",
-  "female": "Female",
-  "no_preference": "No Preference",
-  "light_weight": "Light (0-5kg)",
-  "medium_weight": "Medium (5-15kg)",
-  "heavy_weight": "Heavy (>15kg)",
-  "login": "Login",
-  "signup": "Sign Up",
-  "search": "Search",
-  "book_now": "Book Now",
-  "confirm_ride": "Confirm Ride",
-  "payment": "Payment Method",
-  "settings": "Settings",
-  "profile": "Profile",
-  "home": "Home"
+  "enter_number": "Enter your number to",
+  "continue_text": "continue",
+  "privacy_policy": "Privacy Policy",
+  "phone_placeholder": "3XXXXXXXXX",
+  "verify_desc_1": "Please enter the 4-digit code sent",
+  "verify_desc_2": "to you on WhatsApp on",
+  "continue_btn": "Continue"
 }
