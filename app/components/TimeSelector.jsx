@@ -126,10 +126,12 @@ const TimeSelector = ({
               display={Platform.OS === "ios" ? "spinner" : "default"}
               textColor={COLORS.primary} // <-- set text color here (iOS only)
               themeVariant="light"
-              onChange={(event, selectedTime) => {
-                setShowStartPicker(false);
-                if (selectedTime) setStartTime(selectedTime);
+              onValueChange={(event, selectedTime) => {
+                setShowStartPicker(Platform.OS === "ios" ? true : false);
+                const newTime = selectedTime || event;
+                if (newTime instanceof Date) setStartTime(newTime);
               }}
+              onDismiss={() => setShowStartPicker(false)}
             />
           )}
         </View>
@@ -173,10 +175,12 @@ const TimeSelector = ({
               value={endTime}
               mode="time"
               display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={(event, selectedTime) => {
-                setShowEndPicker(false);
-                if (selectedTime) setEndTime(selectedTime);
+              onValueChange={(event, selectedTime) => {
+                setShowEndPicker(Platform.OS === "ios" ? true : false);
+                const newTime = selectedTime || event;
+                if (newTime instanceof Date) setEndTime(newTime);
               }}
+              onDismiss={() => setShowEndPicker(false)}
             />
           )}
         </View>

@@ -66,7 +66,7 @@ const OnboardingScreen = () => {
   };
   const handleskipbutton = () => {
     flatlistRef.current.scrollToIndex({
-      animate: true,
+      animated: true,
       index: data.length - 1,
     });
   };
@@ -130,9 +130,8 @@ const OnboardingScreen = () => {
               style={{
                 paddingHorizontal: responsiveWidth(4),
                 paddingVertical: responsiveHeight(0.8),
-                borderWidth: 1,
-                borderRadius: responsiveWidth(2),
-                borderColor: COLORS.primary,
+                backgroundColor: "rgba(255, 92, 0, 0.1)", // Light primary tint background
+                borderRadius: responsiveWidth(5),
                 justifyContent: "center",
                 alignItems: "center",
                 opacity: currentPage == data.length - 1 ? 0 : 1,
@@ -141,8 +140,8 @@ const OnboardingScreen = () => {
               <Text
                 style={{
                   fontSize: responsiveFontSize(1.8),
-                  color: "#adb5bd",
-                  fontFamily: FONTS.regular,
+                  color: COLORS.primary, // Make text orange instead of grey
+                  fontFamily: FONTS.semiBold,
                   textAlign: "center"
                 }}
               >
