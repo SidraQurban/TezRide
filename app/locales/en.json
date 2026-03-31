@@ -1,0 +1,22 @@
+{
+  "welcome": "Welcome",
+  "search_placeholder": "Search items or stores",
+  "ride": "Ride",
+  "delivery": "Delivery",
+  "rent_driver": "Rent Driver",
+  "shop": "Shop",
+  "cargo": "Cargo",
+  "grocery": "Grocery",
+
+  "skip": "Skip",
+  "get_started": "Get Started",
+
+  "onboard_title1": "Book Rides Instantly Anywhere",
+  "onboard_desc1": "Skip the waiting. Connect with the nearest driver for a quick pickup.",
+
+  "onboard_title2": "Affordable and Transparent Pricing",
+  "onboard_desc2": "Check your fare upfront and pay only for what you travel.",
+
+  "onboard_title3": "Safe and Verified Drivers",
+  "onboard_desc3": "Travel confidently with trusted drivers."
+}
