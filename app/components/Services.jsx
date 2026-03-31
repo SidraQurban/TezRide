@@ -25,7 +25,7 @@ const servicesData = [
   },
   {
     id: 3,
-    title: "Hire Driver",
+    title: "Rent Driver",
     image: require("../../assets/drivers.png"),
     bgColor: "#DFF3E3",
     screen: "HireDriver",
@@ -37,19 +37,32 @@ const servicesData = [
     bgColor: "#E6E6FA",
     screen: "Shops",
   },
+  {
+    id: 5,
+    title: "Cargo",
+    image: require("../../assets/cargo.png"),
+    bgColor: "#FFF4E1",
+    screen: "Cargo",
+  },
+  {
+    id: 6,
+    title: "Grocery",
+    image: require("../../assets/grocery.png"),
+    bgColor: "#E0F7FA",
+    screen: "Grocery",
+  },
 ];
 
 const Services = () => {
   const navigation = useNavigation();
-  const [modalVisible, setModalVisible] = useState(false);
 
+  // const handlePress = (item) => {
+  // navigation.navigate(item.screen);
+  // };
   const handlePress = (item) => {
-    navigation.navigate(item.screen);
-    // if (item.title === "Rentals") {
-    //   setModalVisible(true);
-    // } else {
-    //   navigation.navigate(item.screen);
-    // }
+    if (item.title === "Ride" || item.title === "Rent Driver") {
+      navigation.navigate(item.screen);
+    }
   };
 
   return (
@@ -100,16 +113,6 @@ const Services = () => {
           </TouchableOpacity>
         ))}
       </View>
-
-      {/* Rental Modal */}
-      {/* <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <RentalModal closeModal={() => setModalVisible(false)} />
-      </Modal> */}
     </View>
   );
 };

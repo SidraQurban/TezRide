@@ -2,7 +2,10 @@ import React from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { COLORS, FONTS } from "../constants/theme";
-import { responsiveFontSize } from "react-native-responsive-dimensions";
+import {
+  responsiveFontSize,
+  responsiveHeight,
+} from "react-native-responsive-dimensions";
 
 const SearchInput = ({
   pickup,
@@ -27,6 +30,7 @@ const SearchInput = ({
         shadowOffset: { width: 0, height: 2 },
         borderWidth: 1,
         borderColor: COLORS.primary,
+        marginTop: responsiveHeight(1),
       }}
     >
       {/* Left Inputs */}
@@ -43,6 +47,7 @@ const SearchInput = ({
 
             <TextInput
               placeholder="Enter Pickup"
+              placeholderTextColor="#999"
               value={pickup}
               onChangeText={setPickup}
               returnKeyType="search"
@@ -79,6 +84,7 @@ const SearchInput = ({
 
             <TextInput
               placeholder="Enter Destination"
+              placeholderTextColor="#999"
               value={destination}
               onChangeText={setDestination}
               returnKeyType="search"

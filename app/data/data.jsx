@@ -263,3 +263,5 @@ export const vehicles = [
 export const timeOptions = ["Morning", "Evening", "Full Day"];
 
 export const driverPreferences = ["Male", "Female", "No Preference"];
+
+export const pkgWeight = ["Light (0-5kg)", "Medium (5-15kg)", "Heavy (>15kg)"];

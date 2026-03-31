@@ -52,7 +52,7 @@ const HireDriverScreen = () => {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: COLORS.bgColor,
+        backgroundColor: COLORS.background,
         paddingHorizontal: responsiveWidth(4),
       }}
     >

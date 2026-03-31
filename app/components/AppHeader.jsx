@@ -1,50 +1,46 @@
 import React from "react";
-import { View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Image } from "react-native";
 import {
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
 import { COLORS } from "../constants";
 import DrawerHeader from "../components/DrawerHeader";
-import { Image } from "react-native";
 
 const AppHeader = () => {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+    <View
+      style={{
+        height: responsiveHeight(6.5), // ✅ balanced height
+        backgroundColor: COLORS.white,
+        justifyContent: "center",
+        alignItems: "center",
+        position: "relative",
+      }}
+    >
+      {/* Drawer Button */}
       <View
         style={{
-          height: responsiveHeight(5),
-          backgroundColor: COLORS.white,
+          position: "absolute",
+          left: responsiveWidth(4),
           justifyContent: "center",
-          alignItems: "center",
-          position: "relative",
+          height: "100%",
         }}
       >
-        {/* Drawer Button (Left Corner) */}
-        <View
-          style={{
-            position: "absolute",
-            left: responsiveWidth(4),
-            top: 0,
-            bottom: 0,
-            justifyContent: "center",
-          }}
-        >
-          <DrawerHeader />
-        </View>
-
-        {/* Center Logo */}
-        <Image
-          source={require("../../assets/logo.png")}
-          style={{
-            width: responsiveWidth(40),
-            height: responsiveHeight(20),
-            resizeMode: "contain",
-          }}
-        />
+        <DrawerHeader />
       </View>
-    </SafeAreaView>
+
+      {/* Logo */}
+      <Image
+        source={require("../../assets/logo.png")}
+        style={{
+          width: responsiveWidth(60),
+          height: undefined,
+          aspectRatio: 3,
+          resizeMode: "contain",
+        }}
+      />
+    </View>
   );
 };
 
