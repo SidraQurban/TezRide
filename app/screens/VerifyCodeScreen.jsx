@@ -12,6 +12,17 @@ import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
 import { useTranslation } from "react-i18next";
 import { I18nManager } from "react-native";
+import Svg, { Circle } from "react-native-svg";
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withTiming,
+  Easing,
+  withRepeat,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const VerifyCodeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
@@ -31,7 +42,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
   const [code, setCode] = useState(["", "", "", ""]);
 
   const inputs = useRef([]);
-
+  const progressValue = useSharedValue(1);
   const isCodeComplete = code.every((digit) => digit !== "");
 
   useEffect(() => {
@@ -39,6 +50,9 @@ const VerifyCodeScreen = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
+    // Animate circular progress down as the timer decreases
+    progressValue.value = withTiming(timer / 30, { duration: 1000, easing: Easing.linear });
+
     if (timer === 0) return;
 
     const interval = setInterval(() => {
@@ -73,7 +87,16 @@ const VerifyCodeScreen = ({ navigation, route }) => {
     navigation.navigate("MainDrawer");
   };
 
-  const progress = (timer / 30) * 360;
+  const circleSize = responsiveWidth(35);
+  const strokeWidth = 8;
+  const radius = (circleSize - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  const animatedCircleProps = useAnimatedProps(() => {
+    return {
+      strokeDashoffset: circumference * (1 - progressValue.value),
+    };
+  });
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -116,7 +139,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
         style={{
           flex: 1,
           paddingHorizontal: SIZES.base,
-          justifyContent: "space-between", // ✅ FIXED
+          justifyContent: "space-between",
           alignItems: "center",
           paddingVertical: responsiveHeight(3),
         }}
@@ -161,29 +184,61 @@ const VerifyCodeScreen = ({ navigation, route }) => {
             </Text>
           </View>
 
-          {/* Timer */}
+          {/* Timer with SVG Circular Progress */}
           <View
             style={{
               marginTop: responsiveHeight(5),
-              width: responsiveWidth(35),
-              height: responsiveWidth(35),
-              borderRadius: responsiveWidth(35) / 2,
-              borderWidth: 6,
-              borderColor: COLORS.primary,
-              justifyContent: "center",
               alignItems: "center",
-              transform: [{ rotate: `${progress}deg` }],
+              justifyContent: "center",
+              width: circleSize,
+              height: circleSize,
             }}
           >
-            <Text
+            {/* SVG Progress Circle */}
+            <Svg width={circleSize} height={circleSize} style={{ position: "absolute", transform: [{ rotate: "-90deg" }] }}>
+              <Circle
+                cx={circleSize / 2}
+                cy={circleSize / 2}
+                r={radius}
+                stroke="#E5E7EB"
+                strokeWidth={strokeWidth}
+                fill="none"
+              />
+              <AnimatedCircle
+                cx={circleSize / 2}
+                cy={circleSize / 2}
+                r={radius}
+                stroke={COLORS.secondary}
+                strokeWidth={strokeWidth}
+                fill="transparent"
+                strokeDasharray={circumference}
+                animatedProps={animatedCircleProps}
+                strokeLinecap="round"
+              />
+            </Svg>
+
+            {/* Timer Text inside */}
+            <View
               style={{
-                fontSize: responsiveFontSize(4),
-                fontFamily: FONTS.semiBold,
-                transform: [{ rotate: `-${progress}deg` }],
+                width: circleSize - strokeWidth * 2,
+                height: circleSize - strokeWidth * 2,
+                borderRadius: (circleSize - strokeWidth * 2) / 2,
+                backgroundColor: COLORS.white,
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 2,
               }}
             >
-              {timer}
-            </Text>
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(4),
+                  fontFamily: FONTS.semiBold,
+                  color: COLORS.black,
+                }}
+              >
+                {timer}
+              </Text>
+            </View>
           </View>
 
           {/* OTP Inputs */}

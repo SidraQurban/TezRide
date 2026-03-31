@@ -4,20 +4,20 @@
     "slug": "TezRide",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logoo.png",
+    "icon": "./assets/applogo.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/logoo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FF5C00"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#FF5C00",
+        "foregroundImage": "./assets/applogo.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },

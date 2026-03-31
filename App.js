@@ -21,6 +21,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "./app/locales/i18n";
 import i18n from "./app/locales/i18n";
+import * as SplashScreen from "expo-splash-screen";
+import AnimatedSplashScreen from "./app/components/AnimatedSplashScreen";
+
+// Keep the native splash screen visible until our custom screen is ready
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -41,16 +46,10 @@ export default function App() {
 
   const backgroundColor = "#fff"; // change dynamically if needed
 
-  if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  const isAppReady = fontsLoaded;
 
-  return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor }}>
+  const renderAppContent = () => (
+    <>
       {/* For Android, set backgroundColor of native status bar */}
       {Platform.OS === "android" && (
         <RNStatusBar
@@ -68,6 +67,12 @@ export default function App() {
       />
 
       <AppNavigator />
+    </>
+  );
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor }}>
+      <AnimatedSplashScreen isAppReady={isAppReady} renderApp={renderAppContent} />
     </GestureHandlerRootView>
   );
 }
