@@ -1,4 +1,5 @@
 import React from "react";
+import { View } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import HomeScreen from "../screens/HomeScreen";
 import BookingScreen from "../screens/BookingScreen";
@@ -13,21 +14,33 @@ const DrawerNavigator = () => {
   const { i18n } = useTranslation();
   const isRTL = i18n.language === "ur";
 
+  const HomeScreenWrapper = (props) => (
+    <View style={{ flex: 1, direction: isRTL ? "rtl" : "ltr" }}>
+      <HomeScreen {...props} />
+    </View>
+  );
+
   return (
     <Drawer.Navigator
-      drawerContent={(props) => <CustomDrawer {...props} />}
+      key={isRTL ? "urdu" : "english"}
+      drawerContent={(props) => (
+        <View style={{ flex: 1, direction: isRTL ? "rtl" : "ltr" }}>
+          <CustomDrawer {...props} />
+        </View>
+      )}
       screenOptions={{
         headerShown: false,
         swipeEnabled: false,
+        drawerPosition: isRTL ? "right" : "left",
         drawerStyle: {
           width: responsiveWidth(75),
-          backgroundColor: 'transparent',
+          backgroundColor: "transparent",
           borderTopRightRadius: 0,
           borderBottomRightRadius: 0,
         },
       }}
     >
-      <Drawer.Screen name="Home" component={HomeScreen} />
+      <Drawer.Screen name="Home" component={HomeScreenWrapper} />
       {/* <Drawer.Screen name="Booking" component={BookingScreen} /> */}
       {/* <Drawer.Screen name="ContactUs" component={ContactUsScreen} /> */}
     </Drawer.Navigator>

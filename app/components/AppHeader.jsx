@@ -6,8 +6,12 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS } from "../constants";
 import DrawerHeader from "../components/DrawerHeader";
+import { useTranslation } from "react-i18next";
 
 const AppHeader = () => {
+  const { i18n } = useTranslation();
+  const isRtl = i18n.language === "ur";
+
   return (
     <View
       style={{
@@ -18,19 +22,23 @@ const AppHeader = () => {
         position: "relative",
       }}
     >
-      {/* Drawer Button */}
       <View
         style={{
-          position: "absolute",
-          left: responsiveWidth(4),
-          justifyContent: "center",
+          width: '100%',
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: responsiveWidth(4),
           height: "100%",
         }}
       >
-        <DrawerHeader />
-      </View>
+        {/* Drawer Button */}
+        <View style={{ justifyContent: "center" }}>
+          <DrawerHeader />
+        </View>
 
-      {/* Logo */}
+        {/* Logo */}
+        <View style={{ position: "absolute", left: 0, right: 0, alignItems: "center", pointerEvents: "none" }}>
       <Image
         source={require("../../assets/logo.png")}
         style={{
@@ -40,6 +48,8 @@ const AppHeader = () => {
           resizeMode: "contain",
         }}
       />
+      </View>
+      </View>
     </View>
   );
 };

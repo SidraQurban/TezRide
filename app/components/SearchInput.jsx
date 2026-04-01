@@ -40,7 +40,7 @@ const SearchInput = ({
         {/* Pickup */}
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons name="location" size={18} color={COLORS.primary} />
-          <View style={{ marginLeft: 8, flex: 1 }}>
+          <View style={{ marginLeft: 12, flex: 1 }}>
             <Text
               style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
             >
@@ -77,7 +77,7 @@ const SearchInput = ({
         {/* Destination */}
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons name="location" size={18} color="#999" />
-          <View style={{ marginLeft: 8, flex: 1 }}>
+          <View style={{ marginLeft: 12, flex: 1 }}>
             <Text
               style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
             >
@@ -112,7 +112,7 @@ const SearchInput = ({
           backgroundColor: "#F3F3F3",
           alignItems: "center",
           justifyContent: "center",
-          marginLeft: 10,
+          marginLeft: 15,
         }}
       >
         <MaterialIcons name="swap-vert" size={20} color={COLORS.primary} />

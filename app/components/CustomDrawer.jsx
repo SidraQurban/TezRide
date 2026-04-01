@@ -1,6 +1,9 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
-import { DrawerContentScrollView, useDrawerStatus } from "@react-navigation/drawer";
+import {
+  DrawerContentScrollView,
+  useDrawerStatus,
+} from "@react-navigation/drawer";
 import { COLORS } from "../constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -29,27 +32,21 @@ const drawerItems = [
 const CustomDrawer = (props) => {
   const { state, navigation } = props;
   const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ur";
 
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ur" : "en";
     i18n.changeLanguage(newLang);
     const isRtl = newLang === "ur";
-    
+
     if (isRtl !== I18nManager.isRTL) {
       I18nManager.allowRTL(isRtl);
       I18nManager.forceRTL(isRtl);
-      Alert.alert(
-        "Restart Required",
-        "The app needs to reload for the language change to fully take effect.",
-        [{ text: "OK" }],
-      );
     }
   };
 
-  const isDrawerHidden = useDrawerStatus() === 'closed';
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white, opacity: isDrawerHidden ? 0 : 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={{ flex: 1, backgroundColor: COLORS.background }}>
         <DrawerContentScrollView
           {...props}
@@ -127,7 +124,7 @@ const CustomDrawer = (props) => {
               style={{ marginRight: responsiveWidth(3) }}
             >
               <Ionicons
-                name="chevron-back-sharp"
+                name={isRTL ? "chevron-back" : "chevron-forward"}
                 size={responsiveFontSize(3)}
                 color={COLORS.primary}
               />
@@ -161,7 +158,7 @@ const CustomDrawer = (props) => {
                   <Text
                     style={{
                       fontSize: responsiveFontSize(1.9),
-                      marginLeft: responsiveWidth(4),
+                      marginLeft: responsiveWidth(5),
                       flex: 1,
                       color: COLORS.black,
                     }}
@@ -224,13 +221,18 @@ const CustomDrawer = (props) => {
               elevation: 2,
             }}
           >
-            <Ionicons name="globe-outline" size={responsiveFontSize(2.2)} color={COLORS.primary} style={{ marginRight: responsiveWidth(2.5) }} />
+            <Ionicons
+              name="globe-outline"
+              size={responsiveFontSize(2.2)}
+              color={COLORS.primary}
+            />
+            <View style={{ width: 8 }} />
             <Text
               style={{
                 fontSize: responsiveFontSize(1.8),
                 color: COLORS.primary,
                 fontFamily: "System",
-                fontWeight: "600"
+                fontWeight: "600",
               }}
             >
               {i18n.language === "en" ? "اردو" : "English"}

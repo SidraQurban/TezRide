@@ -25,6 +25,7 @@ import { I18nManager } from "react-native";
 const OnboardingScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
+  const isRtl = i18n.language === "ur";
 
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ur" : "en";
@@ -107,7 +108,7 @@ const OnboardingScreen = () => {
               name="globe-outline"
               size={18}
               color={COLORS.primary}
-              style={{ marginRight: 6 }}
+              style={isRtl ? { marginLeft: 6 } : { marginRight: 6 }}
             />
             <Text
               style={{
@@ -208,7 +209,7 @@ const OnboardingScreen = () => {
               }}
             >
               <AntDesign
-                name="right"
+                name={isRtl ? "left" : "right"}
                 style={{
                   fontSize: responsiveFontSize(2),
                   color: COLORS.white,
@@ -217,7 +218,7 @@ const OnboardingScreen = () => {
               />
 
               <AntDesign
-                name="right"
+                name={isRtl ? "left" : "right"}
                 style={{
                   fontSize: responsiveFontSize(2.9),
                   color: COLORS.white,
@@ -260,7 +261,7 @@ const OnboardingScreen = () => {
               </Text>
 
               <AntDesign
-                name="right"
+                name={isRtl ? "left" : "right"}
                 style={{
                   fontSize: responsiveFontSize(2),
                   color: COLORS.white,
@@ -270,7 +271,7 @@ const OnboardingScreen = () => {
               />
 
               <AntDesign
-                name="right"
+                name={isRtl ? "left" : "right"}
                 style={{
                   fontSize: responsiveFontSize(2.9),
                   color: COLORS.white,
@@ -300,7 +301,7 @@ const OnboardingScreen = () => {
           style={{
             width: responsiveWidth(90),
             height: responsiveHeight(40),
-            marginTop: responsiveHeight(-5),
+            marginTop: responsiveHeight(-1),
           }}
         />
       </View>
@@ -315,7 +316,8 @@ const OnboardingScreen = () => {
             fontSize: responsiveFontSize(3),
             textAlign: "center",
             fontFamily: FONTS.semiBold,
-            marginTop: responsiveHeight(-5),
+            marginTop: responsiveHeight(-1),
+            lineHeight: responsiveHeight(4.5),
           }}
         >
           {t(item.title)}
@@ -347,6 +349,7 @@ const OnboardingScreen = () => {
       {renderTopSection()}
 
       <FlatList
+        key={isRtl ? "ur-list" : "en-list"}
         data={data}
         pagingEnabled
         horizontal

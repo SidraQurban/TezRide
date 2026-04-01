@@ -18,6 +18,8 @@ const RidesSlider = () => {
   const { t } = useTranslation();
   const [selectedService, setSelectedService] = useState("bike");
   const selectedRide = rides.find((r) => r.id === selectedService);
+  const { i18n } = useTranslation();
+  const isRTL = i18n.language === "ur";
 
   return (
     <View>
@@ -163,7 +165,9 @@ const RidesSlider = () => {
               marginRight: 8,
             }}
           />
-          <Text style={{ fontFamily: FONTS.medium }}>{t("current_location")}</Text>
+          <Text style={{ fontFamily: FONTS.medium }}>
+            {t("current_location")}
+          </Text>
         </View>
 
         {/* Line */}
@@ -187,7 +191,9 @@ const RidesSlider = () => {
             color={COLORS.primary}
             style={{ marginRight: 6 }}
           />
-          <Text style={{ fontFamily: FONTS.medium }}>{t("destination_address")}</Text>
+          <Text style={{ fontFamily: FONTS.medium }}>
+            {t("destination_address")}
+          </Text>
         </View>
 
         {/* BOTTOM ROW: ETA + APPLY PROMO */}
@@ -221,7 +227,7 @@ const RidesSlider = () => {
                 {t("apply_promo")}
               </Text>
               <Ionicons
-                name="chevron-forward"
+                name={isRTL ? "chevron-back" : "chevron-forward"}
                 size={16}
                 color={COLORS.primary}
               />
