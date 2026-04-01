@@ -128,6 +128,7 @@ const OnboardingScreen = () => {
           <TouchableOpacity onPress={handleskipbutton}>
             <View
               style={{
+                minWidth: responsiveWidth(16),
                 paddingHorizontal: responsiveWidth(4),
                 paddingVertical: responsiveHeight(0.8),
                 backgroundColor: "rgba(255, 92, 0, 0.1)", // Light primary tint background
@@ -142,7 +143,8 @@ const OnboardingScreen = () => {
                   fontSize: responsiveFontSize(1.8),
                   color: COLORS.primary, // Make text orange instead of grey
                   fontFamily: FONTS.semiBold,
-                  textAlign: "center"
+                  textAlign: "center",
+                  paddingHorizontal: 2,
                 }}
               >
                 {t("skip")}
