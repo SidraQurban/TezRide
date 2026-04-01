@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { I18nManager } from "react-native";
+import { FONTS } from "../constants/theme";
 
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
@@ -87,8 +88,9 @@ const CustomDrawer = (props) => {
               <Text
                 style={{
                   fontSize: responsiveFontSize(2),
-                  fontWeight: "600",
                   color: COLORS.black,
+                  fontFamily: FONTS.semiBold,
+                  includeFontPadding: false,
                 }}
               >
                 {t("user")}
@@ -109,8 +111,10 @@ const CustomDrawer = (props) => {
                 <Text
                   style={{
                     marginLeft: responsiveWidth(1.5),
-                    fontSize: responsiveFontSize(1.6),
+                    fontSize: responsiveFontSize(1.5),
                     color: "#777",
+                    fontFamily: FONTS.medium,
+                    includeFontPadding: false,
                   }}
                 >
                   4.8 (4)
@@ -157,10 +161,12 @@ const CustomDrawer = (props) => {
                   />
                   <Text
                     style={{
-                      fontSize: responsiveFontSize(1.9),
+                      fontSize: responsiveFontSize(1.7),
                       marginLeft: responsiveWidth(5),
                       flex: 1,
                       color: COLORS.black,
+                      fontFamily: FONTS.medium,
+                      includeFontPadding: false,
                     }}
                   >
                     {t(item.label.toLowerCase().replace(" ", "_"))}
@@ -179,7 +185,9 @@ const CustomDrawer = (props) => {
                       <Text
                         style={{
                           color: "#fff",
-                          fontSize: responsiveFontSize(1.4),
+                          fontSize: responsiveFontSize(1.3),
+                          fontFamily: FONTS.medium,
+                          includeFontPadding: false,
                         }}
                       >
                         {item.badge}
@@ -232,7 +240,8 @@ const CustomDrawer = (props) => {
                 fontSize: responsiveFontSize(1.8),
                 color: COLORS.primary,
                 fontFamily: "System",
-                fontWeight: "600",
+                fontFamily: FONTS.semiBold,
+                includeFontPadding: false,
               }}
             >
               {i18n.language === "en" ? "اردو" : "English"}
@@ -252,7 +261,11 @@ const CustomDrawer = (props) => {
               }}
             >
               <Text
-                style={{ fontSize: responsiveFontSize(2), fontWeight: "bold" }}
+                style={{
+                  fontSize: responsiveFontSize(2),
+                  fontFamily: FONTS.semiBold,
+                  includeFontPadding: false,
+                }}
               >
                 {t("logout")}
               </Text>
