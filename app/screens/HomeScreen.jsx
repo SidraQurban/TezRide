@@ -26,15 +26,18 @@ const HomeScreen = () => {
   const translateX = useSharedValue(0);
 
   React.useEffect(() => {
+    // Manual swap for universal compatibility across all devices
+    const targetValue = i18n.language === "ur" ? 15 : -15;
+    translateX.value = 0;
     translateX.value = withRepeat(
       withSequence(
-        withTiming(15, { duration: 2500 }),
+        withTiming(targetValue, { duration: 2500 }),
         withTiming(0, { duration: 2500 }),
       ),
       -1,
       true,
     );
-  }, []);
+  }, [i18n.language]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -120,7 +123,8 @@ const HomeScreen = () => {
                 height: responsiveHeight(18),
                 resizeMode: "contain",
                 position: "absolute",
-                right: responsiveWidth(5),
+                right: i18n.language === "ur" ? undefined : responsiveWidth(5),
+                left: i18n.language === "ur" ? responsiveWidth(50) : undefined,
                 bottom: responsiveHeight(3),
               },
               animatedStyle,

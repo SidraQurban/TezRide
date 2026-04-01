@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 
 const SearchBar = () => {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <TouchableOpacity
@@ -34,6 +34,7 @@ const SearchBar = () => {
         shadowOpacity: 0.1,
         shadowRadius: 6,
         marginTop: 13,
+        gap: 10,
       }}
     >
       {/* LEFT CAR ICON */}
@@ -46,10 +47,10 @@ const SearchBar = () => {
       {/* TEXT */}
       <Text
         style={{
-          marginLeft: 10,
           fontSize: responsiveFontSize(1.8),
           fontFamily: FONTS.regular,
           color: "#999",
+          textAlign: i18n.language === "ur" ? "right" : "left",
         }}
       >
         {t("search_placeholder")}
