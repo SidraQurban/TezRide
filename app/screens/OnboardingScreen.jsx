@@ -54,7 +54,7 @@ const OnboardingScreen = () => {
   const handleNext = () => {
     if (currentPage == data.length - 1) return;
     flatlistRef.current.scrollToIndex({
-      Animated: true,
+      animated: true,
       index: currentPage + 1,
     });
   };
@@ -129,10 +129,10 @@ const OnboardingScreen = () => {
           <TouchableOpacity onPress={handleskipbutton}>
             <View
               style={{
-                minWidth: responsiveWidth(16),
-                paddingHorizontal: responsiveWidth(4),
-                paddingVertical: responsiveHeight(0.8),
-                backgroundColor: "rgba(255, 92, 0, 0.1)", // Light primary tint background
+                // minWidth: responsiveWidth(18),
+                paddingHorizontal: responsiveWidth(5),
+                paddingVertical: responsiveHeight(1),
+                backgroundColor: "rgba(255, 92, 0, 0.1)",
                 borderRadius: responsiveWidth(5),
                 justifyContent: "center",
                 alignItems: "center",
@@ -140,9 +140,10 @@ const OnboardingScreen = () => {
               }}
             >
               <Text
+                numberOfLines={1}
                 style={{
                   fontSize: responsiveFontSize(1.8),
-                  color: COLORS.primary, // Make text orange instead of grey
+                  color: COLORS.primary,
                   fontFamily: FONTS.semiBold,
                   textAlign: "center",
                   paddingHorizontal: 2,

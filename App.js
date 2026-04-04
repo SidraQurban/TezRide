@@ -34,6 +34,11 @@ export default function App() {
     Poppins_600SemiBold,
     Poppins_700Bold,
   });
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
 
   useEffect(() => {
     const languageCode = i18n.language;
@@ -72,7 +77,11 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor }}>
-      <AnimatedSplashScreen isAppReady={isAppReady} renderApp={renderAppContent} />
+      {/* <AnimatedSplashScreen
+        isAppReady={isAppReady}
+        renderApp={renderAppContent}
+      /> */}
+      {isAppReady ? renderAppContent() : null}
     </GestureHandlerRootView>
   );
 }

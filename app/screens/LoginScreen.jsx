@@ -52,7 +52,7 @@ const LoginScreen = () => {
 
   const handlePhoneChange = (text) => {
     const cleaned = text.replace(/[^0-9]/g, "");
-    if (cleaned.length <= 11) {
+    if (cleaned.length <= 10) {
       setPhone(cleaned);
     }
   };
@@ -171,6 +171,7 @@ const LoginScreen = () => {
                 paddingHorizontal: responsiveWidth(3),
                 height: responsiveHeight(6.5),
                 width: responsiveWidth(85),
+                marginBottom: responsiveHeight(2),
               }}
             >
               {/* Country Picker */}
@@ -237,7 +238,7 @@ const LoginScreen = () => {
                 keyboardType="number-pad"
                 value={phone}
                 onChangeText={handlePhoneChange}
-                maxLength={11}
+                maxLength={10}
               />
             </View>
           </View>
