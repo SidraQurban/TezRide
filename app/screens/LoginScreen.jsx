@@ -39,7 +39,7 @@ const LoginScreen = () => {
   const navigation = useNavigation();
 
   const toggleLanguage = () => {
-    const newLang = i18n.language === "en" ? "ur" : "en";
+    const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
     i18n.changeLanguage(newLang);
     if (newLang === "ur" && !I18nManager.isRTL) {
       I18nManager.forceRTL(true);

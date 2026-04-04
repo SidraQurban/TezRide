@@ -9,13 +9,12 @@ import { COLORS, FONTS } from "../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 
-const LocationModal = () => {
-  const [locationModalVisible, setLocationModalVisible] = useState(true);
+const LocationModal = ({ visible, onClose }) => {
   const { t } = useTranslation();
 
   return (
     <View>
-      <Modal transparent animationType="fade" visible={locationModalVisible}>
+      <Modal transparent animationType="fade" visible={visible}>
         <View
           style={{
             flex: 1,
@@ -119,7 +118,7 @@ const LocationModal = () => {
             {/* ENABLE BUTTON */}
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => setLocationModalVisible(false)}
+              onPress={onClose}
               style={{ width: "100%", marginBottom: 10 }}
             >
               <LinearGradient
@@ -148,7 +147,7 @@ const LocationModal = () => {
 
             {/* CANCEL BUTTON */}
             <TouchableOpacity
-              onPress={() => setLocationModalVisible(false)}
+              onPress={onClose}
               style={{
                 width: "100%",
                 backgroundColor: COLORS.serviceBg,

@@ -23,7 +23,7 @@ import SearchDriverScreen from "../screens/SearchDriverScreen";
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   const { i18n } = useTranslation();
-  const isRtl = i18n.language === "ur";
+  const isRtl = i18n.language?.startsWith("ur");
 
   return (
     <NavigationContainer>

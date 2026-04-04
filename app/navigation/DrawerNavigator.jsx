@@ -12,7 +12,7 @@ const Drawer = createDrawerNavigator();
 
 const DrawerNavigator = () => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.language === "ur";
+  const isRTL = i18n.language?.startsWith("ur");
 
   const HomeScreenWrapper = (props) => (
     <View style={{ flex: 1, direction: isRTL ? "rtl" : "ltr" }}>

@@ -25,15 +25,17 @@ import { I18nManager } from "react-native";
 const OnboardingScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
-  const isRtl = i18n.language === "ur";
+  const isRtl = i18n.language.startsWith("ur");
 
   const toggleLanguage = () => {
-    const newLang = i18n.language === "en" ? "ur" : "en";
+    const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
     i18n.changeLanguage(newLang);
     if (newLang === "ur" && !I18nManager.isRTL) {
       I18nManager.forceRTL(true);
+      I18nManager.allowRTL(true);
     } else if (newLang === "en" && I18nManager.isRTL) {
       I18nManager.forceRTL(false);
+      I18nManager.allowRTL(false);
     }
   };
   const flatlistRef = useRef();

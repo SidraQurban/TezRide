@@ -21,17 +21,30 @@ import Animated, {
 } from "react-native-reanimated";
 import { FONTS } from "../constants/theme";
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
-  const translateX = useSharedValue(0);
+  const [locationModalVisible, setLocationModalVisible] = React.useState(false);
 
   React.useEffect(() => {
-    // Manual swap for universal compatibility across all devices
-    const targetValue = i18n.language === "ur" ? 15 : -15;
+    if (route.params?.showLocationModal) {
+      setLocationModalVisible(true);
+      navigation.setParams({ showLocationModal: false });
+    }
+  }, [route.params?.showLocationModal]);
+
+  const translateX = useSharedValue(0);
+  const isUrdu = i18n.language?.startsWith("ur");
+
+  React.useEffect(() => {
+    // Reset translation
     translateX.value = 0;
+
+    // Animate opposite sides for UR/EN (Subtle floating effect)
     translateX.value = withRepeat(
       withSequence(
-        withTiming(targetValue, { duration: 2500 }),
+        withTiming(isUrdu ? responsiveWidth(6) : -responsiveWidth(6), {
+          duration: 2500,
+        }),
         withTiming(0, { duration: 2500 }),
       ),
       -1,
@@ -47,14 +60,10 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
-      {/* Fixed Header */}
       <AppHeader />
 
-      {/* Scrollable content */}
       <ScrollView
-        contentContainerStyle={{
-          paddingBottom: responsiveHeight(5),
-        }}
+        contentContainerStyle={{ paddingBottom: responsiveHeight(5) }}
         showsVerticalScrollIndicator={false}
       >
         {/* Banner Section */}
@@ -63,7 +72,7 @@ const HomeScreen = () => {
             height: responsiveHeight(25),
             backgroundColor: COLORS.backgroundimg,
             justifyContent: "center",
-            overflow: "hidden", // Keeps animation within banner bounds
+            overflow: "hidden",
           }}
         >
           {/* Background Banner Image */}
@@ -86,15 +95,15 @@ const HomeScreen = () => {
               width: responsiveWidth(85),
               alignSelf: "center",
               zIndex: 1,
-              alignItems: i18n.language === "ur" ? "flex-start" : "flex-start",
+              alignItems: "flex-start", // Flex-start is Right in RTL, Left in LTR
             }}
           >
             <Text
               style={{
-                fontSize: responsiveFontSize(3.5),
+                fontSize: responsiveFontSize(4.2),
                 fontFamily: FONTS.bold,
                 color: COLORS.white,
-                textAlign: i18n.language === "ur" ? "right" : "left",
+                textAlign: isUrdu ? "right" : "left",
                 includeFontPadding: false,
               }}
             >
@@ -102,11 +111,11 @@ const HomeScreen = () => {
             </Text>
             <Text
               style={{
-                fontSize: responsiveFontSize(1.9),
+                fontSize: responsiveFontSize(2.2),
                 fontFamily: FONTS.medium,
                 color: COLORS.white,
                 opacity: 0.8,
-                textAlign: i18n.language === "ur" ? "right" : "left",
+                textAlign: isUrdu ? "right" : "left",
                 includeFontPadding: false,
               }}
             >
@@ -123,9 +132,9 @@ const HomeScreen = () => {
                 height: responsiveHeight(18),
                 resizeMode: "contain",
                 position: "absolute",
-                right: i18n.language === "ur" ? undefined : responsiveWidth(5),
-                left: i18n.language === "ur" ? responsiveWidth(50) : undefined,
                 bottom: responsiveHeight(3),
+                // Native direction-aware positioning (end is Left in RTL, Right in LTR)
+                end: responsiveWidth(2),
               },
               animatedStyle,
             ]}
@@ -143,7 +152,10 @@ const HomeScreen = () => {
         </View>
 
         {/* Location Modal */}
-        <LocationModal />
+        <LocationModal
+          visible={locationModalVisible}
+          onClose={() => setLocationModalVisible(false)}
+        />
       </ScrollView>
     </SafeAreaView>
   );

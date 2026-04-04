@@ -36,7 +36,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
   const { phoneNumber } = route.params || {};
 
   const toggleLanguage = () => {
-    const newLang = i18n.language === "en" ? "ur" : "en";
+    const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
     i18n.changeLanguage(newLang);
     if (newLang === "ur" && !I18nManager.isRTL) {
       I18nManager.forceRTL(true);
@@ -94,7 +94,10 @@ const VerifyCodeScreen = ({ navigation, route }) => {
     const finalCode = code.join("");
     console.log("OTP Entered:", finalCode);
 
-    navigation.navigate("MainDrawer");
+    navigation.navigate("MainDrawer", {
+      screen: "Home",
+      params: { showLocationModal: true },
+    });
   };
 
   const circleSize = responsiveWidth(35);

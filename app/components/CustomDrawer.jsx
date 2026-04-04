@@ -44,6 +44,8 @@ const CustomDrawer = (props) => {
       I18nManager.allowRTL(isRtl);
       I18nManager.forceRTL(isRtl);
     }
+    // Close the drawer automatically
+    navigation.closeDrawer();
   };
 
   return (
