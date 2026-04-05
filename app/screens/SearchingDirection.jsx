@@ -25,8 +25,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
 import { useTranslation } from "react-i18next";
 
-const SearchingDirection = () => {
+const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
+  const { rideImage } = route.params || {};
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
 
@@ -128,7 +129,7 @@ const SearchingDirection = () => {
               left: 0,
               right: 0,
               alignItems: "center",
-              elevation: 1, // Add very small elevation to ensure webview is under it, but bottom sheet overrides it
+              elevation: 1,
             }}
           >
             {/* Inner Wrapper to bind the absolute Cancel button strictly to the circle */}
@@ -168,10 +169,10 @@ const SearchingDirection = () => {
                 }}
               >
                 <Image
-                  source={require("../../assets/auto.png")}
+                  source={rideImage || require("../../assets/auto.png")}
                   style={{
-                    width: responsiveWidth(26),
-                    height: responsiveHeight(26),
+                    width: responsiveWidth(30),
+                    height: responsiveHeight(30),
                     resizeMode: "contain",
                   }}
                 />

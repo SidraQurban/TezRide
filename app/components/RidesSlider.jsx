@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { TouchableOpacity, Image, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -13,10 +13,9 @@ import { rides } from "../data/data";
 import { ScrollView } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
 
-const RidesSlider = () => {
+const RidesSlider = ({ selectedService, setSelectedService }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const [selectedService, setSelectedService] = useState("bike");
   const selectedRide = rides.find((r) => r.id === selectedService);
   const { i18n } = useTranslation();
   const isRTL = i18n.language === "ur";

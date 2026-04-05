@@ -46,7 +46,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
   };
 
   const [timer, setTimer] = useState(30);
-  const [code, setCode] = useState(["", "", "", ""]);
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
 
   const inputs = useRef([]);
   const progressValue = useSharedValue(1);
@@ -77,7 +77,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
     newCode[index] = text;
     setCode(newCode);
 
-    if (text && index < 3) {
+    if (text && index < 5) {
       inputs.current[index + 1]?.focus();
     }
   };
@@ -282,7 +282,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                 flexDirection: "row",
                 marginTop: responsiveHeight(5),
                 justifyContent: "space-between",
-                width: responsiveWidth(70),
+                width: responsiveWidth(80),
                 marginBottom: responsiveHeight(2),
               }}
             >
@@ -291,14 +291,14 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                   key={index}
                   ref={(ref) => (inputs.current[index] = ref)}
                   style={{
-                    width: responsiveWidth(15),
-                    height: responsiveHeight(7),
-                    borderRadius: responsiveWidth(3),
+                    width: responsiveWidth(11),
+                    height: responsiveHeight(5.5),
+                    borderRadius: responsiveWidth(2.5),
                     borderWidth: 1.5,
                     borderColor: isCodeComplete ? COLORS.primary : "#ccc",
                     textAlign: "center",
-                    fontSize: responsiveFontSize(3),
-                    lineHeight: responsiveFontSize(3),
+                    fontSize: responsiveFontSize(2.5),
+                    lineHeight: responsiveFontSize(2.5),
                     padding: 0,
                     color: isCodeComplete ? COLORS.primary : COLORS.black,
                     fontFamily: FONTS.regular,

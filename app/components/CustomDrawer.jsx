@@ -75,7 +75,7 @@ const CustomDrawer = (props) => {
                 backgroundColor: "#E0E0E0",
                 justifyContent: "center",
                 alignItems: "center",
-                marginRight: responsiveWidth(3),
+                marginHorizontal: responsiveWidth(3),
               }}
             >
               <Ionicons
@@ -112,7 +112,7 @@ const CustomDrawer = (props) => {
                 <Ionicons name="star-half" size={14} color={COLORS.secondary} />
                 <Text
                   style={{
-                    marginLeft: responsiveWidth(1.5),
+                    marginHorizontal: responsiveWidth(1.5),
                     fontSize: responsiveFontSize(1.5),
                     color: "#777",
                     fontFamily: FONTS.medium,
@@ -164,7 +164,7 @@ const CustomDrawer = (props) => {
                   <Text
                     style={{
                       fontSize: responsiveFontSize(1.7),
-                      marginLeft: responsiveWidth(5),
+                      marginHorizontal: responsiveWidth(5),
                       flex: 1,
                       color: COLORS.black,
                       fontFamily: FONTS.medium,

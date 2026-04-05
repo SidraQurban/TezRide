@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,12 +16,15 @@ import RidesSlider from "../components/RidesSlider";
 import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
 import { useTranslation } from "react-i18next";
+import { rides } from "../data/data";
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["55%", "56%", "56%"], []);
+  const [selectedService, setSelectedService] = useState("bike");
+  const selectedRide = rides.find((r) => r.id === selectedService);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -88,7 +91,11 @@ const ConfirmRide = () => {
       >
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("SearchingDirection")}
+          onPress={() =>
+            navigation.navigate("SearchingDirection", {
+              rideImage: selectedRide?.image,
+            })
+          }
         >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
@@ -133,7 +140,11 @@ const ConfirmRide = () => {
           zIndex: 10, // ensures sheet is above button
         }}
       >
-        <RidesSlider onClose={() => bottomSheetRef.current?.snapToIndex(0)} />
+        <RidesSlider
+          selectedService={selectedService}
+          setSelectedService={setSelectedService}
+          onClose={() => bottomSheetRef.current?.snapToIndex(0)}
+        />
       </BottomSheet>
     </SafeAreaView>
   );

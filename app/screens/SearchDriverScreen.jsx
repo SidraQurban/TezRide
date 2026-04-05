@@ -25,8 +25,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
 import { useTranslation } from "react-i18next";
 
-const SearchDriverScreen = () => {
+const SearchDriverScreen = ({ route }) => {
   const navigation = useNavigation();
+  const { selectedGender } = route.params || {};
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
 
@@ -192,7 +193,11 @@ const SearchDriverScreen = () => {
                 }}
               >
                 <Image
-                  source={require("../../assets/driver.png")}
+                  source={
+                    selectedGender === "female"
+                      ? require("../../assets/femaledriver.png")
+                      : require("../../assets/driver.png")
+                  }
                   style={{
                     width: responsiveWidth(70),
                     height: responsiveHeight(70),

@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, I18nManager } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import HomeScreen from "../screens/HomeScreen";
 import BookingScreen from "../screens/BookingScreen";
@@ -13,6 +13,8 @@ const Drawer = createDrawerNavigator();
 const DrawerNavigator = () => {
   const { i18n } = useTranslation();
   const isRTL = i18n.language?.startsWith("ur");
+
+  const drawerPosition = isRTL && !I18nManager.isRTL ? "right" : "left";
 
   const HomeScreenWrapper = (props) => (
     <View style={{ flex: 1, direction: isRTL ? "rtl" : "ltr" }}>
@@ -31,7 +33,8 @@ const DrawerNavigator = () => {
       screenOptions={{
         headerShown: false,
         swipeEnabled: false,
-        drawerPosition: isRTL ? "right" : "left",
+        drawerType: "front",
+        drawerPosition: drawerPosition,
         drawerStyle: {
           width: responsiveWidth(75),
           backgroundColor: "transparent",

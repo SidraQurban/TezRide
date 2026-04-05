@@ -123,7 +123,7 @@ const HireDriverScreen = () => {
 
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => navigation.navigate("SearchDriver")}
+        onPress={() => navigation.navigate("SearchDriver", { selectedGender: gender })}
         style={{
           marginTop: responsiveHeight(1),
           position: "absolute",
