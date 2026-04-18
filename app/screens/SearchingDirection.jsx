@@ -198,6 +198,7 @@ const SearchingDirection = ({ route }) => {
                   marginTop: responsiveHeight(2),
                   fontSize: responsiveFontSize(2),
                   fontFamily: FONTS.semiBold,
+                  color: COLORS.primary,
                 }}
               >
                 {t("finding_drivers")}
@@ -206,6 +207,7 @@ const SearchingDirection = ({ route }) => {
                 style={{
                   fontSize: responsiveFontSize(2),
                   fontFamily: FONTS.medium,
+                  color: COLORS.primary,
                 }}
               >
                 {t("ride_arrive_shortly")}

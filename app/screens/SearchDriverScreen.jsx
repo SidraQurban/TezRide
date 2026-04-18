@@ -201,6 +201,7 @@ const SearchDriverScreen = ({ route }) => {
                 marginTop: responsiveHeight(2),
                 fontSize: responsiveFontSize(2),
                 fontFamily: FONTS.semiBold,
+                color: COLORS.primary,
               }}
             >
               {t("connecting_driver")}
