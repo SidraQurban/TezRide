@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { StyleSheet, PermissionsAndroid } from "react-native";
+import { StyleSheet, PermissionsAndroid, AppState } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 
 const DEFAULT_REGION = {
@@ -30,6 +30,22 @@ const MapComponent = () => {
 
   useEffect(() => {
     checkPermission();
+  }, [checkPermission]);
+
+  // Re-check permission whenever the app comes back to foreground
+  // (covers both the OS permission dialog and returning from Settings)
+  useEffect(() => {
+    const appState = { current: AppState.currentState };
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextState === "active"
+      ) {
+        checkPermission();
+      }
+      appState.current = nextState;
+    });
+    return () => subscription.remove();
   }, [checkPermission]);
 
   // Called by the native map when user location updates — center map once

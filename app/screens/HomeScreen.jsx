@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ScrollView, Image, Text, AppState, PermissionsAndroid } from "react-native";
+import { View, ScrollView, Image, Text, AppState } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   responsiveHeight,
@@ -12,6 +12,7 @@ import Services from "../components/Services";
 import SearchBar from "../components/SearchBar";
 import LocationModal from "../components/LocationModal";
 import { useTranslation } from "react-i18next";
+import * as ExpoLocation from "expo-location";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -26,13 +27,13 @@ const HomeScreen = ({ navigation, route }) => {
   const [locationModalVisible, setLocationModalVisible] = React.useState(false);
   const appState = React.useRef(AppState.currentState);
 
-  // Check location permission and GPS status
+  // Show modal if permission is missing OR device GPS is turned off
   const checkLocationStatus = React.useCallback(async () => {
     try {
-      const granted = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-      );
-      if (!granted) {
+      const { status } = await ExpoLocation.getForegroundPermissionsAsync();
+      const isGpsEnabled = await ExpoLocation.hasServicesEnabledAsync();
+
+      if (status !== "granted" || !isGpsEnabled) {
         setLocationModalVisible(true);
       } else {
         setLocationModalVisible(false);
