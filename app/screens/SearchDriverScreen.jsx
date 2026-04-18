@@ -17,7 +17,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
-import { WebView } from "react-native-webview";
+import MapComponent from "../components/MapComponent";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ArrivingCard from "../components/ArrivingCard";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -108,19 +108,7 @@ const SearchDriverScreen = ({ route }) => {
 
         {/* MAP + OVERLAY */}
         <View style={{ flex: 1 }}>
-          <WebView
-            source={{
-              html: `
-                <iframe
-                  src="https://maps.google.com/maps?q=25.198152585089883,66.45617498089926&z=12&output=embed"
-                  width="100%"
-                  height="100%"
-                  style="border:0;"
-                ></iframe>
-              `,
-            }}
-            style={{ flex: 1 }}
-          />
+          <MapComponent />
 
           <View
             style={{

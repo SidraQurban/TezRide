@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { WebView } from "react-native-webview";
+import MapComponent from "../components/MapComponent";
 import {
   responsiveHeight,
   responsiveWidth,
@@ -42,12 +42,7 @@ const DeliveryScreen = () => {
             marginTop: responsiveHeight(0),
           }}
         >
-          <WebView
-            source={{
-              html: `<iframe src="https://maps.google.com/maps?q=25.198152585089883,66.45617498089926&z=12&output=embed" width="100%" height="100%" style="border:0;"></iframe>`,
-            }}
-            style={{ flex: 1 }}
-          />
+          <MapComponent />
         </View>
 
         {/* BOTTOM PANEL */}
