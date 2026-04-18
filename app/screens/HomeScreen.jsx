@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ScrollView, Image, Text } from "react-native";
+import { View, ScrollView, Image, Text, AppState, PermissionsAndroid } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   responsiveHeight,
@@ -24,13 +24,42 @@ import { FONTS } from "../constants/theme";
 const HomeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const [locationModalVisible, setLocationModalVisible] = React.useState(false);
+  const appState = React.useRef(AppState.currentState);
 
-  React.useEffect(() => {
-    if (route.params?.showLocationModal) {
+  // Check location permission and GPS status
+  const checkLocationStatus = React.useCallback(async () => {
+    try {
+      const granted = await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+      );
+      if (!granted) {
+        setLocationModalVisible(true);
+      } else {
+        setLocationModalVisible(false);
+      }
+    } catch (e) {
       setLocationModalVisible(true);
-      navigation.setParams({ showLocationModal: false });
     }
-  }, [route.params?.showLocationModal]);
+  }, []);
+
+  // On mount: check location
+  React.useEffect(() => {
+    checkLocationStatus();
+  }, []);
+
+  // Re-check when user returns from Settings
+  React.useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        checkLocationStatus();
+      }
+      appState.current = nextAppState;
+    });
+    return () => subscription.remove();
+  }, [checkLocationStatus]);
 
   const translateX = useSharedValue(0);
   const isUrdu = i18n.language?.startsWith("ur");

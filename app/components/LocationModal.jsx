@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Modal } from "react-native";
+import React from "react";
+import { View, Text, TouchableOpacity, Modal, Linking, PermissionsAndroid } from "react-native";
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -11,6 +11,31 @@ import { useTranslation } from "react-i18next";
 
 const LocationModal = ({ visible, onClose }) => {
   const { t } = useTranslation();
+
+  const handleEnableLocation = async () => {
+    try {
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: "Location Permission",
+          message:
+            "TezRide needs access to your location to find nearby drivers.",
+          buttonPositive: "Allow",
+          buttonNegative: "Deny",
+        }
+      );
+
+      if (result === PermissionsAndroid.RESULTS.GRANTED) {
+        // Permission granted — close modal
+        onClose();
+      } else {
+        // Denied or permanently denied — open App Settings
+        Linking.openSettings();
+      }
+    } catch (e) {
+      Linking.openSettings();
+    }
+  };
 
   return (
     <View>
@@ -118,7 +143,7 @@ const LocationModal = ({ visible, onClose }) => {
             {/* ENABLE BUTTON */}
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={onClose}
+              onPress={handleEnableLocation}
               style={{ width: "100%", marginBottom: 10 }}
             >
               <LinearGradient
