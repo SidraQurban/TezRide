@@ -14,8 +14,14 @@ const SearchInput = ({
   destination,
   setDestination,
   onSwapLocations,
+  onFocusPickup,
+  onFocusDestination,
+  pickupRef,
+  destinationRef,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
+
   return (
     <View
       style={{
@@ -42,16 +48,23 @@ const SearchInput = ({
           <Ionicons name="location" size={18} color={COLORS.primary} />
           <View style={{ marginLeft: 12, flex: 1 }}>
             <Text
-              style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
+              style={{ 
+                fontSize: 12, 
+                color: "#888", 
+                fontFamily: FONTS.regular,
+                textAlign: isUrdu ? "right" : "left"
+              }}
             >
               {t("from_location")}
             </Text>
 
             <TextInput
+              ref={pickupRef}
               placeholder={t("enter_pickup")}
               placeholderTextColor="#999"
               value={pickup}
               onChangeText={setPickup}
+              onFocus={onFocusPickup}
               returnKeyType="search"
               onSubmitEditing={() => setPickup(pickup.trim())}
               style={{
@@ -59,6 +72,7 @@ const SearchInput = ({
                 fontFamily: FONTS.medium,
                 paddingVertical: 2,
                 color: COLORS.black,
+                textAlign: isUrdu ? "right" : "left",
               }}
             />
           </View>
@@ -79,16 +93,23 @@ const SearchInput = ({
           <Ionicons name="location" size={18} color="#999" />
           <View style={{ marginLeft: 12, flex: 1 }}>
             <Text
-              style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
+              style={{ 
+                fontSize: 12, 
+                color: "#888", 
+                fontFamily: FONTS.regular,
+                textAlign: isUrdu ? "right" : "left"
+              }}
             >
               {t("to_location")}
             </Text>
 
             <TextInput
+              ref={destinationRef}
               placeholder={t("enter_destination")}
               placeholderTextColor="#999"
               value={destination}
               onChangeText={setDestination}
+              onFocus={onFocusDestination}
               returnKeyType="search"
               onSubmitEditing={() => setDestination(destination.trim())}
               style={{
@@ -96,6 +117,7 @@ const SearchInput = ({
                 fontFamily: FONTS.medium,
                 paddingVertical: 2,
                 color: COLORS.black,
+                textAlign: isUrdu ? "right" : "left",
               }}
             />
           </View>

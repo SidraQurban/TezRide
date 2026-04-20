@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import MapComponent from "../components/MapComponent";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,9 +20,11 @@ import { rides } from "../data/data";
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { pickup, destination } = route.params || {};
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["55%", "56%", "56%"], []);
+  const snapPoints = useMemo(() => ["53%", "54%"], []);
   const [selectedService, setSelectedService] = useState("bike");
   const selectedRide = rides.find((r) => r.id === selectedService);
 
@@ -70,7 +72,7 @@ const ConfirmRide = () => {
             marginBottom: responsiveHeight(0.5),
           }}
         >
-          <MapComponent />
+          <MapComponent pickup={pickup} destination={destination} />
         </View>
       </View>
 
@@ -128,7 +130,7 @@ const ConfirmRide = () => {
         enableContentPanningGesture={true}
         handleIndicatorStyle={{
           width: 60,
-          height: 5,
+          height: 2,
           backgroundColor: "#E0E0E0",
         }}
         style={{
@@ -138,6 +140,8 @@ const ConfirmRide = () => {
         <RidesSlider
           selectedService={selectedService}
           setSelectedService={setSelectedService}
+          pickup={pickup}
+          destination={destination}
           onClose={() => bottomSheetRef.current?.snapToIndex(0)}
         />
       </BottomSheet>

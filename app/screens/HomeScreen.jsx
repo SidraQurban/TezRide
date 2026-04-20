@@ -25,6 +25,7 @@ import { FONTS } from "../constants/theme";
 const HomeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const [locationModalVisible, setLocationModalVisible] = React.useState(false);
+  const dismissedManuallyRef = React.useRef(false);
   const appState = React.useRef(AppState.currentState);
 
   // Show modal if permission is missing OR device GPS is turned off
@@ -33,13 +34,13 @@ const HomeScreen = ({ navigation, route }) => {
       const { status } = await ExpoLocation.getForegroundPermissionsAsync();
       const isGpsEnabled = await ExpoLocation.hasServicesEnabledAsync();
 
-      if (status !== "granted" || !isGpsEnabled) {
+      if ((status !== "granted" || !isGpsEnabled) && !dismissedManuallyRef.current) {
         setLocationModalVisible(true);
       } else {
         setLocationModalVisible(false);
       }
     } catch (e) {
-      setLocationModalVisible(true);
+      if (!dismissedManuallyRef.current) setLocationModalVisible(true);
     }
   }, []);
 
@@ -184,7 +185,10 @@ const HomeScreen = ({ navigation, route }) => {
         {/* Location Modal */}
         <LocationModal
           visible={locationModalVisible}
-          onClose={() => setLocationModalVisible(false)}
+          onClose={() => {
+            setLocationModalVisible(false);
+            dismissedManuallyRef.current = true;
+          }}
         />
       </ScrollView>
     </SafeAreaView>

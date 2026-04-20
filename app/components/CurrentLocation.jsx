@@ -10,10 +10,11 @@ import {
 
 import { useTranslation } from "react-i18next";
 
-const CurrentLocation = () => {
+const CurrentLocation = ({ onPress }) => {
   const { t } = useTranslation();
   return (
     <TouchableOpacity
+      onPress={onPress}
       style={{
         flexDirection: "row",
         alignItems: "center",

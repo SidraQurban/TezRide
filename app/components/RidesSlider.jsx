@@ -13,7 +13,12 @@ import { rides } from "../data/data";
 import { ScrollView } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
 
-const RidesSlider = ({ selectedService, setSelectedService }) => {
+const RidesSlider = ({
+  selectedService,
+  setSelectedService,
+  pickup,
+  destination,
+}) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const selectedRide = rides.find((r) => r.id === selectedService);
@@ -21,8 +26,8 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
   const isRTL = i18n.language === "ur";
 
   return (
-    <View>
-      {/* SERVICES SLIDER ) */}
+    <View style={{ paddingBottom: responsiveHeight(10) }}>
+      {/* SERVICES SLIDER */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -112,7 +117,7 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
         })}
       </ScrollView>
 
-      {/* LOCATION CARD (UPDATED) */}
+      {/* LOCATION CARD */}
       <View
         style={{
           marginHorizontal: responsiveWidth(2),
@@ -123,7 +128,7 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
           marginBottom: responsiveHeight(1),
         }}
       >
-        {/* TOP ROW: LOCATION TITLE + PRICE */}
+        {/* TOP ROW */}
         <View
           style={{
             flexDirection: "row",
@@ -132,16 +137,31 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
             marginBottom: responsiveHeight(0.5),
           }}
         >
-          <Text
-            style={{
-              fontFamily: FONTS.semiBold,
-              fontSize: responsiveFontSize(1.9),
-            }}
-          >
-            {t("locations")}
-          </Text>
+          {/* Current Location */}
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: COLORS.primary,
+                marginRight: 8,
+              }}
+            />
 
-          {/* SELECTED PRICE TOP RIGHT */}
+            <Text
+              style={{
+                fontFamily: FONTS.medium,
+                textAlign: isRTL ? "right" : "left",
+              }}
+              numberOfLines={1}
+            >
+              {t("current_location")}
+            </Text>
+          </View>
+
+          {/* PRICE COMMENTED */}
+          {/*
           <Text
             style={{
               fontFamily: FONTS.bold,
@@ -149,25 +169,24 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
               color: COLORS.primary,
             }}
           >
-            Rs. {selectedRide.price}
+            Rs. {selectedRide?.price}
           </Text>
+          */}
         </View>
 
-        {/* Pickup */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
+        {/* Pickup Address */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <Text
             style={{
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: COLORS.primary,
-              marginRight: 8,
+              fontSize: responsiveFontSize(1.4),
+              color: "#777",
+              fontFamily: FONTS.regular,
+              textAlign: isRTL ? "right" : "left",
             }}
-          />
-          <Text style={{ fontFamily: FONTS.medium }}>
-            {t("current_location")}
+          >
+            {pickup?.address}
           </Text>
-        </View>
+        </ScrollView>
 
         {/* Line */}
         <View
@@ -190,12 +209,31 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
             color={COLORS.primary}
             style={{ marginRight: 6 }}
           />
-          <Text style={{ fontFamily: FONTS.medium }}>
-            {t("destination_address")}
-          </Text>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontFamily: FONTS.medium,
+                textAlign: isRTL ? "right" : "left",
+              }}
+            >
+              {t("destination_address")}
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(1.4),
+                  color: "#777",
+                  fontFamily: FONTS.regular,
+                  textAlign: isRTL ? "right" : "left",
+                }}
+              >
+                {destination?.address}
+              </Text>
+            </ScrollView>
+          </View>
         </View>
 
-        {/* BOTTOM ROW: ETA + APPLY PROMO */}
+        {/* BOTTOM ROW */}
         <View
           style={{
             flexDirection: "row",
@@ -204,6 +242,8 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
             marginTop: responsiveHeight(1),
           }}
         >
+          {/* ETA COMMENTED */}
+          {/*
           <Text
             style={{
               fontSize: responsiveFontSize(1.4),
@@ -212,9 +252,10 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
           >
             {t("eta")}: 3 {t("mins")} • 5.4 {t("km")}
           </Text>
+          */}
 
-          {/*   PROMO SECTIOn  */}
-          <TouchableOpacity onPress={() => navigation.navigate("Promo")}>
+          {/* PROMO */}
+          {/* <TouchableOpacity onPress={() => navigation.navigate("Promo")}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text
                 style={{
@@ -231,7 +272,7 @@ const RidesSlider = ({ selectedService, setSelectedService }) => {
                 color={COLORS.primary}
               />
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>
