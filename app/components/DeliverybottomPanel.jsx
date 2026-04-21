@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   responsiveFontSize,
@@ -11,8 +11,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 
-const DeliverybottomPanel = () => {
+const DeliverybottomPanel = ({ pickupAddress, setPickupAddress, homeAddress, setHomeAddress }) => {
   const navigation = useNavigation();
+
   return (
     <View>
       {/* BOTTOM PANEL */}
@@ -76,15 +77,19 @@ const DeliverybottomPanel = () => {
               Current location
             </Text>
 
-            <Text
+            <TextInput
               style={{
-                color: "#777",
+                color: COLORS.black,
                 fontSize: responsiveFontSize(1.6),
                 fontFamily: FONTS.regular,
+                padding: 0,
               }}
-            >
-              Near 3 Sector 24 Chowrangi industrial area, Karachi
-            </Text>
+              value={pickupAddress}
+              onChangeText={setPickupAddress}
+              multiline={false}
+              placeholder="Enter pickup address"
+              placeholderTextColor="#888"
+            />
           </View>
 
           <Ionicons name="locate" size={22} color={COLORS.primary} />
@@ -101,19 +106,24 @@ const DeliverybottomPanel = () => {
             style={{
               fontFamily: FONTS.semiBold,
               fontSize: responsiveFontSize(1.7),
+              color: COLORS.black,
             }}
           >
             Home
           </Text>
-          <Text
+          <TextInput
             style={{
-              color: "#777",
+              color: COLORS.black,
               fontSize: responsiveFontSize(1.6),
               fontFamily: FONTS.regular,
+              padding: 0,
             }}
-          >
-            Clifton, Karachi
-          </Text>
+            value={homeAddress}
+            onChangeText={setHomeAddress}
+            multiline={false}
+            placeholder="Enter home address"
+            placeholderTextColor="#888"
+          />
         </View>
 
         {/* Confirm button */}

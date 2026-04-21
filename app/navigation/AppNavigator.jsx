@@ -19,8 +19,9 @@ import DeliveryScreen from "../screens/DeliveryScreen";
 import ShopsScreen from "../screens/ShopsScreen";
 import HireDriverScreen from "../screens/HireDriverScreen";
 import SearchDriverScreen from "../screens/SearchDriverScreen";
+import CargoScreen from "../screens/CargoScreen";
 
-import ShopDetailScreen from "../screens/ShopDetailScreen";
+// import ShopDetailScreen from "../screens/ShopDetailScreen";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -29,16 +30,26 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { direction: isRtl ? "rtl" : "ltr" } }}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { direction: isRtl ? "rtl" : "ltr" },
+        }}
+      >
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         <Stack.Screen name="login" component={LoginScreen} />
         <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
-        <Stack.Screen name="MainDrawer" component={DrawerNavigator} options={{ contentStyle: { direction: "ltr" } }} />
+        <Stack.Screen
+          name="MainDrawer"
+          component={DrawerNavigator}
+          options={{ contentStyle: { direction: "ltr" } }}
+        />
         <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen name="Delivery" component={DeliveryScreen} />
         <Stack.Screen name="HireDriver" component={HireDriverScreen} />
         <Stack.Screen name="Shops" component={ShopsScreen} />
-        <Stack.Screen name="ShopDetail" component={ShopDetailScreen} />
+        {/* <Stack.Screen name="ShopDetail" component={ShopDetailScreen} /> */}
+        <Stack.Screen name="Cargo" component={CargoScreen} />
         <Stack.Screen
           name="LocationDetails"
           component={LocationDetailsScreen}

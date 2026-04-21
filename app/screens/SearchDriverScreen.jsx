@@ -52,8 +52,8 @@ const SearchDriverScreen = ({ route }) => {
     Animated.loop(
       Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 600,
-        easing: Easing.out(Easing.ease), //.quad
+        duration: 400,
+        easing: Easing.out(Easing.quad), //.quad
         useNativeDriver: true,
       }),
     ).start();

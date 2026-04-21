@@ -45,13 +45,13 @@ const servicesData = [
     bgColor: "#FFF4E1",
     screen: "Cargo",
   },
-  {
-    id: 6,
-    title: "Grocery",
-    image: require("../../assets/grocery.png"),
-    bgColor: "#E0F7FA",
-    screen: "Grocery",
-  },
+  // {
+  //   id: 6,
+  //   title: "Grocery",
+  //   image: require("../../assets/grocery.png"),
+  //   bgColor: "#E0F7FA",
+  //   screen: "Grocery",
+  // },
 ];
 
 const Services = () => {

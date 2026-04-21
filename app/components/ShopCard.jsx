@@ -14,7 +14,7 @@ const ShopCard = ({ shop }) => {
 
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate("ShopDetail", { shop })}
+      // onPress={() => navigation.navigate("ShopDetail", { shop })}
       activeOpacity={0.95}
       style={{
         marginHorizontal: responsiveWidth(4),
