@@ -46,8 +46,32 @@ const SearchScreen = () => {
       try {
         let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
         if (status === 'granted') {
-          let location = await ExpoLocation.getCurrentPositionAsync({});
-          setCurrentLocation(location.coords);
+          let location = await ExpoLocation.getCurrentPositionAsync({
+            accuracy: ExpoLocation.Accuracy.Balanced,
+          });
+          const coords = location.coords;
+          setCurrentLocation(coords);
+
+          // Auto-fill pickup with current location
+          const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+          const response = await fetch(url);
+          const json = await response.json();
+
+          if (json.status === "OK") {
+            const result = json.results.find(r => !r.types.includes("plus_code")) || json.results[0];
+            let cleanAddress = result.formatted_address.replace(/^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/, "");
+            const addressParts = cleanAddress.split(',');
+            const locationData = {
+              id: result.place_id,
+              name: addressParts.length > 1 ? `${addressParts[0]}, ${addressParts[1]}` : addressParts[0],
+              address: cleanAddress,
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+              distance: "0",
+            };
+            setPickup(locationData.name);
+            setPickupData(locationData);
+          }
         }
       } catch (error) {
         console.warn("Location error:", error);

@@ -18,17 +18,61 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
+import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
+import * as ExpoLocation from "expo-location";
 
 const HireDriverScreen = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [pickup, setPickup] = useState("");
+  const [pickupData, setPickupData] = useState(null);
   const [time, setTime] = useState("morning");
   const [gender, setGender] = useState("no_preference");
   const [startTime, setStartTime] = useState(new Date(2023, 1, 1, 9, 0));
   const [endTime, setEndTime] = useState(new Date(2023, 1, 1, 17, 0));
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const fetchCurrentLocation = async () => {
+    setLoading(true);
+    try {
+      let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+
+      let location = await ExpoLocation.getCurrentPositionAsync({
+        accuracy: ExpoLocation.Accuracy.Balanced,
+      });
+      const coords = location.coords;
+
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+      const response = await fetch(url);
+      const json = await response.json();
+
+      if (json.status === "OK") {
+        const result = json.results.find(r => !r.types.includes("plus_code")) || json.results[0];
+        let cleanAddress = result.formatted_address.replace(/^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/, "");
+        const addressParts = cleanAddress.split(',');
+        const locationData = {
+          id: result.place_id,
+          name: addressParts.length > 1 ? `${addressParts[0]}, ${addressParts[1]}` : addressParts[0],
+          address: cleanAddress,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        };
+        setPickup(locationData.name);
+        setPickupData(locationData);
+      }
+    } catch (error) {
+      console.warn("Location error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchCurrentLocation();
+  }, []);
 
   const driverRate = 150;
 
@@ -94,7 +138,7 @@ const HireDriverScreen = () => {
         </View>
       </View>
 
-      <CurrentLocation />
+      <CurrentLocation onPress={fetchCurrentLocation} />
       <VehicleType />
       <TimeSelector
         timeOptions={timeOptions}
@@ -123,7 +167,10 @@ const HireDriverScreen = () => {
 
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => navigation.navigate("SearchDriver", { selectedGender: gender })}
+        onPress={() => navigation.navigate("SearchDriver", { 
+          selectedGender: gender,
+          pickup: pickupData || { address: pickup, latitude: 33.6844, longitude: 73.0479 }
+        })}
         style={{
           marginTop: responsiveHeight(1),
           position: "absolute",

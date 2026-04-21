@@ -1,5 +1,5 @@
-import React from "react";
-import { TouchableOpacity, Image, Text, View } from "react-native";
+import { TouchableOpacity, Image, Text, View, Animated } from "react-native";
+import React, { useEffect, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
   responsiveHeight,
@@ -24,6 +24,28 @@ const RidesSlider = ({
   const selectedRide = rides.find((r) => r.id === selectedService);
   const { i18n } = useTranslation();
   const isRTL = i18n.language === "ur";
+
+  const lineAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(lineAnim, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const translateY = lineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-5, 18],
+  });
+
+  const opacity = lineAnim.interpolate({
+    inputRange: [0, 0.2, 0.8, 1],
+    outputRange: [0, 1, 1, 0],
+  });
 
   return (
     <View style={{ paddingBottom: responsiveHeight(10) }}>
@@ -192,12 +214,29 @@ const RidesSlider = ({
         <View
           style={{
             height: 18,
-            width: 1,
-            backgroundColor: "#ccc",
-            marginLeft: 4,
+            width: 2,
+            backgroundColor: "#F0F0F0",
+            marginLeft: 3,
             marginVertical: 4,
+            borderRadius: 1,
+            overflow: "hidden",
+            position: "relative",
           }}
-        />
+        >
+          <Animated.View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 6,
+              backgroundColor: COLORS.primary,
+              borderRadius: 1,
+              opacity: opacity,
+              transform: [{ translateY: translateY }],
+            }}
+          />
+        </View>
 
         {/* Drop */}
         <View

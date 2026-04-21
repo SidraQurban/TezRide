@@ -91,6 +91,8 @@ const ConfirmRide = () => {
           onPress={() =>
             navigation.navigate("SearchingDirection", {
               rideImage: selectedRide?.image,
+              pickup,
+              destination,
             })
           }
         >

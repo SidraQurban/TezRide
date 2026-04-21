@@ -27,7 +27,7 @@ import { useTranslation } from "react-i18next";
 
 const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
-  const { rideImage } = route.params || {};
+  const { rideImage, pickup, destination } = route.params || {};
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
 
@@ -108,7 +108,7 @@ const SearchingDirection = ({ route }) => {
 
         {/* MAP + OVERLAY */}
         <View style={{ flex: 1 }}>
-          <MapComponent />
+          <MapComponent pickup={pickup} destination={destination} showMarkers={false} showPickupMarker={true} animateZoomOut={true} />
 
           <View
             style={{

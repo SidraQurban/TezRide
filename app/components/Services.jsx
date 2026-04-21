@@ -58,14 +58,14 @@ const Services = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
 
-  // const handlePress = (item) => {
-  // navigation.navigate(item.screen);
-  // };
   const handlePress = (item) => {
-    if (item.title === "Ride" || item.title === "Rent Driver") {
-      navigation.navigate(item.screen);
-    }
+    navigation.navigate(item.screen);
   };
+  // const handlePress = (item) => {
+  //   if (item.title === "Ride" || item.title === "Rent Driver") {
+  //     navigation.navigate(item.screen);
+  //   }
+  // };
 
   return (
     <View>

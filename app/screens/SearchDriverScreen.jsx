@@ -27,7 +27,7 @@ import { useTranslation } from "react-i18next";
 
 const SearchDriverScreen = ({ route }) => {
   const navigation = useNavigation();
-  const { selectedGender } = route.params || {};
+  const { selectedGender, pickup } = route.params || {};
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
 
@@ -52,8 +52,8 @@ const SearchDriverScreen = ({ route }) => {
     Animated.loop(
       Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 1500,
-        easing: Easing.out(Easing.ease),
+        duration: 600,
+        easing: Easing.out(Easing.ease), //.quad
         useNativeDriver: true,
       }),
     ).start();
@@ -108,7 +108,12 @@ const SearchDriverScreen = ({ route }) => {
 
         {/* MAP + OVERLAY */}
         <View style={{ flex: 1 }}>
-          <MapComponent />
+          <MapComponent
+            pickup={pickup}
+            showMarkers={false}
+            showPickupMarker={true}
+            animateZoomOut={true}
+          />
 
           <View
             style={{

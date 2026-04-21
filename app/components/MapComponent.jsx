@@ -1,6 +1,6 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import { StyleSheet, PermissionsAndroid, AppState } from "react-native";
-import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps";
+import React, { useRef, useState, useEffect, useCallback, memo } from "react";
+import { StyleSheet, PermissionsAndroid, AppState, Animated, View } from "react-native";
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from "react-native-maps";
 import { useTranslation } from "react-i18next";
 import MapViewDirections from "react-native-maps-directions";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
@@ -14,11 +14,39 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.05,
 };
 
-const MapComponent = ({ pickup, destination }) => {
+const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoomOut = false, showPickupMarker = false }) => {
   const { t } = useTranslation();
   const mapRef = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [centeredOnUser, setCenteredOnUser] = useState(false);
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [visibleCoords, setVisibleCoords] = useState([]);
+  const drawAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (routeCoords.length > 1) {
+      drawAnim.setValue(0);
+      const animation = Animated.timing(drawAnim, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: false,
+      });
+      
+      const listener = drawAnim.addListener(({ value }) => {
+        const count = Math.floor(value * routeCoords.length);
+        setVisibleCoords(routeCoords.slice(0, count + 1));
+      });
+
+      animation.start();
+      
+      return () => {
+        animation.stop();
+        drawAnim.removeListener(listener);
+      };
+    } else {
+      setVisibleCoords([]);
+    }
+  }, [routeCoords]);
 
   // Check if location permission is already granted
   const checkPermission = useCallback(async () => {
@@ -56,7 +84,7 @@ const MapComponent = ({ pickup, destination }) => {
 
   useEffect(() => {
     // If no route directions, fallback to fitting markers
-    if (pickup && destination && mapRef.current) {
+    if (showMarkers && pickup && destination && mapRef.current) {
       // fitToCoordinates will be handled by MapViewDirections onReady if possible,
       // but we keep this as fallback
       mapRef.current.fitToCoordinates(
@@ -70,12 +98,43 @@ const MapComponent = ({ pickup, destination }) => {
         }
       );
     }
-  }, [pickup, destination]);
+  }, [pickup, destination, showMarkers]);
+
+  useEffect(() => {
+    if (animateZoomOut && pickup && mapRef.current) {
+      // Step 1: Snap to pickup instantly
+      mapRef.current.animateToRegion({
+        latitude: pickup.latitude,
+        longitude: pickup.longitude,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      }, 100); // Very fast 100ms transition instead of 0 for stability
+
+      // Step 2: Continuous slow zoom out (like InDrive)
+      const timer = setTimeout(() => {
+        mapRef.current.animateToRegion({
+          latitude: pickup.latitude,
+          longitude: pickup.longitude,
+          latitudeDelta: 0.1, 
+          longitudeDelta: 0.1,
+        }, 30000); 
+      }, 300); // Start slow zoom out almost immediately (300ms delay)
+
+      return () => clearTimeout(timer);
+    } else if (!showMarkers && pickup && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: pickup.latitude,
+        longitude: pickup.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      }, 1000);
+    }
+  }, [pickup, showMarkers, animateZoomOut]);
 
   // Called by the native map when user location updates — center map once
   const handleUserLocationChange = useCallback(
     (event) => {
-      if (!centeredOnUser && event?.nativeEvent?.coordinate) {
+      if (!centeredOnUser && event?.nativeEvent?.coordinate && !pickup) {
         const { latitude, longitude } = event.nativeEvent.coordinate;
         setCenteredOnUser(true);
         mapRef.current?.animateToRegion(
@@ -89,7 +148,7 @@ const MapComponent = ({ pickup, destination }) => {
         );
       }
     },
-    [centeredOnUser]
+    [centeredOnUser, pickup]
   );
 
   return (
@@ -98,30 +157,42 @@ const MapComponent = ({ pickup, destination }) => {
       provider={PROVIDER_GOOGLE}
       style={styles.map}
       initialRegion={DEFAULT_REGION}
-      showsUserLocation={hasPermission}
-      showsMyLocationButton={hasPermission}
+      showsUserLocation={false}
+      showsMyLocationButton={false}
       onUserLocationChange={handleUserLocationChange}
     >
-      {pickup && destination && (
-        <MapViewDirections
-          origin={{ latitude: pickup.latitude, longitude: pickup.longitude }}
-          destination={{ latitude: destination.latitude, longitude: destination.longitude }}
-          apikey={GOOGLE_MAPS_API_KEY}
-          strokeWidth={4}
-          strokeColor={COLORS.primary}
-          onReady={(result) => {
-            mapRef.current?.fitToCoordinates(result.coordinates, {
-              edgePadding: {
-                right: responsiveWidth(10),
-                bottom: responsiveHeight(25),
-                left: responsiveWidth(10),
-                top: responsiveHeight(15),
-              },
-            });
-          }}
-        />
+      {showMarkers && pickup && destination && (
+        <>
+          <MapViewDirections
+            origin={{ latitude: pickup.latitude, longitude: pickup.longitude }}
+            destination={{ latitude: destination.latitude, longitude: destination.longitude }}
+            apikey={GOOGLE_MAPS_API_KEY}
+            strokeWidth={0} // Hide default line
+            strokeColor={COLORS.primary}
+            onReady={(result) => {
+              setRouteCoords(result.coordinates);
+              mapRef.current?.fitToCoordinates(result.coordinates, {
+                edgePadding: {
+                  right: responsiveWidth(10),
+                  bottom: responsiveHeight(25),
+                  left: responsiveWidth(10),
+                  top: responsiveHeight(15),
+                },
+              });
+            }}
+          />
+          {visibleCoords.length > 1 && (
+            <Polyline
+              coordinates={visibleCoords}
+              strokeWidth={4}
+              strokeColor={COLORS.primary}
+              lineCap="round"
+              lineJoin="round"
+            />
+          )}
+        </>
       )}
-      {pickup && (
+      {(showMarkers || showPickupMarker) && pickup && (
         <Marker
           coordinate={{ latitude: pickup.latitude, longitude: pickup.longitude }}
           title={t("pickup")}
@@ -129,7 +200,7 @@ const MapComponent = ({ pickup, destination }) => {
           pinColor="green"
         />
       )}
-      {destination && (
+      {showMarkers && destination && (
         <Marker
           coordinate={{ latitude: destination.latitude, longitude: destination.longitude }}
           title={t("destination")}
@@ -139,7 +210,7 @@ const MapComponent = ({ pickup, destination }) => {
       )}
     </MapView>
   );
-};
+});
 
 const styles = StyleSheet.create({
   map: {
