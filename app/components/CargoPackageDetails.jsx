@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: FONTS.semiBold,
-    fontSize: responsiveFontSize(1.8),
+    fontSize: responsiveFontSize(2),
     color: COLORS.black,
     marginBottom: responsiveHeight(1.5),
   },

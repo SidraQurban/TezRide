@@ -32,8 +32,8 @@ import CargoSchedule from "../components/CargoSchedule";
 
 const CargoScreen = () => {
   const { t } = useTranslation();
-  const [pickup, setPickup] = useState("Gulberg III, Lahore, Pakistan");
-  const [destination, setDestination] = useState("DHA Phase 5, Lahore, Pakistan");
+  const [pickup, setPickup] = useState("Clifton, Karachi, Pakistan");
+  const [destination, setDestination] = useState("DHA Phase 6, Karachi, Pakistan");
   const [pickupCoords, setPickupCoords] = useState(null);
   const [destinationCoords, setDestinationCoords] = useState(null);
   const [predictions, setPredictions] = useState([]);
