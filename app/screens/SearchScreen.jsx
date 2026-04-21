@@ -24,8 +24,10 @@ import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import * as ExpoLocation from "expo-location";
 
 const SearchScreen = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation();
+  const isUrdu = i18n.language?.startsWith("ur");
+
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [pickupData, setPickupData] = useState(null);
@@ -52,50 +54,70 @@ const SearchScreen = () => {
   useEffect(() => {
     setSessionToken(generateSessionToken());
 
+    // Auto-fetch location as soon as possible
     (async () => {
       try {
         let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
         if (status === "granted") {
+          // Get last known position for immediate result
+          let lastLocation = await ExpoLocation.getLastKnownPositionAsync({});
+          if (lastLocation) {
+            handleGeocode(lastLocation.coords);
+          }
+
+          // Then get fresh position
           let location = await ExpoLocation.getCurrentPositionAsync({
             accuracy: ExpoLocation.Accuracy.Balanced,
           });
-          const coords = location.coords;
-          setCurrentLocation(coords);
-
-          // Auto-fill pickup with current location
-          const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
-          const response = await fetch(url);
-          const json = await response.json();
-
-          if (json.status === "OK") {
-            const result =
-              json.results.find((r) => !r.types.includes("plus_code")) ||
-              json.results[0];
-            let cleanAddress = result.formatted_address.replace(
-              /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/,
-              "",
-            );
-            const addressParts = cleanAddress.split(",");
-            const locationData = {
-              id: result.place_id,
-              name:
-                addressParts.length > 1
-                  ? `${addressParts[0]}, ${addressParts[1]}`
-                  : addressParts[0],
-              address: cleanAddress,
-              latitude: coords.latitude,
-              longitude: coords.longitude,
-              distance: "0",
-            };
-            setPickup(locationData.name);
-            setPickupData(locationData);
-          }
+          handleGeocode(location.coords);
         }
       } catch (error) {
-        console.warn("Location error:", error);
+        console.warn("Location fetch error:", error);
       }
     })();
   }, []);
+
+  const handleGeocode = async (coords) => {
+    setCurrentLocation(coords);
+    try {
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+      const response = await fetch(url);
+      const json = await response.json();
+
+      if (json.status === "OK") {
+        const result =
+          json.results.find((r) => !r.types.includes("plus_code")) ||
+          json.results[0];
+        let cleanAddress = result.formatted_address.replace(
+          /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/,
+          "",
+        );
+        const addressParts = cleanAddress.split(",");
+        const locationData = {
+          id: result.place_id,
+          name:
+            addressParts.length > 1
+              ? `${addressParts[0]}, ${addressParts[1]}`
+              : addressParts[0],
+          address: cleanAddress,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          distance: "0",
+        };
+        
+        // Only auto-fill if the user hasn't started typing yet
+        if (!pickup) {
+          setPickup(locationData.name);
+          setPickupData(locationData);
+          // If we have pickup, focus destination automatically
+          setActiveField("destination");
+          setTimeout(() => destinationRef.current?.focus(), 100);
+        }
+      }
+    } catch (e) {
+      console.warn("Geocode error:", e);
+    }
+  };
 
   const fetchPredictions = async (input) => {
     if (!input.trim()) {
@@ -117,7 +139,6 @@ const SearchScreen = () => {
       const json = await response.json();
 
       setSearchPerformed(true);
-      console.log("Autocomplete Status:", json.status);
       if (json.status === "OK") {
         const filtered = json.predictions.filter(
           (p) =>
@@ -128,10 +149,6 @@ const SearchScreen = () => {
         );
         setPredictions(filtered);
       } else {
-        console.warn(
-          "Autocomplete Warning:",
-          json.error_message || json.status,
-        );
         setPredictions([]);
       }
     } catch (error) {
@@ -151,7 +168,7 @@ const SearchScreen = () => {
         fetchPredictions(input);
       }, 500);
     },
-    [sessionToken],
+    [sessionToken, currentLocation],
   );
 
   useEffect(() => {
@@ -211,8 +228,6 @@ const SearchScreen = () => {
             setTimeout(() => pickupRef.current?.focus(), 100);
           }
         }
-
-        // Reset for next session if needed
         setSessionToken(generateSessionToken());
       }
     } catch (error) {
@@ -230,61 +245,10 @@ const SearchScreen = () => {
         setLoading(false);
         return;
       }
-
-      const isGpsEnabled = await ExpoLocation.hasServicesEnabledAsync();
-      if (!isGpsEnabled) {
-        alert("Please enable your device GPS to use this feature.");
-        setLoading(false);
-        return;
-      }
-
-      // Use BestForNavigation with a timeout for fresh and accurate data
       let location = await ExpoLocation.getCurrentPositionAsync({
         accuracy: ExpoLocation.Accuracy.BestForNavigation,
-        timeout: 15000,
       });
-      const coords = location.coords;
-      setCurrentLocation(coords);
-
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
-      const response = await fetch(url);
-      const json = await response.json();
-
-      if (json.status === "OK") {
-        // Prefer a result that is not just a plus_code
-        const result =
-          json.results.find((r) => !r.types.includes("plus_code")) ||
-          json.results[0];
-
-        // Clean the address by removing Plus Codes if they appear at the start
-        // Regex matches Plus Codes like "WXH8+QJX, " or "8GGH+JX Karachi, "
-        let cleanAddress = result.formatted_address.replace(
-          /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/,
-          "",
-        );
-
-        const addressParts = cleanAddress.split(",");
-        const locationData = {
-          id: result.place_id,
-          name:
-            addressParts.length > 1
-              ? `${addressParts[0]}, ${addressParts[1]}`
-              : addressParts[0],
-          address: cleanAddress,
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          distance: "0",
-        };
-
-        setPickup(locationData.name);
-        setPickupData(locationData);
-        if (destinationData) {
-          navigation.navigate("ConfirmRide", {
-            pickup: locationData,
-            destination: destinationData,
-          });
-        }
-      }
+      handleGeocode(location.coords);
     } catch (error) {
       console.error("Geocoding Error:", error);
     } finally {
@@ -314,33 +278,25 @@ const SearchScreen = () => {
     <TouchableOpacity
       onPress={() => handleSelectLocation(item)}
       style={{
-        flexDirection: "row",
+        flexDirection: isUrdu ? "row-reverse" : "row",
         alignItems: "center",
         paddingVertical: responsiveHeight(1.2),
         borderBottomWidth: index !== predictions.length - 1 ? 1 : 0,
         borderBottomColor: "#E5E5E5",
       }}
     >
-      <View
-        style={{
-          width: responsiveWidth(11),
-          height: responsiveWidth(11),
-          // borderRadius: responsiveWidth(6),
-          // backgroundColor: COLORS.primary,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <View style={{ width: responsiveWidth(11), alignItems: "center", justifyContent: "center" }}>
         <Ionicons name="location-sharp" size={20} color={COLORS.primary} />
       </View>
 
-      <View style={{ flex: 1, marginLeft: responsiveWidth(1) }}>
+      <View style={{ flex: 1, marginHorizontal: responsiveWidth(2) }}>
         <Text
           numberOfLines={1}
           style={{
             fontSize: responsiveFontSize(1.8),
             fontFamily: FONTS.semiBold,
             color: COLORS.black,
+            textAlign: isUrdu ? "right" : "left",
           }}
         >
           {item.structured_formatting?.main_text}
@@ -352,6 +308,7 @@ const SearchScreen = () => {
             color: "#666",
             marginTop: 2,
             fontFamily: FONTS.regular,
+            textAlign: isUrdu ? "right" : "left",
           }}
         >
           {item.structured_formatting?.secondary_text
@@ -362,8 +319,6 @@ const SearchScreen = () => {
             item.structured_formatting?.secondary_text?.split(",")[0]}
         </Text>
       </View>
-
-      {/* Loading Indicator for selection */}
       {loading && <ActivityIndicator size="small" color={COLORS.primary} />}
     </TouchableOpacity>
   );
@@ -376,32 +331,8 @@ const SearchScreen = () => {
         backgroundColor: COLORS.background,
       }}
     >
-      {/* HEADER */}
-      {/* <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginTop: responsiveHeight(2),
-          marginBottom: responsiveHeight(2),
-        }}
-      >
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={25} color={COLORS.primary} />
-        </TouchableOpacity>
-
-        <Text
-          style={{
-            fontSize: responsiveFontSize(2.2),
-            fontFamily: FONTS.semiBold,
-            marginLeft: responsiveWidth(4),
-          }}
-        >
-          Search
-        </Text>
-      </View> */}
       <BackBtn />
 
-      {/* SEARCH INPUT */}
       <SearchInput
         pickup={pickup}
         setPickup={(text) => {
@@ -425,13 +356,12 @@ const SearchScreen = () => {
           setSearchPerformed(false);
         }}
       />
-      {/* Current Location */}
+      
       <CurrentLocation onPress={handleUseCurrentLocation} />
 
-      {/* RESULT HEADER */}
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isUrdu ? "row-reverse" : "row",
           justifyContent: "space-between",
           alignItems: "center",
           marginVertical: responsiveHeight(2),
@@ -459,7 +389,6 @@ const SearchScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* EMPTY STATE OR RESULTS */}
       {loading && predictions.length === 0 ? (
         <View style={{ marginTop: 20 }}>
           <ActivityIndicator size="large" color={COLORS.primary} />
@@ -478,7 +407,6 @@ const SearchScreen = () => {
               marginTop: responsiveHeight(5),
             }}
           />
-
           <View style={{ justifyContent: "center", alignItems: "center" }}>
             <Text
               style={{
@@ -489,7 +417,6 @@ const SearchScreen = () => {
             >
               {t("not_found")}
             </Text>
-
             <Text
               style={{
                 fontFamily: FONTS.regular,

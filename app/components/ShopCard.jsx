@@ -43,7 +43,7 @@ const ShopCard = ({ shop }) => {
       {/* SHOP INFO */}
       <View
         style={{
-          flexDirection: isUrdu ? "row-reverse" : "row",
+          flexDirection: isUrdu ? "row" : "row",
           justifyContent: "space-between",
           marginTop: responsiveHeight(1),
         }}
@@ -52,13 +52,18 @@ const ShopCard = ({ shop }) => {
           style={{
             fontFamily: FONTS.bold,
             fontSize: responsiveHeight(1.9),
-            textAlign: isUrdu ? "right" : "left",
+            textAlign: "left",
           }}
         >
           {t(shop.name)}
         </Text>
         {/* RATING + icon */}
-        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
+        <View
+          style={{
+            flexDirection: isUrdu ? "row" : "row",
+            alignItems: "center",
+          }}
+        >
           <Ionicons
             name="star"
             size={responsiveHeight(2)}
@@ -86,7 +91,7 @@ const ShopCard = ({ shop }) => {
           fontSize: responsiveHeight(1.5),
           fontFamily: FONTS.medium,
           includeFontPadding: false,
-          textAlign: isUrdu ? "right" : "left",
+          textAlign: "left",
         }}
       >
         {t("product_preview")}

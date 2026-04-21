@@ -103,10 +103,8 @@ const CargoScreen = () => {
   const handleTextChange = (text, field) => {
     if (field === "pickup") {
       setPickup(text);
-      setPickupCoords(null);
     } else {
       setDestination(text);
-      setDestinationCoords(null);
     }
 
     setActiveField(field);

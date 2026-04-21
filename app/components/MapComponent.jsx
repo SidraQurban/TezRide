@@ -23,7 +23,14 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
   const [visibleCoords, setVisibleCoords] = useState([]);
   const drawAnim = useRef(new Animated.Value(0)).current;
 
+  // Clear routes immediately when locations change (e.g., on swap)
   useEffect(() => {
+    setRouteCoords([]);
+    setVisibleCoords([]);
+  }, [pickup, destination]);
+
+  useEffect(() => {
+    setVisibleCoords([]);
     if (routeCoords.length > 1) {
       drawAnim.setValue(0);
       const animation = Animated.timing(drawAnim, {
@@ -43,8 +50,6 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
         animation.stop();
         drawAnim.removeListener(listener);
       };
-    } else {
-      setVisibleCoords([]);
     }
   }, [routeCoords]);
 
@@ -67,7 +72,6 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
   }, [checkPermission]);
 
   // Re-check permission whenever the app comes back to foreground
-  // (covers both the OS permission dialog and returning from Settings)
   useEffect(() => {
     const appState = { current: AppState.currentState };
     const subscription = AppState.addEventListener("change", (nextState) => {
@@ -85,8 +89,6 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
   useEffect(() => {
     // If no route directions, fallback to fitting markers
     if (showMarkers && pickup && destination && mapRef.current) {
-      // fitToCoordinates will be handled by MapViewDirections onReady if possible,
-      // but we keep this as fallback
       mapRef.current.fitToCoordinates(
         [
           { latitude: pickup.latitude, longitude: pickup.longitude },
@@ -102,15 +104,13 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
 
   useEffect(() => {
     if (animateZoomOut && pickup && mapRef.current) {
-      // Step 1: Snap to pickup instantly
       mapRef.current.animateToRegion({
         latitude: pickup.latitude,
         longitude: pickup.longitude,
         latitudeDelta: 0.005,
         longitudeDelta: 0.005,
-      }, 100); // Very fast 100ms transition instead of 0 for stability
+      }, 100);
 
-      // Step 2: Continuous slow zoom out (like InDrive)
       const timer = setTimeout(() => {
         mapRef.current.animateToRegion({
           latitude: pickup.latitude,
@@ -118,7 +118,7 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
           latitudeDelta: 0.1, 
           longitudeDelta: 0.1,
         }, 30000); 
-      }, 300); // Start slow zoom out almost immediately (300ms delay)
+      }, 300);
 
       return () => clearTimeout(timer);
     } else if (!showMarkers && pickup && mapRef.current) {
@@ -131,7 +131,6 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
     }
   }, [pickup, showMarkers, animateZoomOut]);
 
-  // Called by the native map when user location updates — center map once
   const handleUserLocationChange = useCallback(
     (event) => {
       if (!centeredOnUser && event?.nativeEvent?.coordinate && !pickup) {
@@ -167,8 +166,8 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
             origin={{ latitude: pickup.latitude, longitude: pickup.longitude }}
             destination={{ latitude: destination.latitude, longitude: destination.longitude }}
             apikey={GOOGLE_MAPS_API_KEY}
-            strokeWidth={0} // Hide default line
-            strokeColor={COLORS.primary}
+            strokeWidth={0} 
+            strokeColor="transparent"
             onReady={(result) => {
               setRouteCoords(result.coordinates);
               mapRef.current?.fitToCoordinates(result.coordinates, {
@@ -183,6 +182,7 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
           />
           {visibleCoords.length > 1 && (
             <Polyline
+              key={`route-${routeCoords.length}-${routeCoords[0]?.latitude}-${routeCoords[0]?.longitude}`}
               coordinates={visibleCoords}
               strokeWidth={4}
               strokeColor={COLORS.primary}

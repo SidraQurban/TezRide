@@ -48,35 +48,39 @@ const CargoPackageDetails = ({ selectedCategory, setSelectedCategory }) => {
         ))}
       </View>
 
-      <View style={{ flexDirection: "row", marginTop: responsiveHeight(2), gap: 15 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          marginTop: responsiveHeight(2),
+          gap: 15,
+        }}
+      >
         <View style={{ flex: 1 }}>
           <Text style={styles.inputLabel}>{t("package_weight")}</Text>
           <View style={styles.weightInputContainer}>
-            <TextInput 
-              style={styles.weightInput} 
-              placeholder="5" 
+            <TextInput
+              style={styles.weightInput}
+              placeholder="5"
               placeholderTextColor="gray"
-              keyboardType="numeric" 
+              keyboardType="numeric"
             />
-            <Text style={styles.unitText}>{t("km")}</Text>
+            <Text style={styles.unitText}>{t("kg")}</Text>
           </View>
         </View>
         <View style={{ flex: 1.5 }}>
           <Text style={styles.inputLabel}>{t("dropoff_contact")}</Text>
-          <TextInput 
-            style={styles.textInput} 
-            placeholder={t("dropoff_name_placeholder")} 
+          <TextInput
+            style={styles.textInput}
+            placeholder={t("dropoff_name_placeholder")}
             placeholderTextColor="gray"
           />
         </View>
       </View>
 
-      <Text style={styles.inputLabel}>
-        {t("notes_optional")}
-      </Text>
-      <TextInput 
-        style={styles.textInput} 
-        placeholder={t("handle_with_care")} 
+      <Text style={styles.inputLabel}>{t("notes_optional")}</Text>
+      <TextInput
+        style={styles.textInput}
+        placeholder={t("handle_with_care")}
         placeholderTextColor="gray"
       />
     </View>

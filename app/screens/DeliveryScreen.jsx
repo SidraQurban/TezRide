@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, FlatList, TouchableOpacity, Text, StyleSheet } from "react-native";
+import {
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+  FlatList,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+} from "react-native";
 import MapComponent from "../components/MapComponent";
 import {
   responsiveHeight,
@@ -12,13 +22,23 @@ import { COLORS, FONTS } from "../constants/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import { useNavigation } from "@react-navigation/native";
 
 const DeliveryScreen = () => {
-  const [pickup, setPickup] = useState({ latitude: 24.8930, longitude: 67.0750 });
-  const [destination, setDestination] = useState({ latitude: 24.8138, longitude: 67.0333 });
-  const [pickupAddress, setPickupAddress] = useState("Near 3 Sector 24 Chowrangi industrial area, Karachi");
+  const { t, i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
+
+  const [pickup, setPickup] = useState({ latitude: 24.893, longitude: 67.075 });
+  const [destination, setDestination] = useState({
+    latitude: 24.8138,
+    longitude: 67.0333,
+  });
+  const [pickupAddress, setPickupAddress] = useState(
+    "Near 3 Sector 24 Chowrangi industrial area, Karachi",
+  );
   const [homeAddress, setHomeAddress] = useState("Clifton, Karachi");
-  
+
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeField, setActiveField] = useState("pickup");
@@ -38,7 +58,7 @@ const DeliveryScreen = () => {
     setLoading(true);
     try {
       const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-        input
+        input,
       )}&key=${GOOGLE_MAPS_API_KEY}&sessiontoken=${sessionToken}&components=country:pk`;
       const response = await fetch(url);
       const json = await response.json();
@@ -75,10 +95,8 @@ const DeliveryScreen = () => {
   const onTextChange = (text, type) => {
     if (type === "pickup") {
       setPickupAddress(text);
-      setPickup(null); // Clear old marker while typing
     } else {
       setHomeAddress(text);
-      setDestination(null); // Clear old marker while typing
     }
     setActiveField(type);
 
@@ -101,7 +119,7 @@ const DeliveryScreen = () => {
       >
         <View style={{ flex: 1 }}>
           {/* BACK BUTTON */}
-          <View style={{ left: responsiveWidth(4) }}>
+          <View>
             <BackBtn />
           </View>
 
@@ -114,10 +132,10 @@ const DeliveryScreen = () => {
               overflow: "hidden",
             }}
           >
-            <MapComponent 
-              pickup={pickup} 
+            <MapComponent
+              pickup={pickup}
               destination={destination}
-              showMarkers={true} 
+              showMarkers={true}
             />
           </View>
 
@@ -130,11 +148,21 @@ const DeliveryScreen = () => {
                 keyboardShouldPersistTaps="always"
                 renderItem={({ item }) => (
                   <TouchableOpacity
-                    style={styles.predictionItem}
-                    onPress={() => handleLocationSelect(item.place_id, item.description)}
+                    style={[styles.predictionItem, { flexDirection: isUrdu ? "row-reverse" : "row" }]}
+                    onPress={() =>
+                      handleLocationSelect(item.place_id, item.description)
+                    }
                   >
-                    <Ionicons name="location-outline" size={20} color={COLORS.primary} />
-                    <Text style={styles.predictionText} numberOfLines={1}>
+                    <Ionicons
+                      name="location-outline"
+                      size={20}
+                      color={COLORS.primary}
+                    />
+                    <Text style={[styles.predictionText, { 
+                      textAlign: isUrdu ? "right" : "left",
+                      marginLeft: isUrdu ? 0 : 10,
+                      marginRight: isUrdu ? 10 : 0
+                    }]} numberOfLines={1}>
                       {item.description}
                     </Text>
                   </TouchableOpacity>
@@ -152,7 +180,7 @@ const DeliveryScreen = () => {
               zIndex: 20,
             }}
           >
-            <DeliverybottomPanel 
+            <DeliverybottomPanel
               pickupAddress={pickupAddress}
               homeAddress={homeAddress}
               onTextChange={onTextChange}

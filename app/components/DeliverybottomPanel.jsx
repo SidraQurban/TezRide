@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   responsiveFontSize,
@@ -10,9 +16,12 @@ import { COLORS } from "../constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
   const navigation = useNavigation();
+  const { t, i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
 
   return (
     <View>
@@ -36,9 +45,10 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
             marginBottom: responsiveHeight(1.2),
             fontFamily: FONTS.semiBold,
             color: COLORS.black,
+            textAlign: "left",
           }}
         >
-          Select parcel pickup location
+          {t("select_pickup_title")}
         </Text>
 
         {/* Add location */}
@@ -49,9 +59,10 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
               marginBottom: responsiveHeight(1.5),
               fontFamily: FONTS.semiBold,
               fontSize: responsiveFontSize(1.7),
+              textAlign: "left",
             }}
           >
-            + Add Another Location
+            {t("add_another_location")}
           </Text>
         </TouchableOpacity>
 
@@ -67,6 +78,15 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
             marginBottom: responsiveHeight(1.7),
           }}
         >
+          {isUrdu && (
+            <Ionicons
+              name="locate"
+              size={22}
+              color={COLORS.primary}
+              style={{ marginRight: 10 }}
+            />
+          )}
+
           <View style={{ flex: 1 }}>
             <Text
               style={{
@@ -74,9 +94,10 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
                 fontFamily: FONTS.semiBold,
                 fontSize: responsiveFontSize(1.7),
                 color: COLORS.black,
+                textAlign: "left",
               }}
             >
-              Current location
+              {t("current_location")}
             </Text>
 
             <TextInput
@@ -85,23 +106,34 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
                 fontSize: responsiveFontSize(1.6),
                 fontFamily: FONTS.regular,
                 padding: 0,
+                textAlign: isUrdu ? "right" : "left",
+                writingDirection: isUrdu ? "rtl" : "ltr",
               }}
               value={pickupAddress}
               onChangeText={(text) => onTextChange(text, "pickup")}
               multiline={false}
-              placeholder="Enter pickup address"
+              placeholder={t("pickup_placeholder")}
               placeholderTextColor="#888"
+              ellipsizeMode="tail"
             />
           </View>
 
-          <Ionicons name="locate" size={22} color={COLORS.primary} />
+          {!isUrdu && (
+            <Ionicons
+              name="locate"
+              size={22}
+              color={COLORS.primary}
+              style={{ marginLeft: 10 }}
+            />
+          )}
         </View>
 
         {/* Home */}
         <View
           style={{
             marginBottom: responsiveHeight(2.5),
-            marginLeft: responsiveWidth(3.2),
+            marginHorizontal: responsiveWidth(3.2),
+            alignItems: "flex-start",
           }}
         >
           <Text
@@ -109,9 +141,10 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
               fontFamily: FONTS.semiBold,
               fontSize: responsiveFontSize(1.7),
               color: COLORS.black,
+              textAlign: isUrdu ? "right" : "left",
             }}
           >
-            Home
+            {t("home")}
           </Text>
           <TextInput
             style={{
@@ -119,11 +152,14 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
               fontSize: responsiveFontSize(1.6),
               fontFamily: FONTS.regular,
               padding: 0,
+              width: "100%",
+              textAlign: isUrdu ? "right" : "left",
+              writingDirection: isUrdu ? "rtl" : "ltr",
             }}
             value={homeAddress}
             onChangeText={(text) => onTextChange(text, "home")}
             multiline={false}
-            placeholder="Enter home address"
+            placeholder={t("home_placeholder")}
             placeholderTextColor="#888"
           />
         </View>
@@ -152,7 +188,7 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
                 fontSize: responsiveFontSize(2),
               }}
             >
-              CONFIRM LOCATION
+              {t("confirm_location")}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

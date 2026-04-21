@@ -47,7 +47,7 @@ const BackBtn = () => {
             resizeMode: "contain",
           }}
         />
-      </View>
+    </View>
   );
 };
 

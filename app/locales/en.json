@@ -125,7 +125,7 @@
   "sea_view_address": "Clifton Beach, Karachi",
   "national_museum": "National Museum",
   "national_museum_address": "Burns Rd, Saddar, Karachi",
-  "km": "Km",
+  "kg": "Kg",
   "tez_ride": "TezRide",
   "home_tagline": "Fast. Reliable. Everywhere.",
   "cargo_package_category": "Package Category",
@@ -181,5 +181,10 @@
   "Medicines": "Medicines",
   "Syrup": "Syrup",
   "Mask": "Mask",
-  "Syringe": "Syringe"
+  "Syringe": "Syringe",
+  "select_pickup_title": "Select parcel pickup location",
+  "add_another_location": "+ Add Another Location",
+  "pickup_placeholder": "Enter pickup address",
+  "home_placeholder": "Enter home address",
+  "confirm_location": "CONFIRM LOCATION"
 }

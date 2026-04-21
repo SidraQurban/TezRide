@@ -58,7 +58,7 @@
   "sea_view_address": "کلفٹن بیچ، کراچی",
   "national_museum": "نیشنل میوزیم",
   "national_museum_address": "برنس روڈ، صدر، کراچی",
-  "km": "کلومیٹر",
+  "kg": "کلو گرام",
   "mini": "منی",
   "ac_ride": "اے سی",
   "auto": "آٹو",
@@ -163,7 +163,7 @@
   "search_stores_placeholder": "آئٹمز یا اسٹورز تلاش کریں",
   "categories_title": "کیٹیگریز",
   "shop_list_title": "دکانوں کی فہرست",
-  "product_preview": "پروڈکٹ کا نمونہ",
+  "product_preview": "پروڈکٹ پریویو",
   "Food": "کھانا",
   "Grocery": "کرانہ",
   "Pharmacy": "فارمیسی",
@@ -185,5 +185,10 @@
   "Medicines": "ادویات",
   "Syrup": "شربت",
   "Mask": "ماسک",
-  "Syringe": "سرنج"
+  "Syringe": "سرنج",
+  "select_pickup_title": "پارسل پک اپ کا مقام منتخب کریں",
+  "add_another_location": "+ ایک اور مقام شامل کریں",
+  "pickup_placeholder": "پک اپ کا پتہ درج کریں",
+  "home_placeholder": "گھر کا پتہ درج کریں",
+  "confirm_location": "مقام کی تصدیق کریں"
 }
