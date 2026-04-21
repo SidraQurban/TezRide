@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import {
   responsiveHeight,
   responsiveWidth,
@@ -7,9 +7,15 @@ import {
 import { COLORS, FONTS } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 
+import { useNavigation } from "@react-navigation/native";
+
 const ShopCard = ({ shop }) => {
+  const navigation = useNavigation();
+
   return (
-    <View
+    <TouchableOpacity
+      onPress={() => navigation.navigate("ShopDetail", { shop })}
+      activeOpacity={0.95}
       style={{
         marginHorizontal: responsiveWidth(4),
         marginTop: responsiveHeight(0.5),
@@ -125,7 +131,7 @@ const ShopCard = ({ shop }) => {
           </View>
         ))}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

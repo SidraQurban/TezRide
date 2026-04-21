@@ -20,6 +20,8 @@ import ShopsScreen from "../screens/ShopsScreen";
 import HireDriverScreen from "../screens/HireDriverScreen";
 import SearchDriverScreen from "../screens/SearchDriverScreen";
 
+import ShopDetailScreen from "../screens/ShopDetailScreen";
+
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   const { i18n } = useTranslation();
@@ -36,6 +38,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Delivery" component={DeliveryScreen} />
         <Stack.Screen name="HireDriver" component={HireDriverScreen} />
         <Stack.Screen name="Shops" component={ShopsScreen} />
+        <Stack.Screen name="ShopDetail" component={ShopDetailScreen} />
         <Stack.Screen
           name="LocationDetails"
           component={LocationDetailsScreen}
