@@ -60,7 +60,7 @@ const ShopCard = ({ shop }) => {
         {/* RATING + icon */}
         <View
           style={{
-            flexDirection: isUrdu ? "row" : "row",
+            flexDirection: "row",
             alignItems: "center",
           }}
         >
