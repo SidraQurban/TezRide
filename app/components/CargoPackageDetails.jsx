@@ -5,8 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { COLORS, FONTS } from "../constants/theme";
 import {
   responsiveHeight,
@@ -15,16 +17,17 @@ import {
 } from "react-native-responsive-dimensions";
 
 const CargoPackageDetails = ({ selectedCategory, setSelectedCategory }) => {
+  const { t } = useTranslation();
   const categories = [
-    { id: "Documents", icon: "file-document-outline" },
-    { id: "Small Parcel", icon: "package-variant" },
-    { id: "Large Parcel", icon: "package-variant-closed" },
-    { id: "Fragile", icon: "wine-glass-outline" },
+    { id: "documents", icon: "file-document-outline" },
+    { id: "small_parcel", icon: "package-variant" },
+    { id: "large_parcel", icon: "package-variant-closed" },
+    { id: "fragile", icon: "cup-outline" },
   ];
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Package Details</Text>
+      <Text style={styles.sectionTitle}>{t("cargo_package_category")}</Text>
       <View style={styles.categoryRow}>
         {categories.map((cat) => (
           <TouchableOpacity
@@ -40,41 +43,40 @@ const CargoPackageDetails = ({ selectedCategory, setSelectedCategory }) => {
               size={30}
               color={selectedCategory === cat.id ? COLORS.primary : "#555"}
             />
-            <Text style={styles.categoryLabel}>{cat.id}</Text>
+            <Text style={styles.categoryLabel}>{t(cat.id)}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <View style={styles.inputRow}>
-        <View style={{ flex: 1, marginRight: 10 }}>
-          <Text style={styles.inputLabel}>Weight</Text>
+      <View style={{ flexDirection: "row", marginTop: responsiveHeight(2), gap: 15 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.inputLabel}>{t("package_weight")}</Text>
           <View style={styles.weightInputContainer}>
-            <TextInput
-              style={styles.weightInput}
-              placeholder="5"
+            <TextInput 
+              style={styles.weightInput} 
+              placeholder="5" 
               placeholderTextColor="gray"
-              keyboardType="numeric"
+              keyboardType="numeric" 
             />
-            <Text style={styles.unitText}>kg/lbs</Text>
+            <Text style={styles.unitText}>{t("km")}</Text>
           </View>
         </View>
         <View style={{ flex: 1.5 }}>
-          <Text style={styles.inputLabel}>Drop-off Contact</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Ali"
+          <Text style={styles.inputLabel}>{t("dropoff_contact")}</Text>
+          <TextInput 
+            style={styles.textInput} 
+            placeholder={t("dropoff_name_placeholder")} 
             placeholderTextColor="gray"
           />
         </View>
       </View>
 
       <Text style={styles.inputLabel}>
-        Notes{" "}
-        <Text style={{ color: "gray", fontWeight: "400" }}>(optional)</Text>
+        {t("notes_optional")}
       </Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder="Handle with care"
+      <TextInput 
+        style={styles.textInput} 
+        placeholder={t("handle_with_care")} 
         placeholderTextColor="gray"
       />
     </View>

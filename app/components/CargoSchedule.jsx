@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { COLORS, FONTS } from "../constants/theme";
 import {
   responsiveHeight,
@@ -9,36 +10,33 @@ import {
 } from "react-native-responsive-dimensions";
 
 const CargoSchedule = ({ scheduleType, setScheduleType }) => {
+  const { t } = useTranslation();
+  const options = [
+    { id: "Now", label: t("now"), icon: "flash-outline" },
+    { id: "Later", label: t("scheduled"), icon: "calendar-outline" },
+  ];
+
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Schedule Delivery</Text>
+      <Text style={styles.sectionTitle}>{t("schedule_delivery")}</Text>
       <View style={styles.scheduleRow}>
-        <TouchableOpacity
-          onPress={() => setScheduleType("Now")}
-          style={[
-            styles.scheduleBtn,
-            scheduleType === "Now" && styles.selectedScheduleBtn,
-          ]}
-        >
-          <Ionicons
-            name={
-              scheduleType === "Now" ? "radio-button-on" : "radio-button-off"
-            }
-            size={20}
-            color={COLORS.primary}
-          />
-          <Text style={styles.scheduleBtnText}>Deliver Now</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setScheduleType("Later")}
-          style={[
-            styles.scheduleBtn,
-            scheduleType === "Later" && styles.selectedScheduleBtn,
-          ]}
-        >
-          <Ionicons name="calendar-outline" size={20} color="gray" />
-          <Text style={styles.scheduleBtnText}>Schedule for later</Text>
-        </TouchableOpacity>
+        {options.map((opt) => (
+          <TouchableOpacity
+            key={opt.id}
+            onPress={() => setScheduleType(opt.id)}
+            style={[
+              styles.scheduleBtn,
+              scheduleType === opt.id && styles.selectedScheduleBtn,
+            ]}
+          >
+            <Ionicons
+              name={opt.icon}
+              size={18}
+              color={scheduleType === opt.id ? COLORS.primary : "gray"}
+            />
+            <Text style={styles.scheduleBtnText}>{opt.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );

@@ -25,7 +25,7 @@ const SearchInput = ({
   return (
     <View
       style={{
-        flexDirection: "row",
+        flexDirection: isUrdu ? "row-reverse" : "row",
         alignItems: "center",
         backgroundColor: "#fff",
         borderRadius: 16,
@@ -44,9 +44,9 @@ const SearchInput = ({
       {/* Left Inputs */}
       <View style={{ flex: 1 }}>
         {/* Pickup */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
           <Ionicons name="location" size={18} color={COLORS.primary} />
-          <View style={{ marginLeft: 12, flex: 1 }}>
+          <View style={{ marginHorizontal: 12, flex: 1 }}>
             <Text
               style={{ 
                 fontSize: 12, 
@@ -84,14 +84,14 @@ const SearchInput = ({
             height: 1,
             backgroundColor: "#eee",
             marginVertical: 8,
-            marginLeft: 26,
+            [isUrdu ? "marginRight" : "marginLeft"]: 26,
           }}
         />
 
         {/* Destination */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
           <Ionicons name="location" size={18} color="#999" />
-          <View style={{ marginLeft: 12, flex: 1 }}>
+          <View style={{ marginHorizontal: 12, flex: 1 }}>
             <Text
               style={{ 
                 fontSize: 12, 
@@ -134,7 +134,7 @@ const SearchInput = ({
           backgroundColor: "#F3F3F3",
           alignItems: "center",
           justifyContent: "center",
-          marginLeft: 15,
+          [isUrdu ? "marginRight" : "marginLeft"]: 15,
         }}
       >
         <MaterialIcons name="swap-vert" size={20} color={COLORS.primary} />

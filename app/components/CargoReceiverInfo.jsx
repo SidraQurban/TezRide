@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { COLORS, FONTS } from "../constants/theme";
 import {
   responsiveHeight,
@@ -15,17 +16,18 @@ import {
 } from "react-native-responsive-dimensions";
 
 const CargoReceiverInfo = () => {
+  const { t } = useTranslation();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Sender & Receiver Information</Text>
+      <Text style={styles.sectionTitle}>{t("sender_receiver_info")}</Text>
       <Text style={styles.subLabel}>
-        Sender: <Text style={{ color: COLORS.black }}>Ali Ahmed</Text>
+        {t("sender_label")}: <Text style={{ color: COLORS.black }}>{t("sender_name")}</Text>
       </Text>
 
       <View style={styles.receiverContainer}>
         <TextInput
           style={styles.textInput}
-          placeholder="Receiver Name : Usman Khan"
+          placeholder={t("receiver_name_placeholder")}
           placeholderTextColor="gray"
         />
         <View style={styles.phoneInputContainer}>
@@ -39,7 +41,7 @@ const CargoReceiverInfo = () => {
           />
         </View>
         <TouchableOpacity style={styles.contactLink}>
-          <Text style={styles.contactLinkText}>Select from Contacts</Text>
+          <Text style={styles.contactLinkText}>{t("select_from_contacts")}</Text>
         </TouchableOpacity>
       </View>
     </View>

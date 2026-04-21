@@ -108,7 +108,13 @@ const SearchingDirection = ({ route }) => {
 
         {/* MAP + OVERLAY */}
         <View style={{ flex: 1 }}>
-          <MapComponent pickup={pickup} destination={destination} showMarkers={false} showPickupMarker={true} animateZoomOut={true} />
+          <MapComponent
+            pickup={pickup}
+            destination={destination}
+            showMarkers={false}
+            showPickupMarker={true}
+            animateZoomOut={true}
+          />
 
           <View
             style={{
@@ -193,7 +199,7 @@ const SearchingDirection = ({ route }) => {
 
             {/* TEXT underneath */}
             <View style={{ alignItems: "center" }}>
-              <Text
+              {/* <Text
                 style={{
                   marginTop: responsiveHeight(2),
                   fontSize: responsiveFontSize(2),
@@ -202,8 +208,8 @@ const SearchingDirection = ({ route }) => {
                 }}
               >
                 {t("finding_drivers")}
-              </Text>
-              <Text
+              </Text> */}
+              {/* <Text
                 style={{
                   fontSize: responsiveFontSize(2),
                   fontFamily: FONTS.medium,
@@ -211,7 +217,7 @@ const SearchingDirection = ({ route }) => {
                 }}
               >
                 {t("ride_arrive_shortly")}
-              </Text>
+              </Text> */}
             </View>
           </View>
         </View>

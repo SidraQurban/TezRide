@@ -31,18 +31,19 @@ import CargoPricingSummary from "../components/CargoPricingSummary";
 import CargoSchedule from "../components/CargoSchedule";
 
 const CargoScreen = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
   const [pickup, setPickup] = useState("Clifton, Karachi, Pakistan");
   const [destination, setDestination] = useState("DHA Phase 6, Karachi, Pakistan");
-  const [pickupCoords, setPickupCoords] = useState(null);
-  const [destinationCoords, setDestinationCoords] = useState(null);
+  const [pickupCoords, setPickupCoords] = useState({ latitude: 24.8138, longitude: 67.0333 });
+  const [destinationCoords, setDestinationCoords] = useState({ latitude: 24.7952, longitude: 67.0700 });
   const [predictions, setPredictions] = useState([]);
   const [activeField, setActiveField] = useState("pickup");
   const [loading, setLoading] = useState(false);
   const [sessionToken, setSessionToken] = useState("");
 
-  const [selectedCategory, setSelectedCategory] = useState("Large Parcel");
-  const [selectedVehicle, setSelectedVehicle] = useState("Car");
+  const [selectedCategory, setSelectedCategory] = useState("large_parcel");
+  const [selectedVehicle, setSelectedVehicle] = useState("car");
   const [scheduleType, setScheduleType] = useState("Now");
 
   const debounceTimeout = useRef(null);
@@ -100,8 +101,13 @@ const CargoScreen = () => {
   };
 
   const handleTextChange = (text, field) => {
-    if (field === "pickup") setPickup(text);
-    else setDestination(text);
+    if (field === "pickup") {
+      setPickup(text);
+      setPickupCoords(null);
+    } else {
+      setDestination(text);
+      setDestinationCoords(null);
+    }
 
     setActiveField(field);
 
@@ -115,11 +121,7 @@ const CargoScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* HEADER */}
-      <View style={styles.header}>
-        <View style={{ left: responsiveWidth(2) }}>
-          <BackBtn />
-        </View>
-      </View>
+      <BackBtn />
 
       {/* MAP */}
       <View style={styles.mapContainer}>
@@ -166,7 +168,7 @@ const CargoScreen = () => {
               keyboardShouldPersistTaps="always"
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.predictionItem}
+                  style={[styles.predictionItem, { flexDirection: isUrdu ? "row-reverse" : "row" }]}
                   onPress={() =>
                     handleLocationSelect(item.place_id, item.description)
                   }
@@ -176,7 +178,7 @@ const CargoScreen = () => {
                     size={20}
                     color={COLORS.primary}
                   />
-                  <Text style={styles.predictionText} numberOfLines={1}>
+                  <Text style={[styles.predictionText, { textAlign: isUrdu ? "right" : "left", marginRight: isUrdu ? 10 : 0, marginLeft: isUrdu ? 0 : 10 }]} numberOfLines={1}>
                     {item.description}
                   </Text>
                 </TouchableOpacity>
@@ -212,20 +214,20 @@ const CargoScreen = () => {
         />
 
         {/* BADGES */}
-        <View style={styles.badgesRow}>
-          <View style={styles.badge}>
+        <View style={[styles.badgesRow, { flexDirection: isUrdu ? "row-reverse" : "row" }]}>
+          <View style={[styles.badge, { flexDirection: isUrdu ? "row-reverse" : "row" }]}>
             <Ionicons name="checkmark-circle" size={14} color="gray" />
-            <Text style={styles.badgeText}>Insurance Badge</Text>
+            <Text style={[styles.badgeText, { marginRight: isUrdu ? 4 : 0, marginLeft: isUrdu ? 0 : 4 }]}>{t("insurance_badge")}</Text>
           </View>
 
-          <View style={styles.badge}>
+          <View style={[styles.badge, { flexDirection: isUrdu ? "row-reverse" : "row" }]}>
             <Ionicons name="time-outline" size={14} color="gray" />
-            <Text style={styles.badgeText}>Real-time Tracking</Text>
+            <Text style={[styles.badgeText, { marginRight: isUrdu ? 4 : 0, marginLeft: isUrdu ? 0 : 4 }]}>{t("realtime_tracking")}</Text>
           </View>
 
-          <View style={styles.badge}>
+          <View style={[styles.badge, { flexDirection: isUrdu ? "row-reverse" : "row" }]}>
             <Ionicons name="shield-checkmark" size={14} color="gray" />
-            <Text style={styles.badgeText}>Verified Driver</Text>
+            <Text style={[styles.badgeText, { marginRight: isUrdu ? 4 : 0, marginLeft: isUrdu ? 0 : 4 }]}>{t("verified_driver")}</Text>
           </View>
         </View>
       </ScrollView>
@@ -239,7 +241,9 @@ const CargoScreen = () => {
             end={{ x: 1, y: 0 }}
             style={styles.confirmBtn}
           >
-            <Text style={styles.confirmBtnText}>Confirm Booking Rs 850</Text>
+            <Text style={styles.confirmBtnText}>
+              {t("confirm_booking")} Rs 850
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -290,7 +294,6 @@ const styles = StyleSheet.create({
   },
 
   predictionItem: {
-    flexDirection: "row",
     alignItems: "center",
     padding: 15,
     borderBottomWidth: 1,
@@ -300,31 +303,28 @@ const styles = StyleSheet.create({
   predictionText: {
     fontFamily: FONTS.medium,
     fontSize: responsiveFontSize(1.6),
-    marginLeft: 10,
+    flex: 1,
     color: COLORS.black,
   },
 
   scrollContent: {
     paddingTop: responsiveHeight(7),
-    paddingHorizontal: responsiveWidth(4),
+    paddingHorizontal: responsiveWidth(5), // Increased margin for better Urdu readability
     paddingBottom: responsiveHeight(12),
   },
 
   badgesRow: {
-    flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 10,
   },
 
   badge: {
-    flexDirection: "row",
     alignItems: "center",
   },
 
   badgeText: {
     fontSize: responsiveFontSize(1.1),
     color: "gray",
-    marginLeft: 4,
   },
 
   footer: {
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: responsiveWidth(4),
     paddingTop: responsiveHeight(2),
-    paddingBottom: responsiveHeight(8), // Lifted significantly more
+    paddingBottom: responsiveHeight(8),
     backgroundColor: "white",
     borderTopWidth: 1,
     borderTopColor: "#F0F0F0",

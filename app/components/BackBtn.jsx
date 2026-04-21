@@ -38,16 +38,16 @@ const BackBtn = () => {
       </TouchableOpacity>
 
       {/* Logo */}
-      <Image
-        source={require("../../assets/logo.png")}
-        style={{
+        <Image
+          source={require("../../assets/logo.png")}
+          style={{
           width: responsiveWidth(60),
-          height: undefined,
-          aspectRatio: 3,
-          resizeMode: "contain",
-        }}
-      />
-    </View>
+            height: undefined,
+            aspectRatio: 3,
+            resizeMode: "contain",
+          }}
+        />
+      </View>
   );
 };
 

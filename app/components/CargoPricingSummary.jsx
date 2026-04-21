@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { COLORS, FONTS } from "../constants/theme";
 import {
   responsiveHeight,
@@ -8,19 +9,20 @@ import {
 } from "react-native-responsive-dimensions";
 
 const CargoPricingSummary = ({ total }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Pricing Summary</Text>
+      <Text style={styles.sectionTitle}>{t("pricing_summary")}</Text>
       <View style={styles.priceRow}>
-        <Text style={styles.priceLabel}>Delivery Fee:</Text>
+        <Text style={styles.priceLabel}>{t("delivery_fee")}:</Text>
         <Text style={styles.priceValue}>Rs 750</Text>
       </View>
       <View style={styles.priceRow}>
-        <Text style={styles.priceLabel}>Service Fee:</Text>
+        <Text style={styles.priceLabel}>{t("service_fee")}:</Text>
         <Text style={styles.priceValue}>Rs 100</Text>
       </View>
       <View style={[styles.priceRow, styles.totalRow]}>
-        <Text style={styles.totalLabel}>Total:</Text>
+        <Text style={styles.totalLabel}>{t("total")}:</Text>
         <Text style={styles.totalValue}>Rs {total}</Text>
       </View>
     </View>

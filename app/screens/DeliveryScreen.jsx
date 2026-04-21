@@ -1,50 +1,92 @@
-import React, { useState, useEffect } from "react";
-import { View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, FlatList, TouchableOpacity, Text, StyleSheet } from "react-native";
 import MapComponent from "../components/MapComponent";
 import {
   responsiveHeight,
   responsiveWidth,
+  responsiveFontSize,
 } from "react-native-responsive-dimensions";
 import BackBtn from "../components/BackBtn";
 import DeliverybottomPanel from "../components/DeliverybottomPanel";
-import { COLORS } from "../constants";
+import { COLORS, FONTS } from "../constants/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
+import { Ionicons } from "@expo/vector-icons";
 
 const DeliveryScreen = () => {
-  const [pickup, setPickup] = useState(null);
-  const [destination, setDestination] = useState(null);
+  const [pickup, setPickup] = useState({ latitude: 24.8930, longitude: 67.0750 });
+  const [destination, setDestination] = useState({ latitude: 24.8138, longitude: 67.0333 });
   const [pickupAddress, setPickupAddress] = useState("Near 3 Sector 24 Chowrangi industrial area, Karachi");
   const [homeAddress, setHomeAddress] = useState("Clifton, Karachi");
+  
+  const [predictions, setPredictions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [activeField, setActiveField] = useState("pickup");
+  const [sessionToken, setSessionToken] = useState("");
 
-  // Geocode address when it changes
+  const debounceTimeout = useRef(null);
+
   useEffect(() => {
-    const geocode = async (address, type) => {
-      if (!address) return;
-      try {
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`;
-        const response = await fetch(url);
-        const json = await response.json();
-        if (json.status === "OK") {
-          const { lat, lng } = json.results[0].geometry.location;
-          if (type === "pickup") {
-            setPickup({ latitude: lat, longitude: lng });
-          } else {
-            setDestination({ latitude: lat, longitude: lng });
-          }
-        }
-      } catch (error) {
-        console.warn("Geocoding error:", error);
+    setSessionToken(Math.random().toString(36).substring(2, 15));
+  }, []);
+
+  const fetchPredictions = async (input) => {
+    if (!input.trim()) {
+      setPredictions([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+        input
+      )}&key=${GOOGLE_MAPS_API_KEY}&sessiontoken=${sessionToken}&components=country:pk`;
+      const response = await fetch(url);
+      const json = await response.json();
+      if (json.status === "OK") {
+        setPredictions(json.predictions);
       }
-    };
+    } catch (error) {
+      console.warn("Prediction error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const timer = setTimeout(() => {
-      geocode(pickupAddress, "pickup");
-      geocode(homeAddress, "destination");
-    }, 1000); // 1 second debounce
+  const handleLocationSelect = async (placeId, description) => {
+    setPredictions([]);
+    if (activeField === "pickup") setPickupAddress(description);
+    else setHomeAddress(description);
 
-    return () => clearTimeout(timer);
-  }, [pickupAddress, homeAddress]);
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLE_MAPS_API_KEY}&fields=geometry`;
+      const response = await fetch(url);
+      const json = await response.json();
+      if (json.status === "OK") {
+        const { lat, lng } = json.result.geometry.location;
+        const coords = { latitude: lat, longitude: lng };
+        if (activeField === "pickup") setPickup(coords);
+        else setDestination(coords);
+      }
+    } catch (error) {
+      console.warn("Details error:", error);
+    }
+  };
+
+  const onTextChange = (text, type) => {
+    if (type === "pickup") {
+      setPickupAddress(text);
+      setPickup(null); // Clear old marker while typing
+    } else {
+      setHomeAddress(text);
+      setDestination(null); // Clear old marker while typing
+    }
+    setActiveField(type);
+
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      fetchPredictions(text);
+    }, 500);
+  };
 
   return (
     <SafeAreaView
@@ -57,60 +99,98 @@ const DeliveryScreen = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <ScrollView 
-          contentContainerStyle={{ flexGrow: 1 }} 
-          scrollEnabled={false} 
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* MAIN CONTAINER */}
-          <View style={{ flex: 1 }}>
-            {/* BACK BUTTON */}
-            <View
-              style={{
-                left: responsiveWidth(4),
-              }}
-            >
-              <BackBtn />
-            </View>
-
-            {/* MAP */}
-            <View
-              style={{
-                height: responsiveHeight(60),
-                width: "100%",
-                borderRadius: 15,
-                overflow: "hidden",
-                marginTop: responsiveHeight(0),
-              }}
-            >
-              <MapComponent 
-                pickup={pickup} 
-                destination={destination}
-                showMarkers={true} 
-              />
-            </View>
-
-            {/* BOTTOM PANEL */}
-            <View
-              style={{
-                position: "absolute",
-                bottom: 0,
-                width: "100%",
-                zIndex: 20,
-              }}
-            >
-              <DeliverybottomPanel 
-                pickupAddress={pickupAddress}
-                setPickupAddress={setPickupAddress}
-                homeAddress={homeAddress}
-                setHomeAddress={setHomeAddress}
-              />
-            </View>
+        <View style={{ flex: 1 }}>
+          {/* BACK BUTTON */}
+          <View style={{ left: responsiveWidth(4) }}>
+            <BackBtn />
           </View>
-        </ScrollView>
+
+          {/* MAP */}
+          <View
+            style={{
+              height: responsiveHeight(55),
+              width: "100%",
+              borderRadius: 15,
+              overflow: "hidden",
+            }}
+          >
+            <MapComponent 
+              pickup={pickup} 
+              destination={destination}
+              showMarkers={true} 
+            />
+          </View>
+
+          {/* PREDICTIONS LIST OVERLAY */}
+          {predictions.length > 0 && (
+            <View style={styles.predictionsOverlay}>
+              <FlatList
+                data={predictions}
+                keyExtractor={(item) => item.place_id}
+                keyboardShouldPersistTaps="always"
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.predictionItem}
+                    onPress={() => handleLocationSelect(item.place_id, item.description)}
+                  >
+                    <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                    <Text style={styles.predictionText} numberOfLines={1}>
+                      {item.description}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          )}
+
+          {/* BOTTOM PANEL */}
+          <View
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: "100%",
+              zIndex: 20,
+            }}
+          >
+            <DeliverybottomPanel 
+              pickupAddress={pickupAddress}
+              homeAddress={homeAddress}
+              onTextChange={onTextChange}
+            />
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  predictionsOverlay: {
+    position: "absolute",
+    bottom: responsiveHeight(30), // Adjusted to appear above bottom panel
+    left: responsiveWidth(4),
+    right: responsiveWidth(4),
+    backgroundColor: "white",
+    borderRadius: 12,
+    elevation: 10,
+    maxHeight: responsiveHeight(30),
+    zIndex: 100,
+    borderWidth: 1,
+    borderColor: "#EEE",
+  },
+  predictionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  predictionText: {
+    fontFamily: FONTS.medium,
+    fontSize: responsiveFontSize(1.6),
+    marginLeft: 10,
+    color: COLORS.black,
+  },
+});
 
 export default DeliveryScreen;

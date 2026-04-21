@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { COLORS, FONTS } from "../constants/theme";
 import {
   responsiveHeight,
@@ -9,15 +10,16 @@ import {
 } from "react-native-responsive-dimensions";
 
 const CargoVehicleSelection = ({ selectedVehicle, setSelectedVehicle }) => {
+  const { t } = useTranslation();
   const vehicles = [
-    { id: "Bike", icon: "bicycle", price: "250", time: "15-20 mins" },
-    { id: "Car", icon: "car", price: "450", time: "20-25 mins" },
-    { id: "Van", icon: "truck", price: "850", time: "30-35 mins" },
+    { id: "bike", icon: "bicycle", price: "250", time: "15-20 mins" },
+    { id: "car", icon: "car", price: "450", time: "20-25 mins" },
+    { id: "van", icon: "truck", price: "850", time: "30-35 mins" },
   ];
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Select Vehicle</Text>
+      <Text style={styles.sectionTitle}>{t("select_vehicle")}</Text>
       <View style={styles.vehicleRow}>
         {vehicles.map((v) => (
           <TouchableOpacity
@@ -39,7 +41,7 @@ const CargoVehicleSelection = ({ selectedVehicle, setSelectedVehicle }) => {
             )}
             <FontAwesome5 name={v.icon} size={24} color="black" />
             <Text style={styles.vehiclePrice}>Rs {v.price}</Text>
-            <Text style={styles.vehicleTime}>{v.time}</Text>
+            <Text style={styles.vehicleTime}>{v.time.split(" ")[0]} {t("mins_label")}</Text>
           </TouchableOpacity>
         ))}
       </View>

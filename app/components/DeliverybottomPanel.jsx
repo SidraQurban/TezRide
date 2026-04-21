@@ -11,7 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 
-const DeliverybottomPanel = ({ pickupAddress, setPickupAddress, homeAddress, setHomeAddress }) => {
+const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
   const navigation = useNavigation();
 
   return (
@@ -35,6 +35,7 @@ const DeliverybottomPanel = ({ pickupAddress, setPickupAddress, homeAddress, set
             fontSize: responsiveFontSize(2),
             marginBottom: responsiveHeight(1.2),
             fontFamily: FONTS.semiBold,
+            color: COLORS.black,
           }}
         >
           Select parcel pickup location
@@ -72,6 +73,7 @@ const DeliverybottomPanel = ({ pickupAddress, setPickupAddress, homeAddress, set
                 marginBottom: responsiveHeight(0.8),
                 fontFamily: FONTS.semiBold,
                 fontSize: responsiveFontSize(1.7),
+                color: COLORS.black,
               }}
             >
               Current location
@@ -85,7 +87,7 @@ const DeliverybottomPanel = ({ pickupAddress, setPickupAddress, homeAddress, set
                 padding: 0,
               }}
               value={pickupAddress}
-              onChangeText={setPickupAddress}
+              onChangeText={(text) => onTextChange(text, "pickup")}
               multiline={false}
               placeholder="Enter pickup address"
               placeholderTextColor="#888"
@@ -119,7 +121,7 @@ const DeliverybottomPanel = ({ pickupAddress, setPickupAddress, homeAddress, set
               padding: 0,
             }}
             value={homeAddress}
-            onChangeText={setHomeAddress}
+            onChangeText={(text) => onTextChange(text, "home")}
             multiline={false}
             placeholder="Enter home address"
             placeholderTextColor="#888"

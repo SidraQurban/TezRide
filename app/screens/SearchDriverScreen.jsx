@@ -52,8 +52,8 @@ const SearchDriverScreen = ({ route }) => {
     Animated.loop(
       Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 400,
-        easing: Easing.out(Easing.quad), //.quad
+        duration: 1500,
+        easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
     ).start();
@@ -201,7 +201,7 @@ const SearchDriverScreen = ({ route }) => {
             </View>
 
             {/* TEXT */}
-            <Text
+            {/* <Text
               style={{
                 marginTop: responsiveHeight(2),
                 fontSize: responsiveFontSize(2),
@@ -210,7 +210,7 @@ const SearchDriverScreen = ({ route }) => {
               }}
             >
               {t("connecting_driver")}
-            </Text>
+            </Text> */}
           </View>
         </View>
 
