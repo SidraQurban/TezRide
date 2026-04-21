@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { COLORS, FONTS } from "../constants/theme";
@@ -36,16 +43,19 @@ const SearchScreen = () => {
 
   // Generate a new session token for cost-effective billing
   const generateSessionToken = () => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
   };
 
   useEffect(() => {
     setSessionToken(generateSessionToken());
-    
+
     (async () => {
       try {
         let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
+        if (status === "granted") {
           let location = await ExpoLocation.getCurrentPositionAsync({
             accuracy: ExpoLocation.Accuracy.Balanced,
           });
@@ -58,12 +68,20 @@ const SearchScreen = () => {
           const json = await response.json();
 
           if (json.status === "OK") {
-            const result = json.results.find(r => !r.types.includes("plus_code")) || json.results[0];
-            let cleanAddress = result.formatted_address.replace(/^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/, "");
-            const addressParts = cleanAddress.split(',');
+            const result =
+              json.results.find((r) => !r.types.includes("plus_code")) ||
+              json.results[0];
+            let cleanAddress = result.formatted_address.replace(
+              /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/,
+              "",
+            );
+            const addressParts = cleanAddress.split(",");
             const locationData = {
               id: result.place_id,
-              name: addressParts.length > 1 ? `${addressParts[0]}, ${addressParts[1]}` : addressParts[0],
+              name:
+                addressParts.length > 1
+                  ? `${addressParts[0]}, ${addressParts[1]}`
+                  : addressParts[0],
               address: cleanAddress,
               latitude: coords.latitude,
               longitude: coords.longitude,
@@ -88,28 +106,32 @@ const SearchScreen = () => {
     setLoading(true);
     try {
       let url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-        input
+        input,
       )}&key=${GOOGLE_MAPS_API_KEY}&sessiontoken=${sessionToken}&components=country:pk`;
 
       if (currentLocation) {
         url += `&location=${currentLocation.latitude},${currentLocation.longitude}&radius=50000`;
       }
-      
+
       const response = await fetch(url);
       const json = await response.json();
 
       setSearchPerformed(true);
       console.log("Autocomplete Status:", json.status);
       if (json.status === "OK") {
-        const filtered = json.predictions.filter(p => 
-          !p.types.includes("locality") && 
-          !p.types.includes("administrative_area_level_1") && 
-          !p.types.includes("administrative_area_level_2") && 
-          !p.types.includes("country")
+        const filtered = json.predictions.filter(
+          (p) =>
+            !p.types.includes("locality") &&
+            !p.types.includes("administrative_area_level_1") &&
+            !p.types.includes("administrative_area_level_2") &&
+            !p.types.includes("country"),
         );
         setPredictions(filtered);
       } else {
-        console.warn("Autocomplete Warning:", json.error_message || json.status);
+        console.warn(
+          "Autocomplete Warning:",
+          json.error_message || json.status,
+        );
         setPredictions([]);
       }
     } catch (error) {
@@ -129,7 +151,7 @@ const SearchScreen = () => {
         fetchPredictions(input);
       }, 500);
     },
-    [sessionToken]
+    [sessionToken],
   );
 
   useEffect(() => {
@@ -145,7 +167,7 @@ const SearchScreen = () => {
     setLoading(true);
     try {
       const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${item.place_id}&fields=name,geometry,formatted_address&key=${GOOGLE_MAPS_API_KEY}&sessiontoken=${sessionToken}`;
-      
+
       const response = await fetch(url);
       const json = await response.json();
 
@@ -166,7 +188,10 @@ const SearchScreen = () => {
           setPredictions([]);
           setSearchPerformed(false);
           if (destinationData) {
-            navigation.navigate("ConfirmRide", { pickup: locationData, destination: destinationData });
+            navigation.navigate("ConfirmRide", {
+              pickup: locationData,
+              destination: destinationData,
+            });
           } else {
             setActiveField("destination");
             setTimeout(() => destinationRef.current?.focus(), 100);
@@ -177,7 +202,10 @@ const SearchScreen = () => {
           setPredictions([]);
           setSearchPerformed(false);
           if (pickupData) {
-            navigation.navigate("ConfirmRide", { pickup: pickupData, destination: locationData });
+            navigation.navigate("ConfirmRide", {
+              pickup: pickupData,
+              destination: locationData,
+            });
           } else {
             setActiveField("pickup");
             setTimeout(() => pickupRef.current?.focus(), 100);
@@ -198,7 +226,7 @@ const SearchScreen = () => {
     setLoading(true);
     try {
       let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
+      if (status !== "granted") {
         setLoading(false);
         return;
       }
@@ -224,16 +252,24 @@ const SearchScreen = () => {
 
       if (json.status === "OK") {
         // Prefer a result that is not just a plus_code
-        const result = json.results.find(r => !r.types.includes("plus_code")) || json.results[0];
-        
+        const result =
+          json.results.find((r) => !r.types.includes("plus_code")) ||
+          json.results[0];
+
         // Clean the address by removing Plus Codes if they appear at the start
         // Regex matches Plus Codes like "WXH8+QJX, " or "8GGH+JX Karachi, "
-        let cleanAddress = result.formatted_address.replace(/^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/, "");
-        
-        const addressParts = cleanAddress.split(',');
+        let cleanAddress = result.formatted_address.replace(
+          /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/,
+          "",
+        );
+
+        const addressParts = cleanAddress.split(",");
         const locationData = {
           id: result.place_id,
-          name: addressParts.length > 1 ? `${addressParts[0]}, ${addressParts[1]}` : addressParts[0],
+          name:
+            addressParts.length > 1
+              ? `${addressParts[0]}, ${addressParts[1]}`
+              : addressParts[0],
           address: cleanAddress,
           latitude: coords.latitude,
           longitude: coords.longitude,
@@ -243,7 +279,10 @@ const SearchScreen = () => {
         setPickup(locationData.name);
         setPickupData(locationData);
         if (destinationData) {
-          navigation.navigate("ConfirmRide", { pickup: locationData, destination: destinationData });
+          navigation.navigate("ConfirmRide", {
+            pickup: locationData,
+            destination: destinationData,
+          });
         }
       }
     } catch (error) {
@@ -286,16 +325,16 @@ const SearchScreen = () => {
         style={{
           width: responsiveWidth(11),
           height: responsiveWidth(11),
-          borderRadius: responsiveWidth(6),
-          backgroundColor: COLORS.secondary,
+          // borderRadius: responsiveWidth(6),
+          // backgroundColor: COLORS.primary,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name="location-sharp" size={18} color={COLORS.black} />
+        <Ionicons name="location-sharp" size={20} color={COLORS.black} />
       </View>
 
-      <View style={{ flex: 1, marginLeft: responsiveWidth(2) }}>
+      <View style={{ flex: 1, marginLeft: responsiveWidth(1) }}>
         <Text
           numberOfLines={1}
           style={{
@@ -315,7 +354,12 @@ const SearchScreen = () => {
             fontFamily: FONTS.regular,
           }}
         >
-          {item.structured_formatting?.secondary_text?.split(',').slice(0, -2).join(',').trim() || item.structured_formatting?.secondary_text?.split(',')[0]}
+          {item.structured_formatting?.secondary_text
+            ?.split(",")
+            .slice(0, -2)
+            .join(",")
+            .trim() ||
+            item.structured_formatting?.secondary_text?.split(",")[0]}
         </Text>
       </View>
 
@@ -360,9 +404,15 @@ const SearchScreen = () => {
       {/* SEARCH INPUT */}
       <SearchInput
         pickup={pickup}
-        setPickup={(text) => { setPickup(text); setActiveField("pickup"); }}
+        setPickup={(text) => {
+          setPickup(text);
+          setActiveField("pickup");
+        }}
         destination={destination}
-        setDestination={(text) => { setDestination(text); setActiveField("destination"); }}
+        setDestination={(text) => {
+          setDestination(text);
+          setActiveField("destination");
+        }}
         onSwapLocations={handleSwapLocations}
         pickupRef={pickupRef}
         destinationRef={destinationRef}
@@ -414,7 +464,9 @@ const SearchScreen = () => {
         <View style={{ marginTop: 20 }}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
-      ) : (activeField === "pickup" ? pickup : destination).trim().length > 0 && predictions.length === 0 && searchPerformed ? (
+      ) : (activeField === "pickup" ? pickup : destination).trim().length > 0 &&
+        predictions.length === 0 &&
+        searchPerformed ? (
         <View style={{ flex: 1 }}>
           <Image
             source={require("../../assets/notFound.png")}
