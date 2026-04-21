@@ -8,9 +8,12 @@ import { COLORS, FONTS } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
 const ShopCard = ({ shop }) => {
   const navigation = useNavigation();
+  const { t, i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
 
   return (
     <TouchableOpacity
@@ -40,7 +43,7 @@ const ShopCard = ({ shop }) => {
       {/* SHOP INFO */}
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isUrdu ? "row-reverse" : "row",
           justifyContent: "space-between",
           marginTop: responsiveHeight(1),
         }}
@@ -49,12 +52,13 @@ const ShopCard = ({ shop }) => {
           style={{
             fontFamily: FONTS.bold,
             fontSize: responsiveHeight(1.9),
+            textAlign: isUrdu ? "right" : "left",
           }}
         >
-          {shop.name}
+          {t(shop.name)}
         </Text>
         {/* RATING + icon */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
           <Ionicons
             name="star"
             size={responsiveHeight(2)}
@@ -64,7 +68,7 @@ const ShopCard = ({ shop }) => {
             style={{
               color: COLORS.secondary,
               fontSize: responsiveHeight(1.9),
-              marginLeft: 4,
+              marginHorizontal: 4,
               fontFamily: FONTS.medium,
               includeFontPadding: false,
             }}
@@ -82,14 +86,15 @@ const ShopCard = ({ shop }) => {
           fontSize: responsiveHeight(1.5),
           fontFamily: FONTS.medium,
           includeFontPadding: false,
+          textAlign: isUrdu ? "right" : "left",
         }}
       >
-        Product Preview
+        {t("product_preview")}
       </Text>
 
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isUrdu ? "row-reverse" : "row",
           marginTop: responsiveHeight(1),
           justifyContent: "space-between",
         }}
@@ -124,9 +129,10 @@ const ShopCard = ({ shop }) => {
                 marginTop: 4,
                 fontFamily: FONTS.regular,
                 includeFontPadding: false,
+                textAlign: "center",
               }}
             >
-              {product.name}
+              {t(product.name)}
             </Text>
           </View>
         ))}

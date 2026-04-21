@@ -331,7 +331,7 @@ const SearchScreen = () => {
           justifyContent: "center",
         }}
       >
-        <Ionicons name="location-sharp" size={20} color={COLORS.black} />
+        <Ionicons name="location-sharp" size={20} color={COLORS.primary} />
       </View>
 
       <View style={{ flex: 1, marginLeft: responsiveWidth(1) }}>

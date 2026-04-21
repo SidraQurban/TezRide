@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -10,21 +11,11 @@ import { FONTS } from "../constants/theme";
 import { categoriesData } from "../data/data";
 
 const Categories = () => {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState("Food");
 
   return (
     <View style={{ marginTop: responsiveHeight(2) }}>
-      {/* CATEGORIES */}
-      {/* <Text
-        style={{
-          marginTop: responsiveHeight(2),
-          marginHorizontal: responsiveWidth(4),
-          fontSize: responsiveFontSize(1.9),
-          fontFamily: FONTS.semiBold,
-        }}
-      >
-        Categories
-      </Text> */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -59,7 +50,7 @@ const Categories = () => {
                   fontSize: responsiveFontSize(1.6),
                 }}
               >
-                {item}
+                {t(item)}
               </Text>
             </TouchableOpacity>
           );

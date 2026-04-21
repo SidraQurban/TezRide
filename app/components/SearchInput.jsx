@@ -25,7 +25,7 @@ const SearchInput = ({
   return (
     <View
       style={{
-        flexDirection: isUrdu ? "row-reverse" : "row",
+        flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#fff",
         borderRadius: 16,
@@ -41,18 +41,28 @@ const SearchInput = ({
         marginTop: responsiveHeight(1),
       }}
     >
-      {/* Left Inputs */}
+      {/*  Inputs Section - Occupies the rest of the space, pushes to the Right in RTL */}
       <View style={{ flex: 1 }}>
         {/* Pickup */}
-        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {/* Icon - Appears on the FAR RIGHT in Urdu RTL */}
           <Ionicons name="location" size={18} color={COLORS.primary} />
-          <View style={{ marginHorizontal: 12, flex: 1 }}>
+
+          {/* Text Section - Appears to the LEFT of the icon in Urdu RTL */}
+          <View
+            style={{
+              flex: 1,
+              marginHorizontal: 12,
+              alignItems: isUrdu ? "flex-start" : "flex-start",
+            }}
+          >
             <Text
-              style={{ 
-                fontSize: 12, 
-                color: "#888", 
+              style={{
+                fontSize: 12,
+                color: "#888",
                 fontFamily: FONTS.regular,
-                textAlign: isUrdu ? "right" : "left"
+                textAlign: isUrdu ? "right" : "left",
+                writingDirection: isUrdu ? "rtl" : "ltr",
               }}
             >
               {t("from_location")}
@@ -73,6 +83,8 @@ const SearchInput = ({
                 paddingVertical: 2,
                 color: COLORS.black,
                 textAlign: isUrdu ? "right" : "left",
+                writingDirection: isUrdu ? "rtl" : "ltr",
+                width: "100%",
               }}
             />
           </View>
@@ -84,20 +96,31 @@ const SearchInput = ({
             height: 1,
             backgroundColor: "#eee",
             marginVertical: 8,
-            [isUrdu ? "marginRight" : "marginLeft"]: 26,
+            marginLeft: isUrdu ? 26 : 26,
+            marginRight: isUrdu ? 0 : 0,
           }}
         />
 
         {/* Destination */}
-        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {/* Icon - Appears on the FAR RIGHT in Urdu RTL */}
           <Ionicons name="location" size={18} color="#999" />
-          <View style={{ marginHorizontal: 12, flex: 1 }}>
+
+          {/* Text Section - Appears to the LEFT of the icon in Urdu RTL */}
+          <View
+            style={{
+              flex: 1,
+              marginHorizontal: 12,
+              alignItems: isUrdu ? "flex-start" : "flex-start",
+            }}
+          >
             <Text
-              style={{ 
-                fontSize: 12, 
-                color: "#888", 
+              style={{
+                fontSize: 12,
+                color: "#888",
                 fontFamily: FONTS.regular,
-                textAlign: isUrdu ? "right" : "left"
+                textAlign: isUrdu ? "right" : "left",
+                writingDirection: isUrdu ? "rtl" : "ltr",
               }}
             >
               {t("to_location")}
@@ -118,13 +141,15 @@ const SearchInput = ({
                 paddingVertical: 2,
                 color: COLORS.black,
                 textAlign: isUrdu ? "right" : "left",
+                writingDirection: isUrdu ? "rtl" : "ltr",
+                width: "100%",
               }}
             />
           </View>
         </View>
       </View>
 
-      {/* Swap Button */}
+      {/* 2. Swap Button - Appears on the FAR LEFT in Urdu RTL */}
       <TouchableOpacity
         onPress={onSwapLocations}
         style={{
@@ -134,7 +159,8 @@ const SearchInput = ({
           backgroundColor: "#F3F3F3",
           alignItems: "center",
           justifyContent: "center",
-          [isUrdu ? "marginRight" : "marginLeft"]: 15,
+          marginLeft: isUrdu ? 10 : 15,
+          marginRight: isUrdu ? 0 : 0,
         }}
       >
         <MaterialIcons name="swap-vert" size={20} color={COLORS.primary} />
