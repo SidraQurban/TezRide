@@ -7,7 +7,7 @@ import {
   Image,
   Modal,
 } from "react-native";
-import React, { useRef, useMemo, useEffect, useState } from "react";
+import React, { useRef, useMemo, useEffect, useState, useCallback } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -42,11 +42,14 @@ const SearchDriverScreen = ({ route }) => {
     setShowCancelModal(true);
   };
 
-  //confirm cancel
-  const confirmCancelRide = () => {
+  // Cancel confirmed — go to Home and clear the stack
+  const confirmCancelRide = useCallback(() => {
     setShowCancelModal(false);
-    navigation.navigate("HireDriver");
-  };
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MainDrawer" }],
+    });
+  }, [navigation]);
 
   useEffect(() => {
     Animated.loop(
