@@ -6,6 +6,7 @@ import MapViewDirections from "react-native-maps-directions";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import { COLORS } from "../constants";
 import { responsiveHeight, responsiveWidth } from "react-native-responsive-dimensions";
+import * as ExpoLocation from "expo-location";
 
 const DEFAULT_REGION = {
   latitude: 24.8607,
@@ -21,6 +22,7 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
   const [centeredOnUser, setCenteredOnUser] = useState(false);
   const [routeCoords, setRouteCoords] = useState([]);
   const [visibleCoords, setVisibleCoords] = useState([]);
+  const [mapReady, setMapReady] = useState(false);
   const drawAnim = useRef(new Animated.Value(0)).current;
 
   // Clear routes immediately when locations change (e.g., on swap)
@@ -60,7 +62,6 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
       );
       setHasPermission(granted);
-      // Reset centering so if permission was just granted, map re-centers
       if (granted) setCenteredOnUser(false);
     } catch (e) {
       setHasPermission(false);
@@ -86,9 +87,13 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
     return () => subscription.remove();
   }, [checkPermission]);
 
+  // ── Single animation effect, gated on mapReady ──────────────────────────────
+  // Only runs after onMapReady fires, so mapRef.current is always valid.
   useEffect(() => {
-    // If no route directions, fallback to fitting markers
-    if (showMarkers && pickup && destination && mapRef.current) {
+    if (!mapReady || !mapRef.current) return;
+
+    if (showMarkers && pickup && destination) {
+      // ConfirmRide: fit both pickup + destination markers into view
       mapRef.current.fitToCoordinates(
         [
           { latitude: pickup.latitude, longitude: pickup.longitude },
@@ -99,37 +104,33 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
           animated: true,
         }
       );
-    }
-  }, [pickup, destination, showMarkers]);
-
-  useEffect(() => {
-    if (animateZoomOut && pickup && mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: pickup.latitude,
-        longitude: pickup.longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      }, 100);
-
-      const timer = setTimeout(() => {
-        mapRef.current.animateToRegion({
-          latitude: pickup.latitude,
-          longitude: pickup.longitude,
-          latitudeDelta: 0.1, 
-          longitudeDelta: 0.1,
-        }, 30000); 
-      }, 300);
-
-      return () => clearTimeout(timer);
-    } else if (!showMarkers && pickup && mapRef.current) {
+    } else if (pickup) {
+      // Searching screens: smooth 600 ms pan to the pickup marker
       mapRef.current.animateToRegion({
         latitude: pickup.latitude,
         longitude: pickup.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
-      }, 1000);
+      }, 600);
+    } else {
+      // No pickup yet — center on last-known device position instantly
+      (async () => {
+        try {
+          const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+          if (status !== "granted") return;
+          const last = await ExpoLocation.getLastKnownPositionAsync({});
+          if (last && mapRef.current) {
+            mapRef.current.animateToRegion({
+              latitude: last.coords.latitude,
+              longitude: last.coords.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }, 400);
+          }
+        } catch (_) {}
+      })();
     }
-  }, [pickup, showMarkers, animateZoomOut]);
+  }, [mapReady, pickup, destination, showMarkers]);
 
   const handleUserLocationChange = useCallback(
     (event) => {
@@ -143,7 +144,7 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
             latitudeDelta: 0.01,
             longitudeDelta: 0.01,
           },
-          800
+          500 // faster than 800ms
         );
       }
     },
@@ -158,6 +159,7 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
       initialRegion={DEFAULT_REGION}
       showsUserLocation={false}
       showsMyLocationButton={false}
+      onMapReady={() => setMapReady(true)}
       onUserLocationChange={handleUserLocationChange}
     >
       {showMarkers && pickup && destination && (
