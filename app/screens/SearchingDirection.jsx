@@ -6,8 +6,16 @@ import {
   Easing,
   Image,
   Modal,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import React, { useRef, useMemo, useEffect, useState, useCallback } from "react";
+import React, {
+  useRef,
+  useMemo,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -25,31 +33,150 @@ import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
 import { useTranslation } from "react-i18next";
 
+import customerHub from "../api/customerHub";
+import DriverInterestCard from "../components/DriverInterestCard";
+import { Alert } from "react-native";
+
 const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
-  const { rideImage, pickup, destination } = route.params || {};
+  const { rideImage, pickup, destination, rideId, vehicleType } =
+    route.params || {};
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
-  const snapPoints = useMemo(() => ["10%", "20%", "55%"], []);
+  const snapPoints = useMemo(() => ["10%", "30%", "55%"], []); // Added larger snap point for ArrivingCard
 
-  //modal state
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [interestedDrivers, setInterestedDrivers] = useState([]);
+  const [assignedDriver, setAssignedDriver] = useState(null);
+  const [rideStatus, setRideStatus] = useState("searching"); // searching, assigned, no_drivers, cancelled
 
-  //show modal on cancel button press
+  const firstDriverFoundRef = useRef(false);
+
+  // SignalR Event Handlers
+  useEffect(() => {
+    const handleDriverInterested = (payload) => {
+      if (payload.rideId === rideId) {
+        setInterestedDrivers((prev) => {
+          // Avoid duplicates
+          if (prev.find((d) => d.driverId === payload.driverInfo.driverId))
+            return prev;
+
+          // Expand bottom sheet when first driver is found
+          if (!firstDriverFoundRef.current) {
+            firstDriverFoundRef.current = true;
+          }
+
+          return [...prev, payload.driverInfo];
+        });
+      }
+    };
+
+    const handleRideAssigned = (payload) => {
+      if (payload.rideId === rideId) {
+        setRideStatus("assigned");
+        setAssignedDriver((prev) => {
+          return { ...payload.driverInfo, driverId: payload.driverId };
+        });
+        // Clear popups when assigned
+        setInterestedDrivers([]);
+        bottomSheetRef.current?.snapToIndex(2); // Slide up the arriving card
+      }
+    };
+
+    const handleNoDriversFound = (payload) => {
+      if (payload.rideId === rideId) {
+        setRideStatus("no_drivers");
+        Alert.alert(t("search_failed"), t("no_drivers_found_desc"), [
+          { text: t("retry"), onPress: () => navigation.goBack() },
+          { text: t("cancel"), onPress: () => confirmCancelRide() },
+        ]);
+      }
+    };
+
+    const handleSelectDriverFailed = (payload) => {
+      if (payload.rideId === rideId) {
+        Alert.alert(t("error"), payload.reason || t("selection_failed"));
+      }
+    };
+
+    customerHub.on("driver_interested", handleDriverInterested);
+    customerHub.on("ride_assigned", handleRideAssigned);
+    customerHub.on("no_drivers_found", handleNoDriversFound);
+    customerHub.on("SelectDriverFailed", handleSelectDriverFailed);
+
+    return () => {
+      customerHub.off("driver_interested", handleDriverInterested);
+      customerHub.off("ride_assigned", handleRideAssigned);
+      customerHub.off("no_drivers_found", handleNoDriversFound);
+      customerHub.off("SelectDriverFailed", handleSelectDriverFailed);
+    };
+  }, [rideId, navigation, t]);
+
+  const handleAcceptDriver = async (driverId) => {
+    if (rideId.startsWith("mock-ride-")) {
+      setRideStatus("assigned");
+      const driver = interestedDrivers.find((d) => d.driverId === driverId);
+      setAssignedDriver(driver || { driverId });
+      setInterestedDrivers([]);
+      bottomSheetRef.current?.snapToIndex(2); // Slide up the arriving card
+      return;
+    }
+    try {
+      await customerHub.selectDriver(rideId, driverId);
+      // The snapToIndex(1) will happen automatically via handleRideAssigned
+    } catch (error) {
+      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+    }
+  };
+
+  const handleDeclineDriver = (driverId) => {
+    setInterestedDrivers((prev) => prev.filter((d) => d.driverId !== driverId));
+  };
+
   const handleCancelRide = () => {
     setShowCancelModal(true);
   };
 
-  // Cancel confirmed — go to Home and clear the stack
-  const confirmCancelRide = useCallback(() => {
-    setShowCancelModal(false);
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "MainDrawer" }],
-    });
-  }, [navigation]);
+  const confirmCancelRide = useCallback(async () => {
+    try {
+      await customerHub.cancelRide(rideId);
+      setShowCancelModal(false);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainDrawer" }],
+      });
+    } catch (error) {
+      setShowCancelModal(false);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainDrawer" }],
+      });
+    }
+  }, [navigation, rideId]);
+
+  // Mock simulation
+  useEffect(() => {
+    if (rideId?.startsWith("mock-ride-")) {
+      const timer = setTimeout(() => {
+        const mockDriver = {
+          driverId: "dev-driver-1",
+          fullName: "Dev Driver",
+          vehicleType: vehicleType || "Bike",
+          plateNumber: "ABC-123",
+          rating: "4.9",
+          distanceKm: 1.2,
+          timeMinutes: 3,
+          profileImage: "https://randomuser.me/api/portraits/men/32.jpg",
+        };
+
+        setInterestedDrivers([mockDriver]);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [rideId, vehicleType]);
 
   useEffect(() => {
     Animated.loop(
@@ -75,35 +202,9 @@ const SearchingDirection = ({ route }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View style={{ flex: 1, paddingBottom: responsiveHeight(2) }}>
-        {/* HEADER */}
-        {/* <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: responsiveWidth(4),
-            marginTop: responsiveHeight(2),
-            marginBottom: responsiveHeight(2),
-          }}
-        >
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={25} color={COLORS.primary} />
-          </TouchableOpacity>
-
-          <Text
-            style={{
-              fontSize: responsiveFontSize(2.2),
-              fontFamily: FONTS.semiBold,
-              marginLeft: responsiveWidth(4),
-            }}
-          >
-            Searching Direction
-          </Text>
-        </View> */}
         <View
           style={{
-            // position: "absolute",
             left: responsiveWidth(1.5),
-            // zIndex: 10,
           }}
         >
           <BackBtn />
@@ -129,7 +230,6 @@ const SearchingDirection = ({ route }) => {
               elevation: 1,
             }}
           >
-            {/* Inner Wrapper to bind the absolute Cancel button strictly to the circle */}
             <View
               style={{
                 position: "relative",
@@ -175,7 +275,6 @@ const SearchingDirection = ({ route }) => {
                 />
               </View>
 
-              {/* CANCEL BUTTON pinned to the circle */}
               <TouchableOpacity
                 onPress={handleCancelRide}
                 style={{
@@ -199,29 +298,30 @@ const SearchingDirection = ({ route }) => {
                 <Ionicons name="close" size={20} color="red" />
               </TouchableOpacity>
             </View>
+          </View>
 
-            {/* TEXT underneath */}
-            <View style={{ alignItems: "center" }}>
-              {/* <Text
-                style={{
-                  marginTop: responsiveHeight(2),
-                  fontSize: responsiveFontSize(2),
-                  fontFamily: FONTS.semiBold,
-                  color: COLORS.primary,
-                }}
-              >
-                {t("finding_drivers")}
-              </Text> */}
-              {/* <Text
-                style={{
-                  fontSize: responsiveFontSize(2),
-                  fontFamily: FONTS.medium,
-                  color: COLORS.primary,
-                }}
-              >
-                {t("ride_arrive_shortly")}
-              </Text> */}
-            </View>
+          {/* INTEREST POPUPS */}
+          <View
+            style={{
+              position: "absolute",
+              top: responsiveHeight(10),
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              elevation: 10,
+              maxHeight: responsiveHeight(60), // Limit height so it doesn't cover the whole screen
+            }}
+          >
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {interestedDrivers.map((driver) => (
+                <DriverInterestCard
+                  key={driver.driverId}
+                  driver={driver}
+                  onAccept={handleAcceptDriver}
+                  onDecline={handleDeclineDriver}
+                />
+              ))}
+            </ScrollView>
           </View>
         </View>
 
@@ -240,9 +340,46 @@ const SearchingDirection = ({ route }) => {
             backgroundColor: "#E0E0E0",
           }}
         >
-          <ArrivingCard
-            onClose={() => bottomSheetRef.current?.snapToIndex(0)}
-          />
+          {rideStatus === "assigned" ? (
+            <ArrivingCard
+              driver={assignedDriver}
+              pickup={pickup}
+              destination={destination}
+              onClose={() => bottomSheetRef.current?.snapToIndex(0)}
+            />
+          ) : (
+            <View style={{ flex: 1, padding: 20 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: FONTS.semiBold,
+                    fontSize: responsiveFontSize(2),
+                  }}
+                >
+                  {t("finding_drivers")}
+                </Text>
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              </View>
+
+              <Text
+                style={{
+                  fontFamily: FONTS.regular,
+                  color: "#8A8A8A",
+                  fontSize: responsiveFontSize(1.6),
+                }}
+              >
+                {t("searching_nearby_drivers_desc") ||
+                  "Please wait while we connect you with nearby drivers..."}
+              </Text>
+            </View>
+          )}
         </BottomSheet>
 
         {/* CUSTOM CANCEL MODAL */}
@@ -298,7 +435,6 @@ const SearchingDirection = ({ route }) => {
                   justifyContent: "space-between",
                 }}
               >
-                {/* NO BUTTON */}
                 <TouchableOpacity
                   onPress={() => setShowCancelModal(false)}
                   style={{
@@ -315,7 +451,6 @@ const SearchingDirection = ({ route }) => {
                   </Text>
                 </TouchableOpacity>
 
-                {/* YES BUTTON WITH LINEAR GRADIENT */}
                 <TouchableOpacity
                   onPress={confirmCancelRide}
                   activeOpacity={0.8}

@@ -18,6 +18,8 @@ const RidesSlider = ({
   setSelectedService,
   pickup,
   destination,
+  distance,
+  duration,
 }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -48,7 +50,7 @@ const RidesSlider = ({
   });
 
   return (
-    <View style={{ paddingBottom: responsiveHeight(10) }}>
+    <View style={{ paddingBottom: responsiveHeight(16) }}>
       {/* SERVICES SLIDER */}
       <ScrollView
         horizontal
@@ -68,7 +70,7 @@ const RidesSlider = ({
               onPress={() => setSelectedService(service.id)}
               activeOpacity={0.9}
               style={{
-                height: responsiveHeight(17),
+                height: responsiveHeight(16),
                 width: responsiveWidth(35),
                 borderRadius: 20,
                 marginRight: responsiveWidth(3),
@@ -96,7 +98,7 @@ const RidesSlider = ({
                 source={service.image}
                 style={{
                   width: responsiveWidth(20),
-                  height: responsiveHeight(7),
+                  height: responsiveHeight(5.5),
                   resizeMode: "contain",
                   alignSelf: "center",
                 }}
@@ -116,12 +118,12 @@ const RidesSlider = ({
               <View style={{ alignItems: "center" }}>
                 <Text
                   style={{
-                    fontSize: responsiveFontSize(1.3),
+                    fontSize: responsiveFontSize(1.2),
                     color: "#777",
                     fontFamily: FONTS.regular,
                   }}
                 >
-                  {service.eta.split(" ")[0]} {t("mins")}
+                  {duration ? `${Math.round(duration)} ${t("mins")}` : service.eta} • {distance ? `${distance.toFixed(1)} ${t("km")}` : "---"}
                 </Text>
 
                 <Text
@@ -147,6 +149,7 @@ const RidesSlider = ({
           backgroundColor: "#fff",
           borderRadius: 15,
           elevation: 2,
+          marginTop: responsiveHeight(0.5),
           marginBottom: responsiveHeight(1),
         }}
       >
@@ -279,19 +282,21 @@ const RidesSlider = ({
             justifyContent: "space-between",
             alignItems: "center",
             marginTop: responsiveHeight(1),
+            paddingBottom: responsiveHeight(0.5),
           }}
         >
-          {/* ETA COMMENTED */}
-          {/*
-          <Text
-            style={{
-              fontSize: responsiveFontSize(1.4),
-              color: "#777",
-            }}
-          >
-            {t("eta")}: 3 {t("mins")} • 5.4 {t("km")}
-          </Text>
-          */}
+          {/* ETA */}
+          {distance && duration ? (
+            <Text
+              style={{
+                fontSize: responsiveFontSize(1.3),
+                color: "#777",
+                fontFamily: FONTS.regular,
+              }}
+            >
+              {t("eta")}: {Math.round(duration)} {t("mins")} • {distance.toFixed(1)} {t("km")}
+            </Text>
+          ) : null}
 
           {/* PROMO */}
           {/* <TouchableOpacity onPress={() => navigation.navigate("Promo")}>

@@ -6,7 +6,8 @@ import { responsiveWidth } from "react-native-responsive-dimensions";
 import { COLORS } from "../constants";
 import DriverProfile from "../components/DriverProfile";
 
-const DriverProfileScreen = () => {
+const DriverProfileScreen = ({ route }) => {
+  const { driver } = route.params || {};
   return (
     <SafeAreaView
       style={{
@@ -17,7 +18,7 @@ const DriverProfileScreen = () => {
     >
       <View>
         <BackBtn />
-        <DriverProfile />
+        <DriverProfile driver={driver} />
       </View>
     </SafeAreaView>
   );

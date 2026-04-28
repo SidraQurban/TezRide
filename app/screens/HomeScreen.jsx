@@ -21,12 +21,18 @@ import Animated, {
   withSequence,
 } from "react-native-reanimated";
 import { FONTS } from "../constants/theme";
+import customerHub from "../api/customerHub";
 
 const HomeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const [locationModalVisible, setLocationModalVisible] = React.useState(false);
   const dismissedManuallyRef = React.useRef(false);
   const appState = React.useRef(AppState.currentState);
+
+  // Start SignalR Customer Hub connection
+  React.useEffect(() => {
+    customerHub.start();
+  }, []);
 
   // Show modal if permission is missing OR device GPS is turned off
   const checkLocationStatus = React.useCallback(async () => {

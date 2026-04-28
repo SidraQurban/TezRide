@@ -15,7 +15,7 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.05,
 };
 
-const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoomOut = false, showPickupMarker = false }) => {
+const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoomOut = false, showPickupMarker = false, onRouteReady }) => {
   const { t } = useTranslation();
   const mapRef = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
@@ -172,6 +172,9 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
             strokeColor="transparent"
             onReady={(result) => {
               setRouteCoords(result.coordinates);
+              if (onRouteReady) {
+                onRouteReady(result);
+              }
               mapRef.current?.fitToCoordinates(result.coordinates, {
                 edgePadding: {
                   right: responsiveWidth(10),

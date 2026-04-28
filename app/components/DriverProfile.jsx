@@ -10,14 +10,14 @@ import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import { useTranslation } from "react-i18next";
 
-const DriverProfile = () => {
+const DriverProfile = ({ driver }) => {
   const { t } = useTranslation();
   return (
     <View>
       {/* PROFILE */}
       <View style={{ alignItems: "center", marginTop: responsiveHeight(1) }}>
         <Image
-          source={{ uri: "https://randomuser.me/api/portraits/men/46.jpg" }}
+          source={{ uri: driver?.profileImage || "https://randomuser.me/api/portraits/men/46.jpg" }}
           style={{
             width: responsiveWidth(28),
             height: responsiveWidth(28),
@@ -32,7 +32,7 @@ const DriverProfile = () => {
             fontFamily: FONTS.semiBold,
           }}
         >
-          {t("driver_name")}
+          {driver?.fullName || t("driver_name")}
         </Text>
 
         {/* PHONE */}
@@ -49,7 +49,7 @@ const DriverProfile = () => {
               fontSize: responsiveFontSize(1.6),
             }}
           >
-            +92-3022-983-871
+            {driver?.phoneNumber || "+92-3022-983-871"}
           </Text>
 
           <TouchableOpacity>
@@ -72,9 +72,9 @@ const DriverProfile = () => {
         }}
       >
         {[
-          { icon: "star", value: "4.9", label: t("ratings") },
-          { icon: "car", value: "279", label: t("trips") },
-          { icon: "time", value: "5", label: t("years") },
+          { icon: "star", value: driver?.rating || "4.9", label: t("ratings") },
+          { icon: "car", value: driver?.totalTrips || "279", label: t("trips") },
+          { icon: "time", value: driver?.yearsActive || "5", label: t("years") },
         ].map((item, index) => (
           <View key={index} style={{ alignItems: "center" }}>
             <View
@@ -126,7 +126,7 @@ const DriverProfile = () => {
           <Text style={{ color: "#777", fontFamily: FONTS.regular }}>
             {t("member_since")}
           </Text>
-          <Text style={{ fontFamily: FONTS.medium }}>{t("member_date")}</Text>
+          <Text style={{ fontFamily: FONTS.medium }}>{driver?.memberSince || t("member_date")}</Text>
         </View>
 
         <View
@@ -140,7 +140,7 @@ const DriverProfile = () => {
             {t("car_model")}
           </Text>
           <Text style={{ fontFamily: FONTS.medium }}>
-            {t("driver_car")}
+            {driver?.vehicleType || t("driver_car")}
           </Text>
         </View>
 
@@ -153,7 +153,7 @@ const DriverProfile = () => {
           <Text style={{ color: "#777", fontFamily: FONTS.regular }}>
             {t("plate_number")}
           </Text>
-          <Text style={{ fontFamily: FONTS.medium }}>HSW 4736 XK</Text>
+          <Text style={{ fontFamily: FONTS.medium }}>{driver?.plateNumber || "HSW 4736 XK"}</Text>
         </View>
       </View>
 

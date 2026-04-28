@@ -29,11 +29,14 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 
+import authService from "../api/authService";
+import { ActivityIndicator, Alert } from "react-native";
+
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const VerifyCodeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
-  const { phoneNumber } = route.params || {};
+  const { phoneNumber, autoFillOTP } = route.params || {};
 
   const toggleLanguage = () => {
     const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
@@ -47,14 +50,18 @@ const VerifyCodeScreen = ({ navigation, route }) => {
 
   const [timer, setTimer] = useState(30);
   const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [loading, setLoading] = useState(false);
 
   const inputs = useRef([]);
   const progressValue = useSharedValue(1);
   const isCodeComplete = code.every((digit) => digit !== "");
 
   useEffect(() => {
+    if (autoFillOTP && autoFillOTP.length === 6) {
+      setCode(autoFillOTP.split(""));
+    }
     inputs.current[0]?.focus();
-  }, []);
+  }, [autoFillOTP]);
 
   useEffect(() => {
     // Animate circular progress down as the timer decreases
@@ -88,16 +95,28 @@ const VerifyCodeScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleContinue = () => {
-    if (!isCodeComplete) return;
+  const handleContinue = async () => {
+    if (!isCodeComplete || loading) return;
 
     const finalCode = code.join("");
-    console.log("OTP Entered:", finalCode);
+    setLoading(true);
 
-    navigation.navigate("MainDrawer", {
-      screen: "Home",
-      params: { showLocationModal: true },
-    });
+    try {
+      const response = await authService.verifyOTP(phoneNumber, finalCode, 'Customer');
+      
+      if (response.succeeded) {
+        navigation.navigate("MainDrawer", {
+          screen: "Home",
+          params: { showLocationModal: true },
+        });
+      } else {
+        Alert.alert(t("error"), response.message || t("otp_verification_failed"));
+      }
+    } catch (error) {
+      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const circleSize = responsiveWidth(35);
@@ -345,7 +364,11 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                     fontFamily: FONTS.semiBold,
                   }}
                 >
-                  {t("continue_btn")}
+                  {loading ? (
+                    <ActivityIndicator color={COLORS.white} />
+                  ) : (
+                    t("continue_btn")
+                  )}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>

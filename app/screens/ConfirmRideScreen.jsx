@@ -16,7 +16,9 @@ import RidesSlider from "../components/RidesSlider";
 import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
 import { useTranslation } from "react-i18next";
+import rideService from "../api/rideService";
 import { rides } from "../data/data";
+import { ActivityIndicator, Alert } from "react-native";
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
@@ -24,37 +26,49 @@ const ConfirmRide = () => {
   const { pickup, destination } = route.params || {};
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["53%", "54%"], []);
+  const snapPoints = useMemo(() => ["55%", "56%"], []);
   const [selectedService, setSelectedService] = useState("bike");
+  const [routeDetails, setRouteDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
   const selectedRide = rides.find((r) => r.id === selectedService);
+
+  const handleConfirmRide = async () => {
+    if (!pickup || !destination || loading) return;
+
+    setLoading(true);
+    try {
+      const requestData = {
+        pickup: { lat: pickup.latitude, lon: pickup.longitude },
+        dropoff: { lat: destination.latitude, lon: destination.longitude },
+        vehicleType: selectedService,
+        genderPreference: "any", // Default from documentation
+        minRating: 0 // Default from documentation
+      };
+
+      const response = await rideService.requestRide(requestData);
+      
+      if (response.succeeded) {
+        navigation.navigate("SearchingDirection", {
+          rideImage: selectedRide?.image,
+          pickup,
+          destination,
+          rideId: response.data.rideId,
+          vehicleType: selectedService
+        });
+      } else {
+        Alert.alert(t("error"), response.message || t("ride_request_failed"));
+      }
+    } catch (error) {
+      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       {/* MAIN CONTENT */}
       <View style={{ flex: 1 }}>
-        {/* HEADER */}
-        {/* <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: responsiveWidth(4),
-            marginTop: responsiveHeight(2),
-            marginBottom: responsiveHeight(2),
-          }}
-        >
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={25} color={COLORS.primary} />
-          </TouchableOpacity>
-          <Text
-            style={{
-              fontSize: responsiveFontSize(2.2),
-              fontFamily: FONTS.semiBold,
-              marginLeft: responsiveWidth(4),
-            }}
-          >
-            Ride Details
-          </Text>
-        </View> */}
         <View
           style={{
             // position: "absolute",
@@ -72,7 +86,11 @@ const ConfirmRide = () => {
             marginBottom: responsiveHeight(0.5),
           }}
         >
-          <MapComponent pickup={pickup} destination={destination} />
+          <MapComponent 
+            pickup={pickup} 
+            destination={destination} 
+            onRouteReady={(details) => setRouteDetails(details)}
+          />
         </View>
       </View>
 
@@ -88,13 +106,8 @@ const ConfirmRide = () => {
       >
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() =>
-            navigation.navigate("SearchingDirection", {
-              rideImage: selectedRide?.image,
-              pickup,
-              destination,
-            })
-          }
+          disabled={loading}
+          onPress={handleConfirmRide}
         >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
@@ -102,21 +115,25 @@ const ConfirmRide = () => {
             end={{ x: 1, y: 0 }}
             style={{
               width: "100%",
-              paddingVertical: responsiveHeight(2), // responsive height
-              borderRadius: responsiveHeight(3), // proportional radius
+              height: responsiveHeight(7), // Fixed height to prevent size shift
+              borderRadius: responsiveHeight(3.5), 
               justifyContent: "center",
               alignItems: "center",
             }}
           >
-            <Text
-              style={{
-                color: COLORS.white,
-                fontFamily: FONTS.semiBold,
-                fontSize: responsiveFontSize(2),
-              }}
-            >
-              {t("confirm_ride")}
-            </Text>
+            {loading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <Text
+                style={{
+                  color: COLORS.white,
+                  fontFamily: FONTS.semiBold,
+                  fontSize: responsiveFontSize(2),
+                }}
+              >
+                {t("confirm_ride")}
+              </Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -144,6 +161,8 @@ const ConfirmRide = () => {
           setSelectedService={setSelectedService}
           pickup={pickup}
           destination={destination}
+          distance={routeDetails?.distance}
+          duration={routeDetails?.duration}
           onClose={() => bottomSheetRef.current?.snapToIndex(0)}
         />
       </BottomSheet>

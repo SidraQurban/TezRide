@@ -16,6 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { I18nManager } from "react-native";
 import { FONTS } from "../constants/theme";
+import authService from "../api/authService";
 
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
@@ -46,6 +47,23 @@ const CustomDrawer = (props) => {
     }
     // Close the drawer automatically
     navigation.closeDrawer();
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      t("logout"),
+      t("logout_confirmation"),
+      [
+        { text: t("cancel"), style: "cancel" },
+        { 
+          text: t("yes"), 
+          onPress: async () => {
+            await authService.logout();
+            navigation.replace("Login");
+          } 
+        },
+      ]
+    );
   };
 
   return (
@@ -250,7 +268,7 @@ const CustomDrawer = (props) => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout}>
             <LinearGradient
               colors={[COLORS.primary, COLORS.secondary]}
               start={{ x: 0, y: 0 }}

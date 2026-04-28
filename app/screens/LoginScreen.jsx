@@ -24,6 +24,9 @@ import { FONTS } from "../constants/theme";
 import { useTranslation } from "react-i18next";
 import { I18nManager } from "react-native";
 
+import authService from "../api/authService";
+import { ActivityIndicator, Alert } from "react-native";
+
 const countries = [
   { code: "+92", flag: "🇵🇰", name: "Pakistan" },
   { code: "+91", flag: "🇮🇳", name: "India" },
@@ -36,6 +39,7 @@ const LoginScreen = () => {
   const [phone, setPhone] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
   const toggleLanguage = () => {
@@ -54,6 +58,28 @@ const LoginScreen = () => {
     const cleaned = text.replace(/[^0-9]/g, "");
     if (cleaned.length <= 10) {
       setPhone(cleaned);
+    }
+  };
+
+  const handleSendOTP = async () => {
+    if (!isPhoneComplete) return;
+
+    setLoading(true);
+    try {
+      const fullPhoneNumber = `${selectedCountry.code}${phone}`;
+      const response = await authService.sendOTP(fullPhoneNumber);
+
+      if (response.succeeded) {
+        navigation.navigate("VerifyCode", {
+          phoneNumber: fullPhoneNumber,
+        });
+      } else {
+        Alert.alert(t("error"), response.message || t("otp_send_failed"));
+      }
+    } catch (error) {
+      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -259,13 +285,9 @@ const LoginScreen = () => {
 
             {/* Button */}
             <TouchableOpacity
-              disabled={!isPhoneComplete}
-              onPress={() =>
-                navigation.navigate("VerifyCode", {
-                  phoneNumber: `${selectedCountry.code} ${phone}`,
-                })
-              }
-              style={{ opacity: isPhoneComplete ? 1 : 0.4 }}
+              disabled={!isPhoneComplete || loading}
+              onPress={handleSendOTP}
+              style={{ opacity: isPhoneComplete && !loading ? 1 : 0.4 }}
             >
               <LinearGradient
                 colors={[COLORS.primary, COLORS.secondary]}
@@ -279,11 +301,15 @@ const LoginScreen = () => {
                   alignItems: "center",
                 }}
               >
-                <Ionicons
-                  name="checkmark-sharp"
-                  size={responsiveFontSize(4)}
-                  color={COLORS.white}
-                />
+                {loading ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <Ionicons
+                    name="checkmark-sharp"
+                    size={responsiveFontSize(4)}
+                    color={COLORS.white}
+                  />
+                )}
               </LinearGradient>
             </TouchableOpacity>
           </View>

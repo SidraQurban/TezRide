@@ -12,9 +12,10 @@ import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import i18n from "../locales/i18n";
 
-const ArrivingCard = ({ onClose }) => {
+const ArrivingCard = ({ onClose, driver, pickup, destination }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  
   return (
     <View
       style={{
@@ -51,12 +52,12 @@ const ArrivingCard = ({ onClose }) => {
             color: "#8A8A8A",
           }}
         >
-          2 {t("mins")}
+          {driver?.timeMinutes || 2} {t("mins")}
         </Text>
       </View>
 
       {/* Driver Row */}
-      <TouchableOpacity onPress={() => navigation.navigate("DriverProfile")}>
+      <TouchableOpacity onPress={() => navigation.navigate("DriverProfile", { driver })}>
         <View
           style={{
             flexDirection: "row",
@@ -66,7 +67,7 @@ const ArrivingCard = ({ onClose }) => {
         >
           <Image
             source={{
-              uri: "https://randomuser.me/api/portraits/men/46.jpg",
+              uri: driver?.profileImage || "https://randomuser.me/api/portraits/men/46.jpg",
             }}
             style={{
               width: responsiveWidth(13),
@@ -82,7 +83,7 @@ const ArrivingCard = ({ onClose }) => {
                 fontSize: responsiveFontSize(1.9),
               }}
             >
-              {t("driver_name")}
+              {driver?.fullName || `${t("driver")} ${driver?.driverId?.substring(0, 4) || ''}`}
             </Text>
 
             <Text
@@ -91,13 +92,13 @@ const ArrivingCard = ({ onClose }) => {
                 fontSize: responsiveFontSize(1.5),
               }}
             >
-              {t("driver_car")}
+              {driver?.vehicleType || t("driver_car")} {driver?.plateNumber ? `• ${driver.plateNumber}` : ''}
             </Text>
           </View>
 
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="star" size={16} color="#FFC107" />
-            <Text style={{ marginLeft: 4, fontSize: 13 }}>4.6</Text>
+            <Text style={{ marginLeft: 4, fontSize: 13 }}>{driver?.rating || '4.6'}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -127,11 +128,11 @@ const ArrivingCard = ({ onClose }) => {
             <MaterialIcons name="my-location" size={18} color={COLORS.white} />
           </View>
 
-          <View style={{ marginLeft: 12 }}>
-            <Text style={{ fontFamily: FONTS.medium, fontSize: 14 }}>
-              {t("my_current_location")}
+          <View style={{ marginLeft: 12, flex: 1 }}>
+            <Text style={{ fontFamily: FONTS.medium, fontSize: 14 }} numberOfLines={1}>
+              {pickup?.address || t("my_current_location")}
             </Text>
-            <Text style={{ color: "#8A8A8A", fontSize: 12 }}>0 {t("km")}</Text>
+            <Text style={{ color: "#8A8A8A", fontSize: 12 }}>{driver?.distanceKm?.toFixed(1) || 0} {t("km")} {t("away")}</Text>
           </View>
         </View>
 
@@ -149,11 +150,11 @@ const ArrivingCard = ({ onClose }) => {
             <Ionicons name="location" size={18} color={COLORS.white} />
           </View>
 
-          <View style={{ marginLeft: 12 }}>
-            <Text style={{ fontFamily: FONTS.medium, fontSize: 14 }}>
-              {t("soft_bank_buildings")}
+          <View style={{ marginLeft: 12, flex: 1 }}>
+            <Text style={{ fontFamily: FONTS.medium, fontSize: 14 }} numberOfLines={1}>
+              {destination?.address || t("destination")}
             </Text>
-            <Text style={{ color: "#8A8A8A", fontSize: 12 }}>4 {t("km")}</Text>
+            {/* <Text style={{ color: "#8A8A8A", fontSize: 12 }}>4 {t("km")}</Text> */}
           </View>
         </View>
       </View>
