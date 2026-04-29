@@ -16,13 +16,22 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.05,
 };
 
-const MapComponent = memo(({ pickup: propPickup, destination: propDestination, showMarkers = true, animateZoomOut = false, showPickupMarker = false, onRouteReady }) => {
+const MapComponent = memo(({ 
+  pickup: propPickup, 
+  destination: propDestination, 
+  showMarkers = true, 
+  showRoute = true,
+  animateZoomOut = false, 
+  showPickupMarker = false, 
+  onRouteReady 
+}) => {
   const { t } = useTranslation();
   const mapRef = useRef(null);
   const { routeCoords, setRouteCoords, pickup: ctxPickup, destination: ctxDestination } = useRide();
   
-  const pickup = propPickup || ctxPickup;
-  const destination = propDestination || ctxDestination;
+  // Use context as the source of truth for better persistence, but respect explicit nulls
+  const pickup = propPickup !== undefined ? propPickup : ctxPickup;
+  const destination = propDestination !== undefined ? propDestination : ctxDestination;
 
   const [hasPermission, setHasPermission] = useState(false);
   const [centeredOnUser, setCenteredOnUser] = useState(false);
@@ -31,35 +40,25 @@ const MapComponent = memo(({ pickup: propPickup, destination: propDestination, s
   const [lastRouteHash, setLastRouteHash] = useState("");
   const drawAnim = useRef(new Animated.Value(0)).current;
 
-  // Clear routes immediately when locations change (deep check)
+  // Clear local visual route only if global coordinates are empty
   useEffect(() => {
-    if (routeCoords.length > 0 || visibleCoords.length > 0) {
-      setRouteCoords([]);
+    if (routeCoords.length === 0) {
       setVisibleCoords([]);
       setLastRouteHash("");
     }
-  }, [pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, setRouteCoords]);
+  }, [routeCoords]);
 
-  // Handle animation of polyline
+  // Handle drawing animation whenever routeCoords changes or component mounts with them
   useEffect(() => {
-    if (routeCoords && routeCoords.length > 1) {
-      // If returning to a screen with already calculated route, show it immediately
-      if (visibleCoords.length === routeCoords.length && routeCoords.length > 0) {
-        return;
-      }
-      
-      // If we already have coordinates but visible is empty, set it (this happens on back navigation)
-      if (visibleCoords.length === 0) {
-        setVisibleCoords(routeCoords);
+    if (showRoute && routeCoords && routeCoords.length > 1) {
+      if (visibleCoords.length === routeCoords.length) {
         return;
       }
 
-      // Normal animation for new routes
-      setVisibleCoords([]);
       drawAnim.setValue(0);
       const animation = Animated.timing(drawAnim, {
         toValue: 1,
-        duration: 2000,
+        duration: 1500,
         useNativeDriver: false,
       });
       
@@ -75,7 +74,7 @@ const MapComponent = memo(({ pickup: propPickup, destination: propDestination, s
         drawAnim.removeListener(listener);
       };
     }
-  }, [routeCoords]);
+  }, [routeCoords, showRoute]);
 
   // Check if location permission is already granted
   const checkPermission = useCallback(async () => {
@@ -97,10 +96,7 @@ const MapComponent = memo(({ pickup: propPickup, destination: propDestination, s
   useEffect(() => {
     const appState = { current: AppState.currentState };
     const subscription = AppState.addEventListener("change", (nextState) => {
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextState === "active"
-      ) {
+      if (appState.current.match(/inactive|background/) && nextState === "active") {
         checkPermission();
       }
       appState.current = nextState;
@@ -108,10 +104,11 @@ const MapComponent = memo(({ pickup: propPickup, destination: propDestination, s
     return () => subscription.remove();
   }, [checkPermission]);
 
+  // Fit to coordinates when map is ready or locations change
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
 
-    if (showMarkers && pickup && destination) {
+    if (showRoute && pickup && destination) {
       mapRef.current.fitToCoordinates(
         [
           { latitude: pickup.latitude, longitude: pickup.longitude },
@@ -130,40 +127,59 @@ const MapComponent = memo(({ pickup: propPickup, destination: propDestination, s
         longitudeDelta: 0.01,
       }, 600);
     }
-  }, [mapReady, pickup, destination, showMarkers]);
+  }, [mapReady, pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, showRoute]);
 
   const handleUserLocationChange = useCallback(
     (event) => {
       if (!centeredOnUser && event?.nativeEvent?.coordinate && !pickup) {
         const { latitude, longitude } = event.nativeEvent.coordinate;
         setCenteredOnUser(true);
-        mapRef.current?.animateToRegion(
-          {
-            latitude,
-            longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          },
-          500
-        );
+        mapRef.current?.animateToRegion({
+          latitude,
+          longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }, 500);
       }
     },
     [centeredOnUser, pickup]
   );
 
   return (
-    <MapView
-      ref={mapRef}
-      provider={PROVIDER_GOOGLE}
-      style={styles.map}
-      initialRegion={DEFAULT_REGION}
-      showsUserLocation={false}
-      showsMyLocationButton={false}
-      onMapReady={() => setMapReady(true)}
-      onUserLocationChange={handleUserLocationChange}
-    >
-      {showMarkers && pickup && destination && (
-        <>
+    <View style={styles.container}>
+      <MapView
+        ref={mapRef}
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={DEFAULT_REGION}
+        showsUserLocation={false}
+        showsMyLocationButton={false}
+        onMapReady={() => setMapReady(true)}
+        onUserLocationChange={handleUserLocationChange}
+      >
+        {(showMarkers || showPickupMarker) && pickup && (
+          <Marker
+            key={`marker-pickup-${pickup.latitude}-${pickup.longitude}`}
+            coordinate={{ latitude: pickup.latitude, longitude: pickup.longitude }}
+            title={t("pickup")}
+            description={pickup.address}
+            pinColor="green"
+            tracksViewChanges={false}
+          />
+        )}
+        
+        {showMarkers && destination && (
+          <Marker
+            key={`marker-dest-${destination.latitude}-${destination.longitude}`}
+            coordinate={{ latitude: destination.latitude, longitude: destination.longitude }}
+            title={t("destination")}
+            description={destination.address}
+            pinColor="red"
+            tracksViewChanges={false}
+          />
+        )}
+
+        {showRoute && pickup && destination && (
           <MapViewDirections
             origin={{ latitude: pickup.latitude, longitude: pickup.longitude }}
             destination={{ latitude: destination.latitude, longitude: destination.longitude }}
@@ -171,7 +187,7 @@ const MapComponent = memo(({ pickup: propPickup, destination: propDestination, s
             strokeWidth={0} 
             strokeColor="transparent"
             onReady={(result) => {
-              const routeHash = `${result.coordinates.length}-${result.coordinates[0]?.latitude}-${result.coordinates[result.coordinates.length-1]?.latitude}`;
+              const routeHash = `${result.coordinates.length}-${result.coordinates[0]?.latitude.toFixed(4)}-${result.coordinates[result.coordinates.length-1]?.latitude.toFixed(4)}`;
               if (routeHash !== lastRouteHash) {
                 setRouteCoords(result.coordinates);
                 setLastRouteHash(routeHash);
@@ -179,49 +195,30 @@ const MapComponent = memo(({ pickup: propPickup, destination: propDestination, s
               if (onRouteReady) {
                 onRouteReady(result);
               }
-              mapRef.current?.fitToCoordinates(result.coordinates, {
-                edgePadding: {
-                  right: responsiveWidth(10),
-                  bottom: responsiveHeight(25),
-                  left: responsiveWidth(10),
-                  top: responsiveHeight(15),
-                },
-              });
             }}
           />
-          {visibleCoords && visibleCoords.length > 1 && (
-            <Polyline
-              key={`route-${routeCoords?.length || 0}-${routeCoords?.[0]?.latitude || 0}`}
-              coordinates={visibleCoords}
-              strokeWidth={4}
-              strokeColor={COLORS.primary}
-              lineCap="round"
-              lineJoin="round"
-            />
-          )}
-        </>
-      )}
-      {(showMarkers || showPickupMarker) && pickup && (
-        <Marker
-          coordinate={{ latitude: pickup.latitude, longitude: pickup.longitude }}
-          title={t("pickup")}
-          description={pickup.address}
-          pinColor="green"
-        />
-      )}
-      {showMarkers && destination && (
-        <Marker
-          coordinate={{ latitude: destination.latitude, longitude: destination.longitude }}
-          title={t("destination")}
-          description={destination.address}
-          pinColor="red"
-        />
-      )}
-    </MapView>
+        )}
+
+        {showRoute && visibleCoords.length > 1 && (
+          <Polyline
+            key={`route-${visibleCoords.length}-${pickup?.latitude}-${destination?.latitude}`}
+            coordinates={visibleCoords}
+            strokeWidth={4}
+            strokeColor={COLORS.primary}
+            lineCap="round"
+            lineJoin="round"
+          />
+        )}
+      </MapView>
+    </View>
   );
 });
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    overflow: 'hidden',
+  },
   map: {
     flex: 1,
     width: "100%",

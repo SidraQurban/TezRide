@@ -10,9 +10,13 @@ export const RideProvider = ({ children }) => {
   const [selectedService, setSelectedService] = useState("bike");
 
   const updatePickup = useCallback((newPickup) => {
-    // Only update if actually different to prevent infinite loops
+    if (!newPickup) return;
     setPickup((prev) => {
-      if (JSON.stringify(prev) === JSON.stringify(newPickup)) return prev;
+      // Deep check latitude/longitude to avoid unnecessary clearing of route
+      if (prev?.latitude === newPickup.latitude && prev?.longitude === newPickup.longitude) {
+        return prev;
+      }
+      // If location actually changed, clear the route
       setRouteCoords([]);
       setRouteDetails(null);
       return newPickup;
@@ -20,12 +24,11 @@ export const RideProvider = ({ children }) => {
   }, []);
 
   const updateDestination = useCallback((newDest) => {
-    setPickup((prev) => {
-      // Note: There was a typo in previous turn where it used setPickup instead of setDestination
-      return prev; 
-    });
+    if (!newDest) return;
     setDestination((prev) => {
-      if (JSON.stringify(prev) === JSON.stringify(newDest)) return prev;
+      if (prev?.latitude === newDest.latitude && prev?.longitude === newDest.longitude) {
+        return prev;
+      }
       setRouteCoords([]);
       setRouteDetails(null);
       return newDest;

@@ -216,6 +216,7 @@ const SearchingDirection = ({ route }) => {
             pickup={pickup}
             destination={destination}
             showMarkers={false}
+            showRoute={false}
             showPickupMarker={true}
             animateZoomOut={true}
           />
