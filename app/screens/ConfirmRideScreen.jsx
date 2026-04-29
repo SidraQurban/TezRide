@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,18 +19,36 @@ import { useTranslation } from "react-i18next";
 import rideService from "../api/rideService";
 import { rides } from "../data/data";
 import { ActivityIndicator, Alert } from "react-native";
+import { useRide } from "../context/RideContext";
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { pickup, destination } = route.params || {};
+  const { pickup: ctxPickup, destination: ctxDestination, routeDetails, setRouteDetails, setPickup, setDestination } = useRide();
+  
+  const pickup = route.params?.pickup || ctxPickup;
+  const destination = route.params?.destination || ctxDestination;
+
+  // Sync route params to context on mount to ensure persistence
+  useEffect(() => {
+    if (route.params?.pickup && JSON.stringify(route.params.pickup) !== JSON.stringify(ctxPickup)) {
+      setPickup(route.params.pickup);
+    }
+    if (route.params?.destination && JSON.stringify(route.params.destination) !== JSON.stringify(ctxDestination)) {
+      setDestination(route.params.destination);
+    }
+  }, [route.params, setPickup, setDestination, ctxPickup, ctxDestination]);
+
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["55%", "56%"], []);
   const [selectedService, setSelectedService] = useState("bike");
-  const [routeDetails, setRouteDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const selectedRide = rides.find((r) => r.id === selectedService);
+  
+  const handleRouteReady = useCallback((details) => {
+    setRouteDetails(details);
+  }, [setRouteDetails]);
 
   const handleConfirmRide = async () => {
     if (!pickup || !destination || loading) return;
@@ -89,7 +107,7 @@ const ConfirmRide = () => {
           <MapComponent 
             pickup={pickup} 
             destination={destination} 
-            onRouteReady={(details) => setRouteDetails(details)}
+            onRouteReady={handleRouteReady}
           />
         </View>
       </View>

@@ -7,6 +7,7 @@ import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import { COLORS } from "../constants";
 import { responsiveHeight, responsiveWidth } from "react-native-responsive-dimensions";
 import * as ExpoLocation from "expo-location";
+import { useRide } from "../context/RideContext";
 
 const DEFAULT_REGION = {
   latitude: 24.8607,
@@ -15,25 +16,46 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.05,
 };
 
-const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoomOut = false, showPickupMarker = false, onRouteReady }) => {
+const MapComponent = memo(({ pickup: propPickup, destination: propDestination, showMarkers = true, animateZoomOut = false, showPickupMarker = false, onRouteReady }) => {
   const { t } = useTranslation();
   const mapRef = useRef(null);
+  const { routeCoords, setRouteCoords, pickup: ctxPickup, destination: ctxDestination } = useRide();
+  
+  const pickup = propPickup || ctxPickup;
+  const destination = propDestination || ctxDestination;
+
   const [hasPermission, setHasPermission] = useState(false);
   const [centeredOnUser, setCenteredOnUser] = useState(false);
-  const [routeCoords, setRouteCoords] = useState([]);
   const [visibleCoords, setVisibleCoords] = useState([]);
   const [mapReady, setMapReady] = useState(false);
+  const [lastRouteHash, setLastRouteHash] = useState("");
   const drawAnim = useRef(new Animated.Value(0)).current;
 
-  // Clear routes immediately when locations change (e.g., on swap)
+  // Clear routes immediately when locations change (deep check)
   useEffect(() => {
-    setRouteCoords([]);
-    setVisibleCoords([]);
-  }, [pickup, destination]);
+    if (routeCoords.length > 0 || visibleCoords.length > 0) {
+      setRouteCoords([]);
+      setVisibleCoords([]);
+      setLastRouteHash("");
+    }
+  }, [pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, setRouteCoords]);
 
+  // Handle animation of polyline
   useEffect(() => {
-    setVisibleCoords([]);
-    if (routeCoords.length > 1) {
+    if (routeCoords && routeCoords.length > 1) {
+      // If returning to a screen with already calculated route, show it immediately
+      if (visibleCoords.length === routeCoords.length && routeCoords.length > 0) {
+        return;
+      }
+      
+      // If we already have coordinates but visible is empty, set it (this happens on back navigation)
+      if (visibleCoords.length === 0) {
+        setVisibleCoords(routeCoords);
+        return;
+      }
+
+      // Normal animation for new routes
+      setVisibleCoords([]);
       drawAnim.setValue(0);
       const animation = Animated.timing(drawAnim, {
         toValue: 1,
@@ -72,7 +94,6 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
     checkPermission();
   }, [checkPermission]);
 
-  // Re-check permission whenever the app comes back to foreground
   useEffect(() => {
     const appState = { current: AppState.currentState };
     const subscription = AppState.addEventListener("change", (nextState) => {
@@ -87,13 +108,10 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
     return () => subscription.remove();
   }, [checkPermission]);
 
-  // ── Single animation effect, gated on mapReady ──────────────────────────────
-  // Only runs after onMapReady fires, so mapRef.current is always valid.
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
 
     if (showMarkers && pickup && destination) {
-      // ConfirmRide: fit both pickup + destination markers into view
       mapRef.current.fitToCoordinates(
         [
           { latitude: pickup.latitude, longitude: pickup.longitude },
@@ -105,30 +123,12 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
         }
       );
     } else if (pickup) {
-      // Searching screens: smooth 600 ms pan to the pickup marker
       mapRef.current.animateToRegion({
         latitude: pickup.latitude,
         longitude: pickup.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       }, 600);
-    } else {
-      // No pickup yet — center on last-known device position instantly
-      (async () => {
-        try {
-          const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
-          if (status !== "granted") return;
-          const last = await ExpoLocation.getLastKnownPositionAsync({});
-          if (last && mapRef.current) {
-            mapRef.current.animateToRegion({
-              latitude: last.coords.latitude,
-              longitude: last.coords.longitude,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }, 400);
-          }
-        } catch (_) {}
-      })();
     }
   }, [mapReady, pickup, destination, showMarkers]);
 
@@ -144,7 +144,7 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
             latitudeDelta: 0.01,
             longitudeDelta: 0.01,
           },
-          500 // faster than 800ms
+          500
         );
       }
     },
@@ -171,7 +171,11 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
             strokeWidth={0} 
             strokeColor="transparent"
             onReady={(result) => {
-              setRouteCoords(result.coordinates);
+              const routeHash = `${result.coordinates.length}-${result.coordinates[0]?.latitude}-${result.coordinates[result.coordinates.length-1]?.latitude}`;
+              if (routeHash !== lastRouteHash) {
+                setRouteCoords(result.coordinates);
+                setLastRouteHash(routeHash);
+              }
               if (onRouteReady) {
                 onRouteReady(result);
               }
@@ -185,9 +189,9 @@ const MapComponent = memo(({ pickup, destination, showMarkers = true, animateZoo
               });
             }}
           />
-          {visibleCoords.length > 1 && (
+          {visibleCoords && visibleCoords.length > 1 && (
             <Polyline
-              key={`route-${routeCoords.length}-${routeCoords[0]?.latitude}-${routeCoords[0]?.longitude}`}
+              key={`route-${routeCoords?.length || 0}-${routeCoords?.[0]?.latitude || 0}`}
               coordinates={visibleCoords}
               strokeWidth={4}
               strokeColor={COLORS.primary}

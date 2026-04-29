@@ -2,6 +2,7 @@ import "react-native-reanimated";
 import "react-native-gesture-handler";
 import React, { useEffect } from "react";
 import AppNavigator from "./app/navigation/AppNavigator";
+import { RideProvider } from "./app/context/RideContext";
 import {
   useFonts,
   Poppins_400Regular,
@@ -71,7 +72,9 @@ export default function App() {
         backgroundColor={backgroundColor}
       />
 
-      <AppNavigator />
+      <RideProvider>
+        <AppNavigator />
+      </RideProvider>
     </>
   );
 

@@ -22,11 +22,13 @@ import CurrentLocation from "../components/CurrentLocation";
 import { useTranslation } from "react-i18next";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import * as ExpoLocation from "expo-location";
+import { useRide } from "../context/RideContext";
 
 const SearchScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const isUrdu = i18n.language?.startsWith("ur");
+  const { setPickup: setCtxPickup, setDestination: setCtxDestination } = useRide();
 
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
@@ -205,6 +207,8 @@ const SearchScreen = () => {
           setPredictions([]);
           setSearchPerformed(false);
           if (destinationData) {
+            setCtxPickup(locationData);
+            setCtxDestination(destinationData);
             navigation.navigate("ConfirmRide", {
               pickup: locationData,
               destination: destinationData,
@@ -219,6 +223,8 @@ const SearchScreen = () => {
           setPredictions([]);
           setSearchPerformed(false);
           if (pickupData) {
+            setCtxPickup(pickupData);
+            setCtxDestination(locationData);
             navigation.navigate("ConfirmRide", {
               pickup: pickupData,
               destination: locationData,
