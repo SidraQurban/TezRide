@@ -90,12 +90,17 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
           <Text numberOfLines={1} style={{ fontFamily: FONTS.bold, fontSize: responsiveFontSize(1.6) }}>
             {driver.fullName || `${t("driver")} ${driver.driverId.substring(0, 4)}`}
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-             <Ionicons name="star" size={12} color="#FFC107" />
-             <Text style={{ marginLeft: 3, fontFamily: FONTS.bold, fontSize: 11 }}>{driver.rating}</Text>
-             <Text style={{ color: '#8A8A8A', fontSize: 11, marginLeft: 5 }}>
-               • {driver.distanceKm?.toFixed(1)} km
-             </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, justifyContent: 'space-between' }}>
+             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+               {driver.price && (
+                 <Text style={{ fontFamily: FONTS.bold, fontSize: responsiveFontSize(1.6), color: COLORS.primary }}>
+                   Rs. {driver.price}
+                 </Text>
+               )}
+               <Text style={{ color: '#8A8A8A', fontSize: 11, marginLeft: 8 }} numberOfLines={1}>
+                 • {driver.distanceKm?.toFixed(1)} km
+               </Text>
+             </View>
           </View>
         </View>
 

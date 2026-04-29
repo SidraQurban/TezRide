@@ -39,7 +39,7 @@ import { Alert } from "react-native";
 
 const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
-  const { rideImage, pickup, destination, rideId, vehicleType } =
+  const { rideImage, pickup, destination, rideId, vehicleType, price } =
     route.params || {};
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
@@ -68,7 +68,7 @@ const SearchingDirection = ({ route }) => {
             firstDriverFoundRef.current = true;
           }
 
-          return [...prev, payload.driverInfo];
+          return [...prev, { ...payload.driverInfo, price }];
         });
       }
     };
@@ -156,28 +156,7 @@ const SearchingDirection = ({ route }) => {
     }
   }, [navigation, rideId]);
 
-  // Mock simulation
-  useEffect(() => {
-    if (rideId?.startsWith("mock-ride-")) {
-      const timer = setTimeout(() => {
-        const mockDriver = {
-          driverId: "dev-driver-1",
-          fullName: "Dev Driver",
-          vehicleType: vehicleType || "Bike",
-          plateNumber: "ABC-123",
-          rating: "4.9",
-          distanceKm: 1.2,
-          timeMinutes: 3,
-          profileImage: "https://randomuser.me/api/portraits/men/32.jpg",
-        };
-
-        setInterestedDrivers([mockDriver]);
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [rideId, vehicleType]);
-
+  // Animated pulse scale and opacity
   useEffect(() => {
     Animated.loop(
       Animated.timing(scaleAnim, {

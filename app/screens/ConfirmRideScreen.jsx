@@ -71,7 +71,8 @@ const ConfirmRide = () => {
           pickup,
           destination,
           rideId: response.data.rideId,
-          vehicleType: selectedService
+          vehicleType: selectedService,
+          price: selectedRide?.price
         });
       } else {
         Alert.alert(t("error"), response.message || t("ride_request_failed"));
