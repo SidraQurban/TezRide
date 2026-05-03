@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, TextInput } from "react-native";
 import { COLORS, FONTS } from "../constants/theme";
 import {
   responsiveHeight,
@@ -8,7 +8,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { useTranslation } from "react-i18next";
 
-const RateInfo = ({ driverRate, duration, totalPrice }) => {
+const RateInfo = ({ driverRate, setDriverRate, duration, totalPrice, onFocus }) => {
   const { t } = useTranslation();
   return (
   <View
@@ -28,15 +28,30 @@ const RateInfo = ({ driverRate, duration, totalPrice }) => {
       >
         {t("driver_rate_label")}
       </Text>
-      <Text
-        style={{
-          marginTop: 2,
-          fontFamily: FONTS.semiBold,
-          fontSize: responsiveFontSize(1.7),
-        }}
-      >
-        Rs.{driverRate} / {t("hour")}
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2 }}>
+        <Text style={{ fontFamily: FONTS.semiBold, fontSize: responsiveFontSize(1.7) }}>
+          Rs.
+        </Text>
+        <TextInput
+          value={String(driverRate)}
+          onChangeText={(val) => setDriverRate(val ? Number(val.replace(/[^0-9]/g, '')) : 0)}
+          onFocus={onFocus}
+          keyboardType="numeric"
+          style={{
+            fontFamily: FONTS.semiBold,
+            fontSize: responsiveFontSize(1.7),
+            borderBottomWidth: 1,
+            borderBottomColor: COLORS.primary,
+            minWidth: 35,
+            paddingVertical: 0,
+            textAlign: "center",
+            color: COLORS.black,
+          }}
+        />
+        <Text style={{ fontFamily: FONTS.semiBold, fontSize: responsiveFontSize(1.7) }}>
+          {" "}/ {t("hour")}
+        </Text>
+      </View>
     </View>
 
     <View>

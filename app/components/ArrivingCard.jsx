@@ -52,7 +52,7 @@ const ArrivingCard = ({ onClose, driver, pickup, destination }) => {
             color: "#8A8A8A",
           }}
         >
-          {driver?.timeMinutes || 2} {t("mins")}
+          {driver?.timeMinutes ? `${driver.timeMinutes} ${t("mins")}` : ""}
         </Text>
       </View>
 
@@ -65,16 +65,29 @@ const ArrivingCard = ({ onClose, driver, pickup, destination }) => {
             marginBottom: responsiveHeight(2),
           }}
         >
-          <Image
-            source={{
-              uri: driver?.profileImage || "https://randomuser.me/api/portraits/men/46.jpg",
-            }}
-            style={{
-              width: responsiveWidth(13),
-              height: responsiveWidth(13),
-              borderRadius: responsiveWidth(6.5),
-            }}
-          />
+          {driver?.profilePicUrl ? (
+            <Image
+              source={{ uri: driver.profilePicUrl }}
+              style={{
+                width: responsiveWidth(13),
+                height: responsiveWidth(13),
+                borderRadius: responsiveWidth(6.5),
+              }}
+            />
+          ) : (
+            <View
+              style={{
+                width: responsiveWidth(13),
+                height: responsiveWidth(13),
+                borderRadius: responsiveWidth(6.5),
+                backgroundColor: '#F0F0F0',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons name="person" size={26} color="#AAA" />
+            </View>
+          )}
 
           <View style={{ marginLeft: 12, flex: 1 }}>
             <Text
@@ -83,7 +96,7 @@ const ArrivingCard = ({ onClose, driver, pickup, destination }) => {
                 fontSize: responsiveFontSize(1.9),
               }}
             >
-              {driver?.fullName || `${t("driver")} ${driver?.driverId?.substring(0, 4) || ''}`}
+              {driver?.driverName || t("driver")}
             </Text>
 
             <Text
@@ -92,13 +105,13 @@ const ArrivingCard = ({ onClose, driver, pickup, destination }) => {
                 fontSize: responsiveFontSize(1.5),
               }}
             >
-              {driver?.vehicleType || t("driver_car")} {driver?.plateNumber ? `• ${driver.plateNumber}` : ''}
+              {(driver?.vehicleType || "")} {driver?.vehiclePlateNumber ? `• ${driver.vehiclePlateNumber}` : ""}
             </Text>
           </View>
 
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="star" size={16} color="#FFC107" />
-            <Text style={{ marginLeft: 4, fontSize: 13 }}>{driver?.rating || '4.6'}</Text>
+            <Text style={{ marginLeft: 4, fontSize: 13 }}>{driver?.rating || ""}</Text>
           </View>
         </View>
       </TouchableOpacity>

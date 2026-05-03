@@ -2,14 +2,14 @@
   "skip": "Skip",
   "get_started": "Get Started",
 
-  "onboard_title1": "Book Rides Instantly Anywhere",
-  "onboard_desc1": "Skip the waiting. Connect with the nearest driver for a quick pickup.",
+  "onboard_title1": "Women ride with comfort",
+  "onboard_desc1": "Choose women drivers for a safer and more comfortable journey.",
 
-  "onboard_title2": "Affordable and Transparent Pricing",
-  "onboard_desc2": "Check your fare upfront and pay only for what you travel.",
+  "onboard_title2": "Hire a driver anytime",
+  "onboard_desc2": "Use your own vehicle and hire a professional driver whenever you need one.",
 
-  "onboard_title3": "Safe and Verified Drivers",
-  "onboard_desc3": "Travel confidently with trusted drivers.",
+  "onboard_title3": "Affordable and Transparent Pricing",
+  "onboard_desc3": "Check your fare upfront and pay only for what you travel.",
 
   "enter_number": "Enter your number to",
   "continue_text": "continue",
@@ -187,5 +187,27 @@
   "add_another_location": "+ Add Another Location",
   "pickup_placeholder": "Enter pickup address",
   "home_placeholder": "Enter home address",
-  "confirm_location": "CONFIRM LOCATION"
+  "confirm_location": "CONFIRM LOCATION",
+
+  "error": "Error",
+  "something_went_wrong": "Something went wrong. Please try again.",
+  "search_failed": "No Drivers Found",
+  "no_drivers_found_desc": "We couldn't find any available drivers nearby. Please try again.",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "selection_failed": "Driver selection failed. Please try again.",
+  "drivers_found": "Drivers found! Select a driver above.",
+  "searching_nearby_drivers_desc": "Please wait while we connect you with nearby drivers...",
+  "search_progress_wave": "Searching wave {{current}} of {{max}}...",
+  "ride_completed_title": "Ride Complete!",
+  "final_fare_label": "Your final fare",
+  "ok_btn": "OK",
+  "km": "km",
+  "away": "away",
+  "driver": "Driver",
+  "ride_request_failed": "Failed to request ride. Please try again.",
+  "fetching_prices": "Getting prices...",
+  "otp_send_failed": "Failed to send OTP. Please try again.",
+  "otp_verification_failed": "Invalid OTP. Please check and try again.",
+  "currency": "Rs."
 }

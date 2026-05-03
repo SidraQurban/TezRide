@@ -22,7 +22,7 @@ const servicesData = [
     title: "Delivery",
     image: require("../../assets/delivery.png"),
     bgColor: "#FDE8D7",
-    screen: "Delivery",
+    screen: "Cargo",
   },
   {
     id: 3,
@@ -38,13 +38,13 @@ const servicesData = [
     bgColor: "#E6E6FA",
     screen: "Shops",
   },
-  {
-    id: 5,
-    title: "Cargo",
-    image: require("../../assets/cargo.png"),
-    bgColor: "#FFF4E1",
-    screen: "Cargo",
-  },
+  // {
+  //   id: 5,
+  //   title: "Cargo",
+  //   image: require("../../assets/cargo.png"),
+  //   bgColor: "#FFF4E1",
+  //   screen: "Cargo",
+  // },
   // {
   //   id: 6,
   //   title: "Grocery",
@@ -75,7 +75,7 @@ const Services = () => {
           flexWrap: "wrap",
           justifyContent: "space-between",
           padding: SIZES.base * 2,
-          marginTop: -20,
+          marginTop: -15,
         }}
       >
         {servicesData.map((item) => (

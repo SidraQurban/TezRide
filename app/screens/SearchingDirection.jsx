@@ -8,6 +8,7 @@ import {
   Modal,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import React, {
   useRef,
@@ -35,104 +36,245 @@ import { useTranslation } from "react-i18next";
 
 import customerHub from "../api/customerHub";
 import DriverInterestCard from "../components/DriverInterestCard";
-import { Alert } from "react-native";
+import { useRide } from "../context/RideContext";
 
 const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
   const { rideImage, pickup, destination, rideId, vehicleType, price } =
     route.params || {};
   const { t } = useTranslation();
+  const { setActiveRide, clearActiveRide } = useRide();
   const bottomSheetRef = useRef(null);
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
-  const snapPoints = useMemo(() => ["10%", "30%", "55%"], []); // Added larger snap point for ArrivingCard
+  const snapPoints = useMemo(() => ["10%", "30%", "55%"], []);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [interestedDrivers, setInterestedDrivers] = useState([]);
   const [assignedDriver, setAssignedDriver] = useState(null);
-  const [rideStatus, setRideStatus] = useState("searching"); // searching, assigned, no_drivers, cancelled
+  // searching | driver_selected | assigned | no_drivers | completed | cancelled
+  const [rideStatus, setRideStatus] = useState("searching");
+  const [searchWave, setSearchWave] = useState(null);
 
-  const firstDriverFoundRef = useRef(false);
+  // Stable refs for use inside event callbacks without stale closures
+  const rideStatusRef = useRef(rideStatus);
+  const interestedDriversRef = useRef(interestedDrivers);
+  // Prevents duplicate selectDriver calls from double-taps or card timers
+  const selectionSentRef = useRef(false);
 
-  // SignalR Event Handlers
   useEffect(() => {
+    rideStatusRef.current = rideStatus;
+    interestedDriversRef.current = interestedDrivers;
+  }, [rideStatus, interestedDrivers]);
+
+  // ── SignalR Event Handlers ───────────────────────────────────────────────
+  useEffect(() => {
+    // driver_interested: { rideId, driverInfo: NearbyDriverDto }
     const handleDriverInterested = (payload) => {
-      if (payload.rideId === rideId) {
-        setInterestedDrivers((prev) => {
-          // Avoid duplicates
-          if (prev.find((d) => d.driverId === payload.driverInfo.driverId))
-            return prev;
+      if (String(payload.rideId) !== String(rideId)) return;
 
-          // Expand bottom sheet when first driver is found
-          if (!firstDriverFoundRef.current) {
-            firstDriverFoundRef.current = true;
-          }
-
-          return [...prev, { ...payload.driverInfo, price }];
-        });
-      }
+      setInterestedDrivers((prev) => {
+        // Deduplicate by driverId
+        const alreadyPresent = prev.find(
+          (d) => String(d.driverId) === String(payload.driverInfo.driverId)
+        );
+        if (alreadyPresent) return prev;
+        // Attach price from nav params to the driver card
+        return [...prev, { ...payload.driverInfo, price }];
+      });
     };
 
+    // ride_assigned: { rideId, driverId }
+    // NOTE: The server only sends rideId + driverId — no nested driverInfo.
+    // We look up the full driver object from the interestedDrivers list.
     const handleRideAssigned = (payload) => {
-      if (payload.rideId === rideId) {
-        setRideStatus("assigned");
-        setAssignedDriver((prev) => {
-          return { ...payload.driverInfo, driverId: payload.driverId };
-        });
-        // Clear popups when assigned
-        setInterestedDrivers([]);
-        bottomSheetRef.current?.snapToIndex(2); // Slide up the arriving card
-      }
+      if (String(payload.rideId) !== String(rideId)) return;
+
+      const confirmedDriverId = String(payload.driverId);
+      
+      // Look up the driver in this order: 
+      // 1. Explicit payload data
+      // 2. Currently visible cards
+      // 3. What we just selected (assignedDriver state)
+      const driverData =
+        payload.driverInfo ||
+        interestedDriversRef.current.find(
+          (d) => String(d.driverId) === confirmedDriverId
+        ) ||
+        assignedDriver; 
+
+      setRideStatus("assigned");
+      // Merge to ensure we don't lose existing fields (like price or local distance)
+      setAssignedDriver(prev => ({ ...prev, ...driverData }));
+      setInterestedDrivers([]);
+      setSearchWave(null);
+
+      // Persist to global context
+      setActiveRide({ 
+        status: "assigned", 
+        assignedDriver: { ...assignedDriver, ...driverData } 
+      });
+
+      // Expand the bottom sheet to show the ArrivingCard
+      bottomSheetRef.current?.snapToIndex(2);
     };
 
+    // ride_completed: { rideId, finalFare, currency }
+    const handleRideCompleted = (payload) => {
+      if (String(payload.rideId) !== String(rideId)) return;
+
+      setRideStatus("completed");
+      setActiveRide({
+        status: "completed",
+        finalFare: payload.finalFare,
+        currency: payload.currency,
+      });
+
+      const fareText = payload.finalFare
+        ? `${payload.currency || "PKR"} ${payload.finalFare}`
+        : "";
+
+      Alert.alert(
+        t("ride_completed_title"),
+        fareText
+          ? `${t("final_fare_label")}: ${fareText}`
+          : t("ride_completed_title"),
+        [
+          {
+            text: t("ok_btn"),
+            onPress: async () => {
+              clearActiveRide();
+              // Disconnect the hub — ride lifecycle is fully over
+              await customerHub.stop();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MainDrawer" }],
+              });
+            },
+          },
+        ]
+      );
+    };
+
+    // no_drivers_found: { rideId }
     const handleNoDriversFound = (payload) => {
-      if (payload.rideId === rideId) {
-        setRideStatus("no_drivers");
-        Alert.alert(t("search_failed"), t("no_drivers_found_desc"), [
-          { text: t("retry"), onPress: () => navigation.goBack() },
-          { text: t("cancel"), onPress: () => confirmCancelRide() },
-        ]);
+      if (String(payload.rideId) !== String(rideId)) return;
+      // Ignore if we already have interested drivers or the ride is assigned/completed
+      if (
+        rideStatusRef.current === "assigned" ||
+        rideStatusRef.current === "completed" ||
+        interestedDriversRef.current.length > 0
+      ) {
+        return;
       }
+      setRideStatus("no_drivers");
+      setActiveRide({ status: "no_drivers" });
+      Alert.alert(t("search_failed"), t("no_drivers_found_desc"), [
+        { text: t("retry"), onPress: () => navigation.goBack() },
+        { text: t("cancel"), onPress: () => confirmCancelRide() },
+      ]);
     };
 
+    // search_progress: { rideId, currentWave, maxWaves, minRing, maxRing }
+    const handleSearchProgress = (payload) => {
+      if (String(payload.rideId) !== String(rideId)) return;
+      setSearchWave({
+        currentWave: payload.currentWave,
+        maxWaves: payload.maxWaves,
+      });
+    };
+
+    // SelectDriverFailed: { rideId, reason }
+    // Only alert when we are still actively searching — ignore if DriverSelected
+    // was already acknowledged (the server may fire this for concurrent attempts).
     const handleSelectDriverFailed = (payload) => {
-      if (payload.rideId === rideId) {
-        Alert.alert(t("error"), payload.reason || t("selection_failed"));
-      }
+      if (String(payload.rideId) !== String(rideId)) return;
+      if (rideStatusRef.current !== "searching") return; // already handled
+      Alert.alert(t("error"), payload.reason || t("selection_failed"));
+    };
+
+    // DriverSelected: { rideId, driverId, success: true }
+    // Server ACK that our SelectDriver call was accepted.
+    // Immediately lock the UI so no further selectDriver calls can fire.
+    const handleDriverSelected = (payload) => {
+      if (String(payload.rideId) !== String(rideId)) return;
+      if (!payload.success) return; // handled by SelectDriverFailed
+
+      // Lock against any further accept attempts
+      selectionSentRef.current = true;
+
+      // Clear all pending driver cards — we have our driver
+      setInterestedDrivers([]);
+      setSearchWave(null);
+      setRideStatus("driver_selected");
+      setActiveRide({ status: "driver_selected" });
+      // ride_assigned will follow and expand the ArrivingCard
+    };
+
+    // RideCancelled: { rideId, success }
+    const handleRideCancelled = (payload) => {
+      if (String(payload.rideId) !== String(rideId)) return;
+      setShowCancelModal(false);
+      clearActiveRide();
+      // Disconnect hub — no more events expected for this ride
+      customerHub.stop().finally(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "MainDrawer" }],
+        });
+      });
     };
 
     customerHub.on("driver_interested", handleDriverInterested);
     customerHub.on("ride_assigned", handleRideAssigned);
+    customerHub.on("ride_completed", handleRideCompleted);
     customerHub.on("no_drivers_found", handleNoDriversFound);
+    customerHub.on("search_progress", handleSearchProgress);
+    customerHub.on("DriverSelected", handleDriverSelected);
     customerHub.on("SelectDriverFailed", handleSelectDriverFailed);
+    customerHub.on("RideCancelled", handleRideCancelled);
 
     return () => {
       customerHub.off("driver_interested", handleDriverInterested);
       customerHub.off("ride_assigned", handleRideAssigned);
+      customerHub.off("ride_completed", handleRideCompleted);
       customerHub.off("no_drivers_found", handleNoDriversFound);
+      customerHub.off("search_progress", handleSearchProgress);
+      customerHub.off("DriverSelected", handleDriverSelected);
       customerHub.off("SelectDriverFailed", handleSelectDriverFailed);
+      customerHub.off("RideCancelled", handleRideCancelled);
     };
   }, [rideId, navigation, t]);
 
+  // ── Customer Actions ─────────────────────────────────────────────────────
+
   const handleAcceptDriver = async (driverId) => {
-    if (rideId.startsWith("mock-ride-")) {
-      setRideStatus("assigned");
-      const driver = interestedDrivers.find((d) => d.driverId === driverId);
-      setAssignedDriver(driver || { driverId });
-      setInterestedDrivers([]);
-      bottomSheetRef.current?.snapToIndex(2); // Slide up the arriving card
-      return;
+    // Guard: only allow one selectDriver call per ride
+    if (selectionSentRef.current) return;
+    if (rideStatusRef.current !== "searching") return;
+
+    // Capture the driver info before we clear the list to ensure 
+    // it remains visible in the slider during the "driver_selected" state.
+    const selected = interestedDrivers.find(d => String(d.driverId) === String(driverId));
+    if (selected) {
+        setAssignedDriver(selected);
+        setActiveRide({ status: "driver_selected", assignedDriver: selected });
     }
+
+    selectionSentRef.current = true; // lock immediately to prevent race conditions
     try {
-      await customerHub.selectDriver(rideId, driverId);
-      // The snapToIndex(1) will happen automatically via handleRideAssigned
+      await customerHub.selectDriver(rideId, String(driverId));
+      // UI clears in handleDriverSelected (DriverSelected ACK from server)
     } catch (error) {
+      selectionSentRef.current = false; // allow retry on network error
       Alert.alert(t("error"), error.message || t("something_went_wrong"));
     }
   };
 
   const handleDeclineDriver = (driverId) => {
-    setInterestedDrivers((prev) => prev.filter((d) => d.driverId !== driverId));
+    setInterestedDrivers((prev) =>
+      prev.filter((d) => String(d.driverId) !== String(driverId))
+    );
   };
 
   const handleCancelRide = () => {
@@ -141,22 +283,21 @@ const SearchingDirection = ({ route }) => {
 
   const confirmCancelRide = useCallback(async () => {
     try {
+      // Ask the server to cancel; navigation + hub.stop() fire in handleRideCancelled
       await customerHub.cancelRide(rideId);
+    } catch {
+      // Hub offline — stop it and navigate immediately as a fallback
       setShowCancelModal(false);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "MainDrawer" }],
-      });
-    } catch (error) {
-      setShowCancelModal(false);
+      clearActiveRide();
+      await customerHub.stop();
       navigation.reset({
         index: 0,
         routes: [{ name: "MainDrawer" }],
       });
     }
-  }, [navigation, rideId]);
+  }, [navigation, rideId, clearActiveRide]);
 
-  // Animated pulse scale and opacity
+  // ── Pulse Animation ──────────────────────────────────────────────────────
   useEffect(() => {
     Animated.loop(
       Animated.timing(scaleAnim, {
@@ -164,7 +305,7 @@ const SearchingDirection = ({ route }) => {
         duration: 1500,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
-      }),
+      })
     ).start();
   }, []);
 
@@ -178,14 +319,11 @@ const SearchingDirection = ({ route }) => {
     outputRange: [0.5, 0],
   });
 
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View style={{ flex: 1, paddingBottom: responsiveHeight(2) }}>
-        <View
-          style={{
-            left: responsiveWidth(1.5),
-          }}
-        >
+        <View style={{ left: responsiveWidth(1.5) }}>
           <BackBtn />
         </View>
 
@@ -200,6 +338,7 @@ const SearchingDirection = ({ route }) => {
             animateZoomOut={true}
           />
 
+          {/* Pulse / vehicle icon */}
           <View
             style={{
               position: "absolute",
@@ -255,6 +394,7 @@ const SearchingDirection = ({ route }) => {
                 />
               </View>
 
+              {/* CANCEL BUTTON */}
               <TouchableOpacity
                 onPress={handleCancelRide}
                 style={{
@@ -278,9 +418,11 @@ const SearchingDirection = ({ route }) => {
                 <Ionicons name="close" size={20} color="red" />
               </TouchableOpacity>
             </View>
+
+
           </View>
 
-          {/* INTEREST POPUPS */}
+          {/* DRIVER INTEREST POPUPS */}
           <View
             style={{
               position: "absolute",
@@ -289,7 +431,7 @@ const SearchingDirection = ({ route }) => {
               right: 0,
               zIndex: 1000,
               elevation: 10,
-              maxHeight: responsiveHeight(60), // Limit height so it doesn't cover the whole screen
+              maxHeight: responsiveHeight(60),
             }}
           >
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -320,13 +462,27 @@ const SearchingDirection = ({ route }) => {
             backgroundColor: "#E0E0E0",
           }}
         >
-          {rideStatus === "assigned" ? (
+          {rideStatus === "assigned" || rideStatus === "driver_selected" ? (
             <ArrivingCard
               driver={assignedDriver}
               pickup={pickup}
               destination={destination}
               onClose={() => bottomSheetRef.current?.snapToIndex(0)}
             />
+          ) : interestedDrivers.length > 0 ? (
+            <View style={{ flex: 1, padding: 20 }}>
+              <Text
+                style={{
+                  fontFamily: FONTS.semiBold,
+                  fontSize: responsiveFontSize(2),
+                  color: COLORS.primary,
+                  textAlign: "center",
+                  marginTop: responsiveHeight(2),
+                }}
+              >
+                {t("drivers_found")}
+              </Text>
+            </View>
           ) : (
             <View style={{ flex: 1, padding: 20 }}>
               <View
@@ -355,14 +511,13 @@ const SearchingDirection = ({ route }) => {
                   fontSize: responsiveFontSize(1.6),
                 }}
               >
-                {t("searching_nearby_drivers_desc") ||
-                  "Please wait while we connect you with nearby drivers..."}
+                {t("searching_nearby_drivers_desc")}
               </Text>
             </View>
           )}
         </BottomSheet>
 
-        {/* CUSTOM CANCEL MODAL */}
+        {/* CANCEL CONFIRMATION MODAL */}
         <Modal
           transparent
           animationType="fade"
@@ -407,7 +562,6 @@ const SearchingDirection = ({ route }) => {
                 {t("cancel_ride_desc")}
               </Text>
 
-              {/* BUTTONS */}
               <View
                 style={{
                   flexDirection: "row",

@@ -1,4 +1,4 @@
-import { TouchableOpacity, Image, Text, View, Animated } from "react-native";
+import { TouchableOpacity, Image, Text, View, Animated, ActivityIndicator } from "react-native";
 import React, { useEffect, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -9,10 +9,23 @@ import {
 import { COLORS } from "../constants";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
-import { rides } from "../data/data";
+import { rides } from "../data/data.jsx";
 import { ScrollView } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
 
+/**
+ * RidesSlider
+ *
+ * Props:
+ *  - selectedService: string (vehicle slug)
+ *  - setSelectedService: fn
+ *  - pickup: LocationDto
+ *  - destination: LocationDto
+ *  - distance: number (km from Google Maps)
+ *  - duration: number (minutes from Google Maps)
+ *  - priceMap: { [vehicleTypeSlug]: EstimateDto }  — live prices from /api/pricing/estimates
+ *  - priceLoading: boolean
+ */
 const RidesSlider = ({
   selectedService,
   setSelectedService,
@@ -20,13 +33,38 @@ const RidesSlider = ({
   destination,
   distance,
   duration,
+  priceMap = {},
+  priceLoading = false,
 }) => {
   const navigation = useNavigation();
-  const { t } = useTranslation();
-  const selectedRide = rides.find((r) => r.id === selectedService);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ur";
 
+  // Animated shimmer for loading prices
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (priceLoading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(shimmerAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(shimmerAnim, {
+            toValue: 0.3,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      shimmerAnim.setValue(1);
+    }
+  }, [priceLoading]);
+
+  // Animated line for the location card connector
   const lineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -39,15 +77,33 @@ const RidesSlider = ({
     ).start();
   }, []);
 
-  const translateY = lineAnim.interpolate({
+  const lineTranslateY = lineAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [-5, 18],
   });
 
-  const opacity = lineAnim.interpolate({
+  const lineOpacity = lineAnim.interpolate({
     inputRange: [0, 0.2, 0.8, 1],
     outputRange: [0, 1, 1, 0],
   });
+
+  /**
+   * Resolve the price for a given ride card:
+   * 1. If priceMap has an entry for this slug → use live estimatedFare
+   * 2. Otherwise fall back to the static price in the rides array
+   */
+  const resolvePrice = (service) => {
+    const estimate = priceMap[service.id];
+    if (estimate) {
+      return {
+        fare: Math.round(estimate.estimatedFare),
+        currency: estimate.currency || t("currency"),
+        isSurge: estimate.surgeFactor > 1,
+        surgeFactor: estimate.surgeFactor,
+      };
+    }
+    return { fare: service.price, currency: "Rs.", isSurge: false, surgeFactor: 1 };
+  };
 
   return (
     <View style={{ paddingBottom: responsiveHeight(16) }}>
@@ -64,13 +120,16 @@ const RidesSlider = ({
       >
         {rides.map((service) => {
           const active = selectedService === service.id;
+          const { fare, currency, isSurge, surgeFactor } = resolvePrice(service);
+          const hasLivePrice = Boolean(priceMap[service.id]);
+
           return (
             <TouchableOpacity
               key={service.id}
               onPress={() => setSelectedService(service.id)}
               activeOpacity={0.9}
               style={{
-                height: responsiveHeight(16),
+                height: responsiveHeight(17),
                 width: responsiveWidth(35),
                 borderRadius: 20,
                 marginRight: responsiveWidth(3),
@@ -85,6 +144,7 @@ const RidesSlider = ({
                 shadowRadius: 6,
               }}
             >
+              {/* Checkmark when selected */}
               {active && (
                 <Ionicons
                   name="checkmark-circle"
@@ -94,6 +154,32 @@ const RidesSlider = ({
                 />
               )}
 
+              {/* Surge badge */}
+              {isSurge && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    left: 8,
+                    backgroundColor: "#FF6B00",
+                    borderRadius: 8,
+                    paddingHorizontal: 5,
+                    paddingVertical: 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: responsiveFontSize(1.1),
+                      fontFamily: FONTS.bold,
+                    }}
+                  >
+                    {surgeFactor.toFixed(1)}x
+                  </Text>
+                </View>
+              )}
+
+              {/* Vehicle image */}
               <Image
                 source={service.image}
                 style={{
@@ -104,6 +190,7 @@ const RidesSlider = ({
                 }}
               />
 
+              {/* Label */}
               <Text
                 style={{
                   fontSize: responsiveFontSize(1.6),
@@ -115,6 +202,7 @@ const RidesSlider = ({
                 {t(service.label.toLowerCase())}
               </Text>
 
+              {/* ETA + Price */}
               <View style={{ alignItems: "center" }}>
                 <Text
                   style={{
@@ -123,18 +211,39 @@ const RidesSlider = ({
                     fontFamily: FONTS.regular,
                   }}
                 >
-                  {duration ? `${Math.round(duration)} ${t("mins")}` : service.eta} • {distance ? `${distance.toFixed(1)} ${t("km")}` : "---"}
+                  {duration
+                    ? `${Math.round(duration)} ${t("mins")}`
+                    : t(service.eta?.toLowerCase().replace(" ", "_"))}{" "}
+                  •{" "}
+                  {distance
+                    ? `${distance.toFixed(1)} ${t("km")}`
+                    : "---"}
                 </Text>
 
-                <Text
-                  style={{
-                    fontSize: responsiveFontSize(1.6),
-                    fontFamily: FONTS.bold,
-                    color: COLORS.primary,
-                  }}
-                >
-                  Rs. {service.price}
-                </Text>
+                {/* Price — shimmer while loading */}
+                {priceLoading && !hasLivePrice ? (
+                  <Animated.View
+                    style={{
+                      opacity: shimmerAnim,
+                      backgroundColor: "#E8E8E8",
+                      borderRadius: 6,
+                      height: responsiveHeight(2),
+                      width: responsiveWidth(18),
+                      marginTop: 4,
+                    }}
+                  />
+                ) : (
+                  <Text
+                    style={{
+                      fontSize: responsiveFontSize(1.6),
+                      fontFamily: FONTS.bold,
+                      color: isSurge ? "#FF6B00" : COLORS.primary,
+                      marginTop: 2,
+                    }}
+                  >
+                    {currency} {fare}
+                  </Text>
+                )}
               </View>
             </TouchableOpacity>
           );
@@ -149,11 +258,11 @@ const RidesSlider = ({
           backgroundColor: "#fff",
           borderRadius: 15,
           elevation: 2,
-          marginTop: responsiveHeight(0.5),
+          // marginTop: responsiveHeight(0.5),
           marginBottom: responsiveHeight(1),
         }}
       >
-        {/* TOP ROW */}
+        {/* TOP ROW — Pickup */}
         <View
           style={{
             flexDirection: "row",
@@ -162,7 +271,6 @@ const RidesSlider = ({
             marginBottom: responsiveHeight(0.5),
           }}
         >
-          {/* Current Location */}
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <View
               style={{
@@ -173,7 +281,6 @@ const RidesSlider = ({
                 marginRight: 8,
               }}
             />
-
             <Text
               style={{
                 fontFamily: FONTS.medium,
@@ -184,19 +291,6 @@ const RidesSlider = ({
               {t("current_location")}
             </Text>
           </View>
-
-          {/* PRICE COMMENTED */}
-          {/*
-          <Text
-            style={{
-              fontFamily: FONTS.bold,
-              fontSize: responsiveFontSize(1.9),
-              color: COLORS.primary,
-            }}
-          >
-            Rs. {selectedRide?.price}
-          </Text>
-          */}
         </View>
 
         {/* Pickup Address */}
@@ -213,7 +307,7 @@ const RidesSlider = ({
           </Text>
         </ScrollView>
 
-        {/* Line */}
+        {/* Animated connector line */}
         <View
           style={{
             height: 18,
@@ -223,7 +317,6 @@ const RidesSlider = ({
             marginVertical: 4,
             borderRadius: 1,
             overflow: "hidden",
-            position: "relative",
           }}
         >
           <Animated.View
@@ -235,15 +328,19 @@ const RidesSlider = ({
               height: 6,
               backgroundColor: COLORS.primary,
               borderRadius: 1,
-              opacity: opacity,
-              transform: [{ translateY: translateY }],
+              opacity: lineOpacity,
+              transform: [{ translateY: lineTranslateY }],
             }}
           />
         </View>
 
-        {/* Drop */}
+        {/* Dropoff */}
         <View
-          style={{ flexDirection: "row", alignItems: "center", marginLeft: -2 }}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginLeft: -2,
+          }}
         >
           <Ionicons
             name="location-sharp"
@@ -275,18 +372,17 @@ const RidesSlider = ({
           </View>
         </View>
 
-        {/* BOTTOM ROW */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: responsiveHeight(1),
-            paddingBottom: responsiveHeight(0.5),
-          }}
-        >
-          {/* ETA */}
-          {distance && duration ? (
+        {/* BOTTOM ROW — ETA summary */}
+        {distance && duration ? (
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: responsiveHeight(1),
+              paddingBottom: responsiveHeight(0.5),
+            }}
+          >
             <Text
               style={{
                 fontSize: responsiveFontSize(1.3),
@@ -294,30 +390,31 @@ const RidesSlider = ({
                 fontFamily: FONTS.regular,
               }}
             >
-              {t("eta")}: {Math.round(duration)} {t("mins")} • {distance.toFixed(1)} {t("km")}
+              {t("eta")}: {Math.round(duration)} {t("mins")} •{" "}
+              {distance.toFixed(1)} {t("km")}
             </Text>
-          ) : null}
 
-          {/* PROMO */}
-          {/* <TouchableOpacity onPress={() => navigation.navigate("Promo")}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text
-                style={{
-                  fontFamily: FONTS.medium,
-                  marginRight: 4,
-                  color: COLORS.primary,
-                }}
-              >
-                {t("apply_promo")}
-              </Text>
-              <Ionicons
-                name={isRTL ? "chevron-back" : "chevron-forward"}
-                size={16}
-                color={COLORS.primary}
-              />
-            </View>
-          </TouchableOpacity> */}
-        </View>
+            {/* Show pricing loading indicator */}
+            {priceLoading && (
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <ActivityIndicator
+                  size="small"
+                  color={COLORS.primary}
+                  style={{ marginRight: 4 }}
+                />
+                <Text
+                  style={{
+                    fontSize: responsiveFontSize(1.2),
+                    color: COLORS.primary,
+                    fontFamily: FONTS.regular,
+                  }}
+                >
+                  {t("fetching_prices")}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : null}
       </View>
     </View>
   );

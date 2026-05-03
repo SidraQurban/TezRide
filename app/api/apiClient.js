@@ -10,7 +10,7 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor to add the JWT token to headers
+// ── Request interceptor — attach JWT to every request ─────────────────────
 apiClient.interceptors.request.use(
   async (config) => {
     const token = await storage.getItem('jwToken');
@@ -19,11 +19,10 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
+// ── 401 token-refresh queue ────────────────────────────────────────────────
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -35,63 +34,77 @@ const processQueue = (error, token = null) => {
       prom.resolve(token);
     }
   });
-
   failedQueue = [];
 };
 
-// Response interceptor for consistent error handling
+// ── Response interceptor — unwrap data, handle 401 refresh ────────────────
 apiClient.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
+  // Success: return the inner `data` object directly
+  (response) => response.data,
+
   async (error) => {
     const originalRequest = error.config;
 
+    // ── 401 Unauthorized — try to refresh the access token once ───────────
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // If a refresh is already in-flight, queue this request
       if (isRefreshing) {
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers['Authorization'] = 'Bearer ' + token;
+          .then((newToken) => {
+            originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
             return apiClient(originalRequest);
           })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        const { authService } = require('./authService');
+        // Lazy-import to avoid circular dependency
+        const { default: authService } = require('./authService');
         const newToken = await authService.refreshToken();
+
         processQueue(null, newToken);
-        originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
+        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
+        // Refresh failed — clear session and force re-login
         processQueue(refreshError, null);
+
+        try {
+          const { default: authService } = require('./authService');
+          await authService.logout();
+        } catch (_) {
+          // Ensure we clear tokens even if authService throws
+          await storage.removeItem('jwToken');
+          await storage.removeItem('refreshToken');
+        }
+
+        console.error('[apiClient] Token refresh failed. User logged out.');
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
 
+    // ── Other HTTP errors — normalise the error message ───────────────────
     let errorMessage = 'Something went wrong';
 
     if (error.response) {
-      // Server responded with a status code outside the 2xx range
-      errorMessage = error.response.data?.message || error.response.data?.Message || error.message;
+      errorMessage =
+        error.response.data?.message ||
+        error.response.data?.Message ||
+        error.message;
     } else if (error.request) {
-      // Request was made but no response was received
-      errorMessage = 'No response from server. Please check your internet.';
+      errorMessage = 'No response from server. Please check your internet connection.';
     } else {
-      // Something happened in setting up the request
       errorMessage = error.message;
     }
 
-    console.error('API Error:', errorMessage);
+    console.error('[apiClient] Error:', errorMessage);
     return Promise.reject({ message: errorMessage });
   }
 );

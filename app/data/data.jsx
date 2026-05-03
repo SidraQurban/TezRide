@@ -9,13 +9,13 @@ const data = [
     _id: "2",
     title: "onboard_title2",
     description: "onboard_desc2",
-    img: require("../../assets/2nd.png"),
+    img: require("../../assets/3rd.png"),
   },
   {
     _id: "3",
     title: "onboard_title3",
     description: "onboard_desc3",
-    img: require("../../assets/3rd.png"),
+    img: require("../../assets/2nd.png"),
   },
 ];
 export default data;

@@ -1,17 +1,16 @@
-import { View, Text } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { View, ActivityIndicator } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
+
 import OnboardingScreen from "../screens/OnboardingScreen";
 import LoginScreen from "../screens/LoginScreen";
 import VerifyCodeScreen from "../screens/VerifyCodeScreen";
 import DrawerNavigator from "./DrawerNavigator";
 import SearchScreen from "../screens/SearchScreen";
 import LocationDetailsScreen from "../screens/LocationDetailsScreen";
-// import SelectRideScreen from "../screens/SelectRideScreen";
 import PromoScreen from "../screens/PromoScreen";
-// import PaymentMethodScreen from "../screens/PaymentMethodScreen";
 import SearchingDirection from "../screens/SearchingDirection";
 import ConfirmRideScreen from "../screens/ConfirmRideScreen";
 import DriverProfileScreen from "../screens/DriverProfileScreen";
@@ -21,16 +20,49 @@ import HireDriverScreen from "../screens/HireDriverScreen";
 import SearchDriverScreen from "../screens/SearchDriverScreen";
 import CargoScreen from "../screens/CargoScreen";
 
-// import ShopDetailScreen from "../screens/ShopDetailScreen";
+import authService from "../api/authService";
+import { COLORS } from "../constants";
 
 const Stack = createNativeStackNavigator();
+
 const AppNavigator = () => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language?.startsWith("ur");
 
+  // Determine the correct initial route based on stored token
+  const [initialRoute, setInitialRoute] = useState(null); // null = loading
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const authenticated = await authService.isAuthenticated();
+        setInitialRoute(authenticated ? "MainDrawer" : "Onboarding");
+      } catch {
+        setInitialRoute("Onboarding");
+      }
+    })();
+  }, []);
+
+  // Show a neutral splash while we check storage
+  if (initialRoute === null) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: COLORS.background,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
+        initialRouteName={initialRoute}
         screenOptions={{
           headerShown: false,
           contentStyle: { direction: isRtl ? "rtl" : "ltr" },
@@ -48,20 +80,11 @@ const AppNavigator = () => {
         <Stack.Screen name="Delivery" component={DeliveryScreen} />
         <Stack.Screen name="HireDriver" component={HireDriverScreen} />
         <Stack.Screen name="Shops" component={ShopsScreen} />
-        {/* <Stack.Screen name="ShopDetail" component={ShopDetailScreen} /> */}
         <Stack.Screen name="Cargo" component={CargoScreen} />
-        <Stack.Screen
-          name="LocationDetails"
-          component={LocationDetailsScreen}
-        />
-        {/* <Stack.Screen name="SelectRide" component={SelectRideScreen} /> */}
+        <Stack.Screen name="LocationDetails" component={LocationDetailsScreen} />
         <Stack.Screen name="Promo" component={PromoScreen} />
-        {/* <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} /> */}
         <Stack.Screen name="ConfirmRide" component={ConfirmRideScreen} />
-        <Stack.Screen
-          name="SearchingDirection"
-          component={SearchingDirection}
-        />
+        <Stack.Screen name="SearchingDirection" component={SearchingDirection} />
         <Stack.Screen name="DriverProfile" component={DriverProfileScreen} />
         <Stack.Screen name="SearchDriver" component={SearchDriverScreen} />
       </Stack.Navigator>

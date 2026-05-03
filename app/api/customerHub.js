@@ -3,94 +3,176 @@ import storage from '../utils/storage';
 
 const HUB_URL = 'https://api.tezride.pk/hubs/customers';
 
+// Maximum network-error retries (does NOT apply to auth failures)
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 5000;
+
 class CustomerHub {
   constructor() {
     this.connection = null;
     this.callbacks = {};
+    this._retryCount = 0;
   }
 
   async start() {
-    if (this.connection && this.connection.state === signalR.HubConnectionState.Connected) {
+    // Already connected — nothing to do
+    if (
+      this.connection &&
+      this.connection.state === signalR.HubConnectionState.Connected
+    ) {
       return;
     }
 
     const token = await storage.getItem('jwToken');
-    
-    if (!token || token === "mock-dev-token") {
-      this.isMock = (token === "mock-dev-token");
+
+    if (!token) {
+      console.warn('[CustomerHub] No auth token found — hub will not connect.');
       return;
     }
-    
+
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
-        accessTokenFactory: () => token,
+        accessTokenFactory: () => storage.getItem('jwToken'), // always fetches latest token
       })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Information)
+      // Disable automatic reconnect — we manage retries manually so we can
+      // distinguish 401 (auth error, stop) from network errors (retry).
+      .withAutomaticReconnect([0, 2000, 5000, 10000])
+      .configureLogging(signalR.LogLevel.Warning)
       .build();
 
-    // Register event listeners
-    this.registerListeners();
+    // Register all server → client event listeners
+    this._registerListeners();
 
     try {
       await this.connection.start();
-      console.log('SignalR CustomerHub connected.');
+      this._retryCount = 0; // reset on successful connect
+      console.log('[CustomerHub] Connected.');
     } catch (err) {
-      console.error('SignalR Connection Error: ', err);
-      // Only retry if we still have a token
-      const currentToken = await storage.getItem('jwToken');
-      if (currentToken) {
-        setTimeout(() => this.start(), 5000); // Retry after 5s
+      const errMsg = err?.message || String(err);
+
+      // 401 = token rejected by server — do NOT retry, token is invalid
+      if (errMsg.includes('401') || errMsg.includes('Unauthorized')) {
+        console.warn(
+          '[CustomerHub] 401 Unauthorized — token invalid or expired. Not retrying.'
+        );
+        this.connection = null;
+        return;
+      }
+
+      // Network / transient error — retry with cap
+      if (this._retryCount < MAX_RETRIES) {
+        this._retryCount++;
+        console.warn(
+          `[CustomerHub] Connection failed (attempt ${this._retryCount}/${MAX_RETRIES}). Retrying in ${RETRY_DELAY_MS / 1000}s...`
+        );
+        setTimeout(() => this.start(), RETRY_DELAY_MS);
+      } else {
+        console.error(
+          '[CustomerHub] Max retries reached. Hub will not reconnect automatically.'
+        );
+        this._retryCount = 0;
+        this.connection = null;
       }
     }
   }
 
-  registerListeners() {
-    // A driver accepted the ride
+  _registerListeners() {
+    // ── Server → Client Events ─────────────────────────────────────────────
+
+    // A driver accepted the wave request.
+    // Payload: { rideId, driverInfo: NearbyDriverDto }
     this.connection.on('driver_interested', (payload) => {
-      this.trigger('driver_interested', payload);
+      console.log('[CustomerHub] driver_interested:', payload);
+      this._trigger('driver_interested', payload);
     });
 
-    // Customer confirmed a driver
+    // Final confirmation of the chosen driver.
+    // Payload: { rideId, driverId }
     this.connection.on('ride_assigned', (payload) => {
-      this.trigger('ride_assigned', payload);
+      console.log('[CustomerHub] ride_assigned:', payload);
+      this._trigger('ride_assigned', payload);
     });
 
-    // Search failed (all waves exhausted OR timeout)
+    // Ride finalized with fare receipt.
+    // Payload: { rideId, finalFare, currency }
+    this.connection.on('ride_completed', (payload) => {
+      console.log('[CustomerHub] ride_completed:', payload);
+      this._trigger('ride_completed', payload);
+    });
+
+    // All waves exhausted — no driver found.
+    // Payload: { rideId }
     this.connection.on('no_drivers_found', (payload) => {
-      this.trigger('no_drivers_found', payload);
+      console.log('[CustomerHub] no_drivers_found:', payload);
+      this._trigger('no_drivers_found', payload);
     });
 
-    // Response to SelectDriver (success)
+    // New H3 wave search started.
+    // Payload: { rideId, currentWave, maxWaves, minRing, maxRing }
+    this.connection.on('search_progress', (payload) => {
+      console.log('[CustomerHub] search_progress:', payload);
+      this._trigger('search_progress', payload);
+    });
+
+    // Response to SelectDriver (success).
+    // Payload: { rideId, driverId, success: true }
     this.connection.on('DriverSelected', (payload) => {
-      this.trigger('DriverSelected', payload);
+      console.log('[CustomerHub] DriverSelected:', payload);
+      this._trigger('DriverSelected', payload);
     });
 
-    // Response to SelectDriver (failure)
+    // Response to SelectDriver (failure).
+    // Payload: { rideId, reason }
     this.connection.on('SelectDriverFailed', (payload) => {
-      this.trigger('SelectDriverFailed', payload);
+      console.log('[CustomerHub] SelectDriverFailed:', payload);
+      this._trigger('SelectDriverFailed', payload);
     });
 
-    // Response to CancelRide
+    // Response to CancelRide.
+    // Payload: { rideId, success: true }
     this.connection.on('RideCancelled', (payload) => {
-      this.trigger('RideCancelled', payload);
+      console.log('[CustomerHub] RideCancelled:', payload);
+      this._trigger('RideCancelled', payload);
     });
   }
 
-  // Client-to-Server Methods
+  // ── Client → Server Methods ──────────────────────────────────────────────
+
+  /**
+   * Finalises the choice of driver.
+   * @param {string} rideId
+   * @param {string} driverId
+   */
   async selectDriver(rideId, driverId) {
-    if (this.connection) {
-      return this.connection.invoke('SelectDriver', rideId, driverId);
+    if (!this.isConnected()) {
+      console.warn('[CustomerHub] selectDriver: not connected.');
+      return;
     }
+    return this.connection.invoke('SelectDriver', rideId, driverId);
   }
 
+  /**
+   * Aborts an active searching process.
+   * @param {string} rideId
+   */
   async cancelRide(rideId) {
-    if (this.connection) {
-      return this.connection.invoke('CancelRide', rideId);
+    if (!this.isConnected()) {
+      console.warn('[CustomerHub] cancelRide: not connected.');
+      return;
     }
+    return this.connection.invoke('CancelRide', rideId);
   }
 
-  // Event Management
+  /** Returns true when the hub is actively connected. */
+  isConnected() {
+    return (
+      this.connection !== null &&
+      this.connection.state === signalR.HubConnectionState.Connected
+    );
+  }
+
+  // ── Event Management ─────────────────────────────────────────────────────
+
   on(event, callback) {
     if (!this.callbacks[event]) {
       this.callbacks[event] = [];
@@ -100,21 +182,29 @@ class CustomerHub {
 
   off(event, callback) {
     if (this.callbacks[event]) {
-      this.callbacks[event] = this.callbacks[event].filter(cb => cb !== callback);
+      this.callbacks[event] = this.callbacks[event].filter(
+        (cb) => cb !== callback
+      );
     }
   }
 
-  trigger(event, payload) {
+  _trigger(event, payload) {
     if (this.callbacks[event]) {
-      this.callbacks[event].forEach(callback => callback(payload));
+      this.callbacks[event].forEach((cb) => cb(payload));
     }
   }
 
   async stop() {
     if (this.connection) {
-      await this.connection.stop();
+      try {
+        await this.connection.stop();
+      } catch (_) {
+        // Ignore errors when stopping
+      }
       this.connection = null;
+      console.log('[CustomerHub] Disconnected.');
     }
+    this._retryCount = 0;
   }
 }
 

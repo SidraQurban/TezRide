@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import {
   responsiveFontSize,
@@ -40,6 +43,7 @@ const HireDriverScreen = () => {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
+  const scrollViewRef = useRef(null);
 
   // Places autocomplete state
   const [predictions, setPredictions] = useState([]);
@@ -200,7 +204,7 @@ const HireDriverScreen = () => {
   };
 
 
-  const driverRate = 150;
+  const [driverRate, setDriverRate] = useState(150);
 
   const formatTime = (date) => {
     let hours = date.getHours();
@@ -228,168 +232,185 @@ const HireDriverScreen = () => {
         paddingHorizontal: responsiveWidth(4),
       }}
     >
-      <View>
-        <BackBtn />
-      </View>
-
-      {/* ── Pickup input with autocomplete ─────────────────────── */}
-      <View style={{ zIndex: 999 }}>
-        <View
-          style={{
-            backgroundColor: COLORS.white,
-            borderRadius: responsiveWidth(3),
-            padding: responsiveHeight(1),
-            elevation: 3,
-            borderWidth: 1,
-            borderColor: COLORS.primary,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Ionicons name="location-outline" size={20} color={COLORS.icon} />
-            <TextInput
-              placeholder={t("enter_pickup")}
-              value={pickup}
-              onChangeText={handlePickupChange}
-              style={{
-                flex: 1,
-                marginLeft: responsiveWidth(2),
-                fontSize: responsiveFontSize(1.8),
-                fontFamily: FONTS.medium,
-                paddingVertical: 2,
-                color: COLORS.black,
-                lineHeight: responsiveFontSize(3.5),
-                includeFontPadding: false,
-              }}
-              placeholderTextColor="#999"
-            />
-            {/* spinner: geocoding or search in progress */}
-            {(geoLoading || searchLoading) && (
-              <ActivityIndicator
-                size="small"
-                color={COLORS.primary}
-                style={{ marginRight: responsiveWidth(2) }}
-              />
-            )}
-            {/* clear button */}
-            {pickup.length > 0 && !geoLoading && (
-              <TouchableOpacity
-                onPress={() => {
-                  setPickup("");
-                  setPickupData(null);
-                  setPredictions([]);
-                }}
-              >
-                <Ionicons name="close-circle" size={18} color="#aaa" />
-              </TouchableOpacity>
-            )}
-          </View>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <View>
+          <BackBtn />
         </View>
-
-        {/* ── Autocomplete dropdown — floats OVER content below ─── */}
-        {predictions.length > 0 && (
-          <View
-            style={{
-              position: "absolute",
-              top: "100%",
-              left: 0,
-              right: 0,
-              backgroundColor: COLORS.white,
-              borderRadius: responsiveWidth(2),
-              elevation: 20,
-              zIndex: 999,
-              shadowColor: "#000",
-              shadowOpacity: 0.15,
-              shadowOffset: { width: 0, height: 4 },
-              shadowRadius: 6,
-              maxHeight: responsiveHeight(30),
-              marginTop: 4,
-              overflow: "hidden",
-            }}
-          >
-            <FlatList
-              data={predictions}
-              keyExtractor={(item) => item.place_id}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item, index }) => (
-                <TouchableOpacity
-                  onPress={() => handleSelectPrediction(item)}
+        <ScrollView
+          ref={scrollViewRef}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 350 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* ── Pickup input with autocomplete ─────────────────────── */}
+          <View style={{ zIndex: 999 }}>
+            <View
+              style={{
+                backgroundColor: COLORS.white,
+                borderRadius: responsiveWidth(3),
+                padding: responsiveHeight(1),
+                elevation: 3,
+                borderWidth: 1,
+                borderColor: COLORS.primary,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="location-outline" size={20} color={COLORS.icon} />
+                <TextInput
+                  placeholder={t("enter_pickup")}
+                  value={pickup}
+                  onChangeText={handlePickupChange}
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingVertical: responsiveHeight(1.2),
-                    paddingHorizontal: responsiveWidth(3),
-                    borderBottomWidth: index !== predictions.length - 1 ? 1 : 0,
-                    borderBottomColor: "#F0F0F0",
+                    flex: 1,
+                    marginLeft: responsiveWidth(2),
+                    fontSize: responsiveFontSize(1.8),
+                    fontFamily: FONTS.medium,
+                    paddingVertical: 2,
+                    color: COLORS.black,
+                    lineHeight: responsiveFontSize(3.5),
+                    includeFontPadding: false,
                   }}
-                >
-                  <Ionicons
-                    name="location-sharp"
-                    size={18}
+                  placeholderTextColor="#999"
+                />
+                {/* spinner: geocoding or search in progress */}
+                {(geoLoading || searchLoading) && (
+                  <ActivityIndicator
+                    size="small"
                     color={COLORS.primary}
                     style={{ marginRight: responsiveWidth(2) }}
                   />
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      numberOfLines={1}
-                      style={{
-                        fontSize: responsiveFontSize(1.8),
-                        fontFamily: FONTS.semiBold,
-                        color: COLORS.black,
-                      }}
-                    >
-                      {item.structured_formatting?.main_text}
-                    </Text>
-                    <Text
-                      numberOfLines={1}
-                      style={{
-                        fontSize: responsiveFontSize(1.5),
-                        fontFamily: FONTS.regular,
-                        color: "#888",
-                        marginTop: 2,
-                      }}
-                    >
-                      {item.structured_formatting?.secondary_text
-                        ?.split(",")
-                        .slice(0, -2)
-                        .join(",")
-                        .trim() ||
-                        item.structured_formatting?.secondary_text?.split(",")[0]}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        )}
-      </View>
+                )}
+                {/* clear button */}
+                {pickup.length > 0 && !geoLoading && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setPickup("");
+                      setPickupData(null);
+                      setPredictions([]);
+                    }}
+                  >
+                    <Ionicons name="close-circle" size={18} color="#aaa" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
 
-      <CurrentLocation onPress={fetchCurrentLocation} />
-      <VehicleType />
-      <TimeSelector
-        timeOptions={timeOptions}
-        time={time}
-        setTime={setTime}
-        startTime={startTime}
-        setStartTime={setStartTime}
-        endTime={endTime}
-        setEndTime={setEndTime}
-        showStartPicker={showStartPicker}
-        setShowStartPicker={setShowStartPicker}
-        showEndPicker={showEndPicker}
-        setShowEndPicker={setShowEndPicker}
-        formatTime={formatTime}
-      />
-      <DriverPreference
-        driverPreferences={driverPreferences}
-        gender={gender}
-        setGender={setGender}
-      />
-      <RateInfo
-        driverRate={driverRate}
-        duration={duration}
-        totalPrice={totalPrice}
-      />
+            {/* ── Autocomplete dropdown — floats OVER content below ─── */}
+            {predictions.length > 0 && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  backgroundColor: COLORS.white,
+                  borderRadius: responsiveWidth(2),
+                  elevation: 20,
+                  zIndex: 999,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.15,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowRadius: 6,
+                  maxHeight: responsiveHeight(30),
+                  marginTop: 4,
+                  overflow: "hidden",
+                }}
+              >
+                <FlatList
+                  data={predictions}
+                  keyExtractor={(item) => item.place_id}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item, index }) => (
+                    <TouchableOpacity
+                      onPress={() => handleSelectPrediction(item)}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingVertical: responsiveHeight(1.2),
+                        paddingHorizontal: responsiveWidth(3),
+                        borderBottomWidth: index !== predictions.length - 1 ? 1 : 0,
+                        borderBottomColor: "#F0F0F0",
+                      }}
+                    >
+                      <Ionicons
+                        name="location-sharp"
+                        size={18}
+                        color={COLORS.primary}
+                        style={{ marginRight: responsiveWidth(2) }}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: responsiveFontSize(1.8),
+                            fontFamily: FONTS.semiBold,
+                            color: COLORS.black,
+                          }}
+                        >
+                          {item.structured_formatting?.main_text}
+                        </Text>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: responsiveFontSize(1.5),
+                            fontFamily: FONTS.regular,
+                            color: "#888",
+                            marginTop: 2,
+                          }}
+                        >
+                          {item.structured_formatting?.secondary_text
+                            ?.split(",")
+                            .slice(0, -2)
+                            .join(",")
+                            .trim() ||
+                            item.structured_formatting?.secondary_text?.split(",")[0]}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            )}
+          </View>
+
+          <CurrentLocation onPress={fetchCurrentLocation} />
+          <VehicleType />
+          <TimeSelector
+            timeOptions={timeOptions}
+            time={time}
+            setTime={setTime}
+            startTime={startTime}
+            setStartTime={setStartTime}
+            endTime={endTime}
+            setEndTime={setEndTime}
+            showStartPicker={showStartPicker}
+            setShowStartPicker={setShowStartPicker}
+            showEndPicker={showEndPicker}
+            setShowEndPicker={setShowEndPicker}
+            formatTime={formatTime}
+          />
+          <DriverPreference
+            driverPreferences={driverPreferences}
+            gender={gender}
+            setGender={setGender}
+          />
+          <RateInfo
+            driverRate={driverRate}
+            setDriverRate={setDriverRate}
+            duration={duration}
+            totalPrice={totalPrice}
+            onFocus={() => {
+              setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }, 150);
+            }}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <TouchableOpacity
         activeOpacity={0.8}

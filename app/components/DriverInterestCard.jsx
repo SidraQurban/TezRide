@@ -77,29 +77,46 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Image
-          source={{ uri: driver.profileImage || `https://randomuser.me/api/portraits/men/${Math.floor(Math.random() * 90)}.jpg` }}
-          style={{
-            width: responsiveWidth(12),
-            height: responsiveWidth(12),
-            borderRadius: responsiveWidth(6),
-          }}
-        />
+        {driver.profilePicUrl ? (
+          <Image
+            source={{ uri: driver.profilePicUrl }}
+            style={{
+              width: responsiveWidth(12),
+              height: responsiveWidth(12),
+              borderRadius: responsiveWidth(6),
+            }}
+          />
+        ) : (
+          <View
+            style={{
+              width: responsiveWidth(12),
+              height: responsiveWidth(12),
+              borderRadius: responsiveWidth(6),
+              backgroundColor: '#F0F0F0',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Ionicons name="person" size={24} color="#AAA" />
+          </View>
+        )}
         
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text numberOfLines={1} style={{ fontFamily: FONTS.bold, fontSize: responsiveFontSize(1.6) }}>
-            {driver.fullName || `${t("driver")} ${driver.driverId.substring(0, 4)}`}
+            {driver.driverName || t("driver")}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, justifyContent: 'space-between' }}>
              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                {driver.price && (
                  <Text style={{ fontFamily: FONTS.bold, fontSize: responsiveFontSize(1.6), color: COLORS.primary }}>
-                   Rs. {driver.price}
+                   {t("currency")} {driver.price}
                  </Text>
                )}
-               <Text style={{ color: '#8A8A8A', fontSize: 11, marginLeft: 8 }} numberOfLines={1}>
-                 • {driver.distanceKm?.toFixed(1)} km
-               </Text>
+               {driver.distanceKm !== undefined && driver.distanceKm !== null && (
+                 <Text style={{ color: '#8A8A8A', fontSize: 11, marginLeft: 8 }} numberOfLines={1}>
+                   • {driver.distanceKm.toFixed(1)} {t("km")}
+                 </Text>
+               )}
              </View>
           </View>
         </View>
