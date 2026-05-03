@@ -48,6 +48,11 @@ const MapComponent = memo(({
     }
   }, [routeCoords]);
 
+  // Clear visual route immediately when pickup or destination changes
+  useEffect(() => {
+    setVisibleCoords([]);
+  }, [pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude]);
+
   // Handle drawing animation whenever routeCoords changes or component mounts with them
   useEffect(() => {
     if (showRoute && routeCoords && routeCoords.length > 1) {
@@ -199,10 +204,10 @@ const MapComponent = memo(({
           />
         )}
 
-        {showRoute && visibleCoords.length > 1 && (
+        {showRoute && (
           <Polyline
-            key={`route-${visibleCoords.length}-${pickup?.latitude}-${destination?.latitude}`}
-            coordinates={visibleCoords}
+            key="animated-route"
+            coordinates={visibleCoords.length > 1 ? visibleCoords : []}
             strokeWidth={4}
             strokeColor={COLORS.primary}
             lineCap="round"

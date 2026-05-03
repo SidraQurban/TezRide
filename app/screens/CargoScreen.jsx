@@ -22,6 +22,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
+import { useRide } from "../context/RideContext";
 
 // MODULAR COMPONENTS
 import CargoPackageDetails from "../components/CargoPackageDetails";
@@ -41,6 +42,7 @@ const CargoScreen = () => {
   const [activeField, setActiveField] = useState("pickup");
   const [loading, setLoading] = useState(false);
   const [sessionToken, setSessionToken] = useState("");
+  const { setRouteCoords } = useRide();
 
   const [selectedCategory, setSelectedCategory] = useState("large_parcel");
   const [selectedVehicle, setSelectedVehicle] = useState("car");
@@ -92,6 +94,7 @@ const CargoScreen = () => {
         const { lat, lng } = json.result.geometry.location;
         const coords = { latitude: lat, longitude: lng };
 
+        setRouteCoords([]); // Clear old route immediately
         if (activeField === "pickup") setPickupCoords(coords);
         else setDestinationCoords(coords);
       }
@@ -143,6 +146,7 @@ const CargoScreen = () => {
               setPickup(destination);
               setDestination(temp);
 
+              setRouteCoords([]); // Clear old route immediately
               const tempCoords = pickupCoords;
               setPickupCoords(destinationCoords);
               setDestinationCoords(tempCoords);
