@@ -8,6 +8,7 @@ import { COLORS } from "../constants";
 import { responsiveHeight, responsiveWidth } from "react-native-responsive-dimensions";
 import * as ExpoLocation from "expo-location";
 import { useRide } from "../context/RideContext";
+import { useIsFocused } from "@react-navigation/native";
 
 const DEFAULT_REGION = {
   latitude: 24.8607,
@@ -23,10 +24,12 @@ const MapComponent = memo(({
   showRoute = true,
   animateZoomOut = false, 
   showPickupMarker = false, 
+  disablePolyline = false,
   onRouteReady 
 }) => {
   const { t } = useTranslation();
   const mapRef = useRef(null);
+  const isFocused = useIsFocused();
   const { routeCoords, setRouteCoords, pickup: ctxPickup, destination: ctxDestination } = useRide();
   
   // Use context as the source of truth for better persistence, but respect explicit nulls
@@ -204,9 +207,9 @@ const MapComponent = memo(({
           />
         )}
 
-        {showRoute && (
+        {showRoute && !disablePolyline && (
           <Polyline
-            key="animated-route"
+            key={`animated-route-${isFocused ? 'focused' : 'blurred'}`}
             coordinates={visibleCoords.length > 1 ? visibleCoords : []}
             strokeWidth={4}
             strokeColor={COLORS.primary}

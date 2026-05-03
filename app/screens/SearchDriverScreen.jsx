@@ -115,7 +115,7 @@ const SearchDriverScreen = ({ route }) => {
             pickup={pickup}
             showMarkers={false}
             showPickupMarker={true}
-            hidePolyline={true}
+            disablePolyline={true}
             animateZoomOut={true}
           />
 
