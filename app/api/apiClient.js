@@ -63,9 +63,22 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Lazy-import to avoid circular dependency
+        const storedRefreshToken = await storage.getItem('refreshToken');
+        if (!storedRefreshToken) throw new Error('No refresh token stored');
+
+        // Use a clean axios instance for the refresh call to avoid recursive interceptor loops
+        const response = await axios.post(
+          `${BASE_URL}/api/Account/refresh-token?refreshToken=${encodeURIComponent(storedRefreshToken)}`
+        );
+
+        const { succeeded, data } = response.data;
+        if (!succeeded || !data?.jwToken) {
+          throw new Error('Server rejected refresh token');
+        }
+
+        const newToken = data.jwToken;
         const { default: authService } = require('./authService');
-        const newToken = await authService.refreshToken();
+        await authService._persistSession(data, false); // persist without restarting hub
 
         processQueue(null, newToken);
         originalRequest.headers['Authorization'] = `Bearer ${newToken}`;

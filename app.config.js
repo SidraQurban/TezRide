@@ -6,7 +6,7 @@ module.exports = {
     "slug": "TezRide",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/applogo.png",
+    "icon": "./assets/applogo.jpeg",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/logoo.png",

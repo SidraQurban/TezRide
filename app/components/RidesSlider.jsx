@@ -268,7 +268,7 @@ const RidesSlider = ({
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: responsiveHeight(0.5),
+            // marginBottom: responsiveHeight(0.5),
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>

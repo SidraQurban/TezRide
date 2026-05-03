@@ -32,12 +32,19 @@ class CustomerHub {
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
-        accessTokenFactory: () => storage.getItem('jwToken'), // always fetches latest token
+        accessTokenFactory: () => storage.getItem('jwToken'),
+        // Force WebSockets and skip negotiation for better reliability in production
+        transport: signalR.HttpTransportType.WebSockets,
+        skipNegotiation: true,
       })
-      // Disable automatic reconnect — we manage retries manually so we can
-      // distinguish 401 (auth error, stop) from network errors (retry).
-      .withAutomaticReconnect([0, 2000, 5000, 10000])
-      .configureLogging(signalR.LogLevel.Warning)
+      .withAutomaticReconnect({
+        nextRetryDelayInMilliseconds: (retryContext) => {
+          if (retryContext.previousRetryCount < 3) return 2000;
+          if (retryContext.previousRetryCount < 10) return 5000;
+          return null; // stop after 10 attempts
+        },
+      })
+      .configureLogging(signalR.LogLevel.Information)
       .build();
 
     // Register all server → client event listeners

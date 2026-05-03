@@ -4,7 +4,7 @@
     "slug": "TezRide",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/applogo.png",
+    "icon": "./assets/applogo.jpeg",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/logoo.png",
@@ -17,11 +17,22 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FF5C00",
-        "foregroundImage": "./assets/applogo.png",
+        "foregroundImage": "./assets/applogo.jpeg",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.anonymous.TezRide"
+      "package": "com.anonymous.TezRide",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCIbaIdCvCWhGMU8ZvtxDF2DUMIkjYylmU" 
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

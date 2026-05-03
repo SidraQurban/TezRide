@@ -115,7 +115,7 @@ const authService = {
    *
    * @param {AuthDto} data  – The `data` field from the API response
    */
-  _persistSession: async (data) => {
+  _persistSession: async (data, shouldRestartHub = true) => {
     await storage.setItem('jwToken', data.jwToken);
     await storage.setItem('refreshToken', data.refreshToken);
     await storage.setItem('userId', data.id);
@@ -131,14 +131,17 @@ const authService = {
 
     console.log('[Auth] Session persisted. userId:', data.id);
 
-    // Start (or restart) the SignalR hub with the fresh token
-    try {
-      const { default: customerHub } = require('./customerHub');
-      // Stop any existing connection first so registerListeners isn't called twice
-      await customerHub.stop();
-      await customerHub.start();
-    } catch (_) {
-      // Hub start failures are handled inside customerHub.start()
+    // Only restart the hub if explicitly requested (e.g., on initial login)
+    // Background refreshes should NOT restart the hub as the HubConnection
+    // handles token retrieval via accessTokenFactory.
+    if (shouldRestartHub) {
+      try {
+        const { default: customerHub } = require('./customerHub');
+        await customerHub.stop();
+        await customerHub.start();
+      } catch (_) {
+        // Hub start failures are handled inside customerHub.start()
+      }
     }
   },
 };

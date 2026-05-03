@@ -24,7 +24,6 @@ import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "@react-navigation/native";
-import { useRide } from "../context/RideContext";
 
 const DeliveryScreen = () => {
   const { t, i18n } = useTranslation();
@@ -44,7 +43,6 @@ const DeliveryScreen = () => {
   const [loading, setLoading] = useState(false);
   const [activeField, setActiveField] = useState("pickup");
   const [sessionToken, setSessionToken] = useState("");
-  const { setRouteCoords } = useRide();
 
   const debounceTimeout = useRef(null);
 
@@ -86,7 +84,6 @@ const DeliveryScreen = () => {
       if (json.status === "OK") {
         const { lat, lng } = json.result.geometry.location;
         const coords = { latitude: lat, longitude: lng };
-        setRouteCoords([]); // Clear old route immediately
         if (activeField === "pickup") setPickup(coords);
         else setDestination(coords);
       }
