@@ -19,7 +19,7 @@ module.exports = {
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FF5C00",
-        "foregroundImage": "./assets/applogo.png",
+        "foregroundImage": "./assets/applogo.jpeg",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },

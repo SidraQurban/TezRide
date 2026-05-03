@@ -100,22 +100,30 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
               {t("current_location")}
             </Text>
 
-            <TextInput
-              style={{
-                color: COLORS.black,
-                fontSize: responsiveFontSize(1.6),
-                fontFamily: FONTS.regular,
-                padding: 0,
-                textAlign: isUrdu ? "right" : "left",
-                writingDirection: isUrdu ? "rtl" : "ltr",
-              }}
-              value={pickupAddress}
-              onChangeText={(text) => onTextChange(text, "pickup")}
-              multiline={false}
-              placeholder={t("pickup_placeholder")}
-              placeholderTextColor="#888"
-              ellipsizeMode="tail"
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
+                style={{
+                  color: COLORS.black,
+                  fontSize: responsiveFontSize(1.6),
+                  fontFamily: FONTS.regular,
+                  padding: 0,
+                  textAlign: isUrdu ? "right" : "left",
+                  writingDirection: isUrdu ? "rtl" : "ltr",
+                  flex: 1,
+                }}
+                value={pickupAddress}
+                onChangeText={(text) => onTextChange(text, "pickup")}
+                multiline={false}
+                placeholder={t("pickup_placeholder")}
+                placeholderTextColor="#888"
+                ellipsizeMode="tail"
+              />
+              {pickupAddress?.length > 0 && (
+                <TouchableOpacity onPress={() => onTextChange("", "pickup")} style={{ padding: 4 }}>
+                  <Ionicons name="close-circle" size={18} color="#CCC" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           {!isUrdu && (
@@ -146,22 +154,29 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
           >
             {t("home")}
           </Text>
-          <TextInput
-            style={{
-              color: COLORS.black,
-              fontSize: responsiveFontSize(1.6),
-              fontFamily: FONTS.regular,
-              padding: 0,
-              width: "100%",
-              textAlign: isUrdu ? "right" : "left",
-              writingDirection: isUrdu ? "rtl" : "ltr",
-            }}
-            value={homeAddress}
-            onChangeText={(text) => onTextChange(text, "home")}
-            multiline={false}
-            placeholder={t("home_placeholder")}
-            placeholderTextColor="#888"
-          />
+          <View style={{ flexDirection: "row", alignItems: "center", width: "100%" }}>
+            <TextInput
+              style={{
+                color: COLORS.black,
+                fontSize: responsiveFontSize(1.6),
+                fontFamily: FONTS.regular,
+                padding: 0,
+                flex: 1,
+                textAlign: isUrdu ? "right" : "left",
+                writingDirection: isUrdu ? "rtl" : "ltr",
+              }}
+              value={homeAddress}
+              onChangeText={(text) => onTextChange(text, "home")}
+              multiline={false}
+              placeholder={t("home_placeholder")}
+              placeholderTextColor="#888"
+            />
+            {homeAddress?.length > 0 && (
+              <TouchableOpacity onPress={() => onTextChange("", "home")} style={{ padding: 4 }}>
+                <Ionicons name="close-circle" size={18} color="#CCC" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Confirm button */}

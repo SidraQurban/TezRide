@@ -259,6 +259,9 @@ const SearchingDirection = ({ route }) => {
     if (selected) {
         setAssignedDriver(selected);
         setActiveRide({ status: "driver_selected", assignedDriver: selected });
+        
+        // Immediately expand the bottom sheet to show the driver details (ArrivingCard)
+        bottomSheetRef.current?.snapToIndex(2);
     }
 
     selectionSentRef.current = true; // lock immediately to prevent race conditions

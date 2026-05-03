@@ -5,6 +5,7 @@ import { COLORS, FONTS } from "../constants/theme";
 import {
   responsiveFontSize,
   responsiveHeight,
+  responsiveWidth,
 } from "react-native-responsive-dimensions";
 import { useTranslation } from "react-i18next";
 
@@ -68,25 +69,39 @@ const SearchInput = ({
               {t("from_location")}
             </Text>
 
-            <TextInput
-              ref={pickupRef}
-              placeholder={t("enter_pickup")}
-              placeholderTextColor="#999"
-              value={pickup}
-              onChangeText={setPickup}
-              onFocus={onFocusPickup}
-              returnKeyType="search"
-              onSubmitEditing={() => setPickup(pickup.trim())}
-              style={{
-                fontSize: responsiveFontSize(1.8),
-                fontFamily: FONTS.medium,
-                paddingVertical: 2,
-                color: COLORS.black,
-                textAlign: isUrdu ? "right" : "left",
-                writingDirection: isUrdu ? "rtl" : "ltr",
-                width: "100%",
-              }}
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
+                ref={pickupRef}
+                placeholder={t("enter_pickup")}
+                placeholderTextColor="#999"
+                value={pickup}
+                onChangeText={setPickup}
+                onFocus={onFocusPickup}
+                returnKeyType="search"
+                onSubmitEditing={() => setPickup(pickup.trim())}
+                style={{
+                  fontSize: responsiveFontSize(1.8),
+                  fontFamily: FONTS.medium,
+                  paddingVertical: 2,
+                  color: COLORS.black,
+                  textAlign: isUrdu ? "right" : "left",
+                  writingDirection: isUrdu ? "rtl" : "ltr",
+                  flex: 1,
+                }}
+              />
+              {pickup?.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setPickup("")}
+                  style={{
+                    padding: 6,
+                    justifyContent: "center",
+                    // marginLeft: responsiveWidth(10),
+                  }}
+                >
+                  <Ionicons name="close-circle" size={18} color="#CCC" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
 
@@ -126,25 +141,35 @@ const SearchInput = ({
               {t("to_location")}
             </Text>
 
-            <TextInput
-              ref={destinationRef}
-              placeholder={t("enter_destination")}
-              placeholderTextColor="#999"
-              value={destination}
-              onChangeText={setDestination}
-              onFocus={onFocusDestination}
-              returnKeyType="search"
-              onSubmitEditing={() => setDestination(destination.trim())}
-              style={{
-                fontSize: responsiveFontSize(1.8),
-                fontFamily: FONTS.medium,
-                paddingVertical: 2,
-                color: COLORS.black,
-                textAlign: isUrdu ? "right" : "left",
-                writingDirection: isUrdu ? "rtl" : "ltr",
-                width: "100%",
-              }}
-            />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextInput
+                ref={destinationRef}
+                placeholder={t("enter_destination")}
+                placeholderTextColor="#999"
+                value={destination}
+                onChangeText={setDestination}
+                onFocus={onFocusDestination}
+                returnKeyType="search"
+                onSubmitEditing={() => setDestination(destination.trim())}
+                style={{
+                  fontSize: responsiveFontSize(1.8),
+                  fontFamily: FONTS.medium,
+                  paddingVertical: 2,
+                  color: COLORS.black,
+                  textAlign: isUrdu ? "right" : "left",
+                  writingDirection: isUrdu ? "rtl" : "ltr",
+                  flex: 1,
+                }}
+              />
+              {destination?.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setDestination("")}
+                  style={{ padding: 6, justifyContent: "center" }}
+                >
+                  <Ionicons name="close-circle" size={18} color="#CCC" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       </View>
@@ -161,6 +186,7 @@ const SearchInput = ({
           justifyContent: "center",
           marginLeft: isUrdu ? 10 : 15,
           marginRight: isUrdu ? 0 : 0,
+          zIndex: 30,
         }}
       >
         <MaterialIcons name="swap-vert" size={20} color={COLORS.primary} />
