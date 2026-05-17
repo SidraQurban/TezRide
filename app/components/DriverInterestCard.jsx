@@ -40,21 +40,20 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
     <Animated.View
       style={{
         transform: [{ translateX: slideAnim }],
-        alignSelf: 'flex-end',
-        width: responsiveWidth(75),
-        marginTop: responsiveHeight(2),
-        marginRight: responsiveWidth(4),
+        alignSelf: 'stretch',
+        width: '100%',
+        marginTop: responsiveHeight(1.5),
         backgroundColor: '#fff',
-        borderRadius: 15,
-        padding: responsiveWidth(3),
-        elevation: 8,
+        borderRadius: 16,
+        padding: responsiveWidth(4),
+        elevation: 6,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#F0F0F0'
+        borderColor: '#EFEFEF'
       }}
     >
       {/* Progress Bar Background */}

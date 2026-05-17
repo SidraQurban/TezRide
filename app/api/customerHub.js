@@ -1,7 +1,9 @@
 import * as signalR from '@microsoft/signalr';
 import storage from '../utils/storage';
 
-const HUB_URL = 'https://api.tezride.pk/hubs/customers';
+const rawBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'https://api.tezride.pk';
+const BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+const HUB_URL = `${BASE_URL}/hubs/customers`;
 
 // Maximum network-error retries (does NOT apply to auth failures)
 const MAX_RETRIES = 3;

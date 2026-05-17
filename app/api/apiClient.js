@@ -1,7 +1,8 @@
 import axios from 'axios';
 import storage from '../utils/storage';
 
-const BASE_URL = 'https://api.tezride.pk';
+const rawBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'https://api.tezride.pk';
+const BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

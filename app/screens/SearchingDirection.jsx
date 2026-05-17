@@ -33,6 +33,8 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
 import { useTranslation } from "react-i18next";
+import { BlurView } from "expo-blur";
+import * as Haptics from "expo-haptics";
 
 import customerHub from "../api/customerHub";
 import DriverInterestCard from "../components/DriverInterestCard";
@@ -76,6 +78,8 @@ const SearchingDirection = ({ route }) => {
     const handleDriverInterested = (payload) => {
       if (String(payload.rideId) !== String(rideId)) return;
 
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
       setInterestedDrivers((prev) => {
         // Deduplicate by driverId
         const alreadyPresent = prev.find(
@@ -111,6 +115,8 @@ const SearchingDirection = ({ route }) => {
       setAssignedDriver(prev => ({ ...prev, ...driverData }));
       setInterestedDrivers([]);
       setSearchWave(null);
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       // Extract and set starting coordinates of driver immediately if present
       if (driverData) {
@@ -381,6 +387,7 @@ const SearchingDirection = ({ route }) => {
             pickup={pickup}
             destination={destination}
             driverLocation={driverLocation}
+            rideStatus={rideStatus}
             showMarkers={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
             showRoute={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
             showPickupMarker={true}
@@ -473,34 +480,49 @@ const SearchingDirection = ({ route }) => {
 
           {/* DRIVER INTEREST POPUPS - Premium Glassmorphic Overlay */}
           {interestedDrivers.length > 0 && (
-            <View
+            <BlurView
+              intensity={95}
+              tint="light"
               style={{
-                position: "absolute",
-                top: responsiveHeight(8),
+                position: 'absolute',
+                top: responsiveHeight(12),
                 left: 16,
                 right: 16,
                 zIndex: 1000,
-                elevation: 10,
-                maxHeight: responsiveHeight(42),
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                elevation: 12,
+                maxHeight: responsiveHeight(44),
                 borderRadius: 24,
-                padding: 16,
+                padding: 20,
                 borderWidth: 1.5,
-                borderColor: 'rgba(255, 255, 255, 0.6)',
+                borderColor: 'rgba(255, 255, 255, 0.7)',
+                overflow: 'hidden',
                 shadowColor: '#000',
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.18,
-                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.15,
+                shadowRadius: 8,
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: 'green', marginRight: 8, animate: true }} />
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255, 92, 0, 0.08)',
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+                borderRadius: 99,
+                alignSelf: 'center',
+                marginBottom: 16,
+                borderWidth: 1,
+                borderColor: 'rgba(255, 92, 0, 0.15)'
+              }}>
+                <Ionicons name="radar-outline" size={20} color="#FF5C00" style={{ marginRight: 8 }} />
                 <Text style={{
                   fontFamily: FONTS.bold,
-                  fontSize: responsiveFontSize(1.7),
-                  color: '#1A1A1A',
+                  fontSize: responsiveFontSize(2.0),
+                  color: '#FF5C00',
                   textAlign: 'center',
-                  letterSpacing: 0.5
+                  letterSpacing: 0.8,
+                  textTransform: 'uppercase'
                 }}>
                   {t("incoming_offers_title") || "INCOMING DRIVER OFFERS"}
                 </Text>
@@ -518,7 +540,7 @@ const SearchingDirection = ({ route }) => {
                   />
                 ))}
               </ScrollView>
-            </View>
+            </BlurView>
           )}
         </View>
 

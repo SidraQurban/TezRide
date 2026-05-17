@@ -201,6 +201,7 @@
   "search_progress_wave": "Searching wave {{current}} of {{max}}...",
   "ride_completed_title": "Ride Complete!",
   "final_fare_label": "Your final fare",
+  "incoming_offers_title": "Incoming Driver Offers",
   "ok_btn": "OK",
   "km": "km",
   "away": "away",
