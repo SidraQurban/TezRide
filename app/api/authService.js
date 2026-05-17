@@ -39,9 +39,11 @@ const authService = {
    * @returns {{ succeeded: boolean, message: string, data: AuthDto }}
    */
   verifyOTP: async (phoneNumber, otp, role = 'Customer') => {
-    const response = await apiClient.post(
-      `/api/Account/verify-otp?phoneNumber=${encodeURIComponent(phoneNumber)}&otp=${encodeURIComponent(otp)}&role=${encodeURIComponent(role)}`
-    );
+    const response = await apiClient.post('/api/Account/verify-otp', {
+      phoneNumber,
+      otp,
+      role,
+    });
 
     if (response.succeeded && response.data?.jwToken) {
       await authService._persistSession(response.data);
@@ -51,30 +53,92 @@ const authService = {
   },
 
   /**
-   * Step 3 — Exchange a refresh token for a new access token.
-   * POST /api/Account/refresh-token?refreshToken=...
-   *
-   * Called automatically by apiClient's 401 interceptor.
-   *
-   * @returns {string} New jwToken
-   * @throws {Error} If refresh fails (triggers logout)
+   * Safe and robust helper to parse JWT token expiration.
+   */
+  isTokenExpired: (token) => {
+    if (!token) return true;
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return true;
+      const payloadBase64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      
+      let jsonPayload = '';
+      if (typeof atob === 'function') {
+        jsonPayload = atob(payloadBase64);
+      } else {
+        // Safe character-by-character base64 decoding fallback for cross-platform compliance
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+        const str = payloadBase64.replace(/=+$/, '');
+        let buffer = 0;
+        let bits = 0;
+        for (let i = 0; i < str.length; i++) {
+          const idx = chars.indexOf(str.charAt(i));
+          if (idx === -1) continue;
+          buffer = (buffer << 6) | idx;
+          bits += 6;
+          if (bits >= 8) {
+            bits -= 8;
+            jsonPayload += String.fromCharCode((buffer >> bits) & 0xff);
+          }
+        }
+      }
+      
+      const decoded = JSON.parse(jsonPayload);
+      if (!decoded || !decoded.exp) return true;
+      
+      // Use a 60-second early expiry safety cushion
+      const currentTime = Math.floor(Date.now() / 1000);
+      return decoded.exp < (currentTime + 60);
+    } catch (e) {
+      return true;
+    }
+  },
+
+  /**
+   * Ensures the stored access token is valid and fresh.
+   * If expired, silently refreshes using the refresh token.
+   */
+  ensureValidToken: async () => {
+    try {
+      const token = await storage.getItem('jwToken');
+      if (!token) return false;
+
+      if (authService.isTokenExpired(token)) {
+        console.log('[Auth] Token is expired, performing silent refresh...');
+        const refreshedToken = await authService.refreshToken();
+        return !!refreshedToken;
+      }
+      return true;
+    } catch (error) {
+      console.warn('[Auth] Silent startup token validation/refresh failed:', error);
+      await authService.logout();
+      return false;
+    }
+  },
+
+  /**
+   * Refreshes the access token using the stored refresh token.
    */
   refreshToken: async () => {
-    const storedRefreshToken = await storage.getItem('refreshToken');
-    if (!storedRefreshToken) {
-      throw new Error('No refresh token stored. Please log in again.');
+    const token = await storage.getItem('jwToken');
+    const refreshToken = await storage.getItem('refreshToken');
+    if (!refreshToken) throw new Error('No refresh token available');
+
+    try {
+      // Shared backend expects both expired token and refresh token
+      const response = await apiClient.post('/api/Account/refresh-token', { 
+        token, 
+        refreshToken 
+      });
+      if (response.succeeded && response.data.jwToken) {
+        await authService._persistSession(response.data, false);
+        return response.data.jwToken;
+      }
+      throw new Error('Token refresh failed');
+    } catch (error) {
+      await authService.logout();
+      throw error;
     }
-
-    const response = await apiClient.post(
-      `/api/Account/refresh-token?refreshToken=${encodeURIComponent(storedRefreshToken)}`
-    );
-
-    if (response.succeeded && response.data?.jwToken) {
-      await authService._persistSession(response.data);
-      return response.data.jwToken;
-    }
-
-    throw new Error('Token refresh failed. Please log in again.');
   },
 
   /**
@@ -87,6 +151,8 @@ const authService = {
     await storage.removeItem('userRole');
     await storage.removeItem('customerName');
     await storage.removeItem('customerGender');
+    await storage.removeItem('customerStatus');
+    await storage.removeItem('riderStatus');
 
     // Disconnect SignalR hub on logout to prevent stale connections
     try {
@@ -127,6 +193,12 @@ const authService = {
     }
     if (data.gender !== null && data.gender !== undefined) {
       await storage.setItem('customerGender', String(data.gender));
+    }
+    if (data.customerStatus) {
+      await storage.setItem('customerStatus', data.customerStatus);
+    }
+    if (data.riderStatus) {
+      await storage.setItem('riderStatus', data.riderStatus);
     }
 
     console.log('[Auth] Session persisted. userId:', data.id);

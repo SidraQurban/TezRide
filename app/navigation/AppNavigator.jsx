@@ -35,9 +35,10 @@ const AppNavigator = () => {
   useEffect(() => {
     (async () => {
       try {
-        const authenticated = await authService.isAuthenticated();
+        const authenticated = await authService.ensureValidToken();
         setInitialRoute(authenticated ? "MainDrawer" : "Onboarding");
-      } catch {
+      } catch (error) {
+        console.warn('[AppNavigator] Startup session recovery failed:', error);
         setInitialRoute("Onboarding");
       }
     })();

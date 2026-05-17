@@ -35,13 +35,8 @@ module.exports = {
     },
     "plugins": [
       "expo-font",
-      "expo-localization",
-      [
-        "react-native-maps",
-        {
-          "androidGoogleMapsApiKey": keys.GOOGLE_MAPS_API_KEY
-        }
-      ]
+      "expo-asset",
+      "expo-localization"
     ],
     "extra": {
       "eas": {

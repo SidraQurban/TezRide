@@ -100,11 +100,25 @@ class CustomerHub {
       this._trigger('ride_assigned', payload);
     });
 
+    // Live driver coordinates update.
+    // Payload: { driverId, lat, lon }
+    this.connection.on('driver_location_changed', (payload) => {
+      console.log('[CustomerHub] driver_location_changed:', payload);
+      this._trigger('driver_location_changed', payload);
+    });
+
     // Ride finalized with fare receipt.
     // Payload: { rideId, finalFare, currency }
     this.connection.on('ride_completed', (payload) => {
       console.log('[CustomerHub] ride_completed:', payload);
       this._trigger('ride_completed', payload);
+    });
+
+    // Real-time status update (DriverArrived, InTransit, etc)
+    // Payload: { event: "ride_status_updated", rideId, status }
+    this.connection.on('ride_status_updated', (payload) => {
+      console.log('[CustomerHub] ride_status_updated:', payload);
+      this._trigger('ride_status_updated', payload);
     });
 
     // All waves exhausted — no driver found.

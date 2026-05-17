@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import i18n from "../locales/i18n";
 
-const ArrivingCard = ({ onClose, driver, pickup, destination }) => {
+const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
   
@@ -43,7 +43,11 @@ const ArrivingCard = ({ onClose, driver, pickup, destination }) => {
             fontFamily: FONTS.semiBold,
           }}
         >
-          {t("driver_arriving")}
+          {rideStatus === "in_transit" 
+            ? t("ride_in_progress", { defaultValue: "Ride in progress" })
+            : rideStatus === "driver_arrived" 
+            ? t("driver_has_arrived", { defaultValue: "Driver has arrived!" })
+            : t("driver_arriving", { defaultValue: "Driver is arriving..." })}
         </Text>
 
         <Text

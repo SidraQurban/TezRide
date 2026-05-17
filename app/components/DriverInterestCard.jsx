@@ -102,9 +102,19 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
         )}
         
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text numberOfLines={1} style={{ fontFamily: FONTS.bold, fontSize: responsiveFontSize(1.6) }}>
-            {driver.driverName || t("driver")}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text numberOfLines={1} style={{ fontFamily: FONTS.bold, fontSize: responsiveFontSize(1.6), flex: 1 }}>
+              {driver.driverName || t("driver")}
+            </Text>
+            {driver.rating !== undefined && driver.rating !== null && driver.rating > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 4 }}>
+                <Ionicons name="star" size={13} color="#FFC107" />
+                <Text style={{ fontSize: 11, marginLeft: 2, color: '#333', fontFamily: FONTS.bold }}>
+                  {driver.rating.toFixed(1)}
+                </Text>
+              </View>
+            )}
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, justifyContent: 'space-between' }}>
              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                {driver.price && (
@@ -115,6 +125,11 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
                {driver.distanceKm !== undefined && driver.distanceKm !== null && (
                  <Text style={{ color: '#8A8A8A', fontSize: 11, marginLeft: 8 }} numberOfLines={1}>
                    • {driver.distanceKm.toFixed(1)} {t("km")}
+                 </Text>
+               )}
+               {driver.gender && (
+                 <Text style={{ color: '#8A8A8A', fontSize: 11, marginLeft: 8 }} numberOfLines={1}>
+                   • {driver.gender.charAt(0).toUpperCase() + driver.gender.slice(1)}
                  </Text>
                )}
              </View>

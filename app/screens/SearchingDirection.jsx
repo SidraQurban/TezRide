@@ -43,7 +43,7 @@ const SearchingDirection = ({ route }) => {
   const { rideImage, pickup, destination, rideId, vehicleType, price } =
     route.params || {};
   const { t } = useTranslation();
-  const { setActiveRide, clearActiveRide } = useRide();
+  const { activeRide, setActiveRide, clearActiveRide } = useRide();
   const bottomSheetRef = useRef(null);
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -52,6 +52,7 @@ const SearchingDirection = ({ route }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [interestedDrivers, setInterestedDrivers] = useState([]);
   const [assignedDriver, setAssignedDriver] = useState(null);
+  const [driverLocation, setDriverLocation] = useState(null);
   // searching | driver_selected | assigned | no_drivers | completed | cancelled
   const [rideStatus, setRideStatus] = useState("searching");
   const [searchWave, setSearchWave] = useState(null);
@@ -59,13 +60,15 @@ const SearchingDirection = ({ route }) => {
   // Stable refs for use inside event callbacks without stale closures
   const rideStatusRef = useRef(rideStatus);
   const interestedDriversRef = useRef(interestedDrivers);
+  const assignedDriverRef = useRef(assignedDriver);
   // Prevents duplicate selectDriver calls from double-taps or card timers
   const selectionSentRef = useRef(false);
 
   useEffect(() => {
     rideStatusRef.current = rideStatus;
     interestedDriversRef.current = interestedDrivers;
-  }, [rideStatus, interestedDrivers]);
+    assignedDriverRef.current = assignedDriver;
+  }, [rideStatus, interestedDrivers, assignedDriver]);
 
   // ── SignalR Event Handlers ───────────────────────────────────────────────
   useEffect(() => {
@@ -109,6 +112,18 @@ const SearchingDirection = ({ route }) => {
       setInterestedDrivers([]);
       setSearchWave(null);
 
+      // Extract and set starting coordinates of driver immediately if present
+      if (driverData) {
+        const lat = driverData.lat || driverData.latitude;
+        const lon = driverData.lon || driverData.longitude;
+        if (lat && lon) {
+          setDriverLocation({
+            latitude: parseFloat(lat),
+            longitude: parseFloat(lon)
+          });
+        }
+      }
+
       // Persist to global context
       setActiveRide({ 
         status: "assigned", 
@@ -117,6 +132,32 @@ const SearchingDirection = ({ route }) => {
 
       // Expand the bottom sheet to show the ArrivingCard
       bottomSheetRef.current?.snapToIndex(2);
+    };
+
+    // ride_status_updated: { rideId, status }
+    const handleRideStatusUpdated = (payload) => {
+      if (String(payload.rideId) !== String(rideId)) return;
+      
+      // 2 = DriverArrived, 3 = InTransit
+      if (payload.status === 2) {
+        setRideStatus("driver_arrived");
+        setActiveRide({ status: "driver_arrived" });
+      } else if (payload.status === 3) {
+        setRideStatus("in_transit");
+        setActiveRide({ status: "in_transit" });
+      }
+    };
+
+    // driver_location_changed: { driverId, lat, lon }
+    const handleDriverLocationChanged = (payload) => {
+      const activeDriver = assignedDriverRef.current;
+      if (!activeDriver || String(payload.driverId) !== String(activeDriver.driverId)) {
+        return;
+      }
+      setDriverLocation({
+        latitude: parseFloat(payload.lat),
+        longitude: parseFloat(payload.lon),
+      });
     };
 
     // ride_completed: { rideId, finalFare, currency }
@@ -233,6 +274,8 @@ const SearchingDirection = ({ route }) => {
     customerHub.on("DriverSelected", handleDriverSelected);
     customerHub.on("SelectDriverFailed", handleSelectDriverFailed);
     customerHub.on("RideCancelled", handleRideCancelled);
+    customerHub.on("driver_location_changed", handleDriverLocationChanged);
+    customerHub.on("ride_status_updated", handleRideStatusUpdated);
 
     return () => {
       customerHub.off("driver_interested", handleDriverInterested);
@@ -243,6 +286,8 @@ const SearchingDirection = ({ route }) => {
       customerHub.off("DriverSelected", handleDriverSelected);
       customerHub.off("SelectDriverFailed", handleSelectDriverFailed);
       customerHub.off("RideCancelled", handleRideCancelled);
+      customerHub.off("driver_location_changed", handleDriverLocationChanged);
+      customerHub.off("ride_status_updated", handleRideStatusUpdated);
     };
   }, [rideId, navigation, t]);
 
@@ -335,119 +380,146 @@ const SearchingDirection = ({ route }) => {
           <MapComponent
             pickup={pickup}
             destination={destination}
-            showMarkers={false}
-            showRoute={false}
+            driverLocation={driverLocation}
+            showMarkers={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
+            showRoute={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
             showPickupMarker={true}
             animateZoomOut={true}
           />
 
           {/* Pulse / vehicle icon */}
-          <View
-            style={{
-              position: "absolute",
-              top: responsiveHeight(18),
-              left: 0,
-              right: 0,
-              alignItems: "center",
-              elevation: 1,
-            }}
-          >
+          {rideStatus !== "assigned" && rideStatus !== "driver_selected" && rideStatus !== "driver_arrived" && rideStatus !== "in_transit" && rideStatus !== "completed" && rideStatus !== "cancelled" && (
             <View
               style={{
-                position: "relative",
-                width: 140,
-                height: 140,
-                justifyContent: "center",
+                position: "absolute",
+                top: responsiveHeight(18),
+                left: 0,
+                right: 0,
                 alignItems: "center",
+                elevation: 1,
               }}
             >
-              {/* PULSE */}
-              <Animated.View
-                style={{
-                  position: "absolute",
-                  width: 140,
-                  height: 140,
-                  borderRadius: 70,
-                  backgroundColor: "orange",
-                  opacity: opacity,
-                  transform: [{ scale: scale }],
-                }}
-              />
-
-              {/* STATIC CIRCLE */}
               <View
                 style={{
+                  position: "relative",
                   width: 140,
                   height: 140,
-                  borderRadius: 75,
-                  borderWidth: 4,
-                  borderColor: "orange",
-                  alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: "#fff",
+                  alignItems: "center",
                 }}
               >
-                <Image
-                  source={rideImage || require("../../assets/auto.png")}
+                {/* PULSE */}
+                <Animated.View
                   style={{
-                    width: responsiveWidth(30),
-                    height: responsiveHeight(30),
-                    resizeMode: "contain",
+                    position: "absolute",
+                    width: 140,
+                    height: 140,
+                    borderRadius: 70,
+                    backgroundColor: "orange",
+                    opacity: opacity,
+                    transform: [{ scale: scale }],
                   }}
                 />
+
+                {/* STATIC CIRCLE */}
+                <View
+                  style={{
+                    width: 140,
+                    height: 140,
+                    borderRadius: 75,
+                    borderWidth: 4,
+                    borderColor: "orange",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <Image
+                    source={rideImage || require("../../assets/auto.png")}
+                    style={{
+                      width: responsiveWidth(30),
+                      height: responsiveHeight(30),
+                      resizeMode: "contain",
+                    }}
+                  />
+                </View>
+
+                {/* CANCEL BUTTON */}
+                <TouchableOpacity
+                  onPress={handleCancelRide}
+                  style={{
+                    position: "absolute",
+                    top: -5,
+                    right: -5,
+                    width: responsiveWidth(10),
+                    height: responsiveWidth(10),
+                    borderRadius: responsiveWidth(5),
+                    backgroundColor: "#fff",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    elevation: 5,
+                    shadowColor: "#000",
+                    shadowOpacity: 0.2,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowRadius: 4,
+                    zIndex: 10,
+                  }}
+                >
+                  <Ionicons name="close" size={20} color="red" />
+                </TouchableOpacity>
               </View>
-
-              {/* CANCEL BUTTON */}
-              <TouchableOpacity
-                onPress={handleCancelRide}
-                style={{
-                  position: "absolute",
-                  top: -5,
-                  right: -5,
-                  width: responsiveWidth(10),
-                  height: responsiveWidth(10),
-                  borderRadius: responsiveWidth(5),
-                  backgroundColor: "#fff",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  elevation: 5,
-                  shadowColor: "#000",
-                  shadowOpacity: 0.2,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowRadius: 4,
-                  zIndex: 10,
-                }}
-              >
-                <Ionicons name="close" size={20} color="red" />
-              </TouchableOpacity>
             </View>
+          )}
 
-
-          </View>
-
-          {/* DRIVER INTEREST POPUPS */}
-          <View
-            style={{
-              position: "absolute",
-              top: responsiveHeight(10),
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-              elevation: 10,
-              maxHeight: responsiveHeight(60),
-            }}
-          >
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {interestedDrivers.map((driver) => (
-                <DriverInterestCard
-                  key={driver.driverId}
-                  driver={driver}
-                  onAccept={handleAcceptDriver}
-                  onDecline={handleDeclineDriver}
-                />
-              ))}
-            </ScrollView>
-          </View>
+          {/* DRIVER INTEREST POPUPS - Premium Glassmorphic Overlay */}
+          {interestedDrivers.length > 0 && (
+            <View
+              style={{
+                position: "absolute",
+                top: responsiveHeight(8),
+                left: 16,
+                right: 16,
+                zIndex: 1000,
+                elevation: 10,
+                maxHeight: responsiveHeight(42),
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: 24,
+                padding: 16,
+                borderWidth: 1.5,
+                borderColor: 'rgba(255, 255, 255, 0.6)',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.18,
+                shadowRadius: 16,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: 'green', marginRight: 8, animate: true }} />
+                <Text style={{
+                  fontFamily: FONTS.bold,
+                  fontSize: responsiveFontSize(1.7),
+                  color: '#1A1A1A',
+                  textAlign: 'center',
+                  letterSpacing: 0.5
+                }}>
+                  {t("incoming_offers_title") || "INCOMING DRIVER OFFERS"}
+                </Text>
+              </View>
+              <ScrollView 
+                showsVerticalScrollIndicator={false} 
+                contentContainerStyle={{ gap: 12, paddingBottom: 4 }}
+              >
+                {interestedDrivers.map((driver) => (
+                  <DriverInterestCard
+                    key={driver.driverId}
+                    driver={driver}
+                    onAccept={handleAcceptDriver}
+                    onDecline={handleDeclineDriver}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
         </View>
 
         {/* BOTTOM SHEET */}
@@ -465,11 +537,22 @@ const SearchingDirection = ({ route }) => {
             backgroundColor: "#E0E0E0",
           }}
         >
-          {rideStatus === "assigned" || rideStatus === "driver_selected" ? (
+          {rideStatus === "completed" ? (
+            <View style={{ flex: 1, padding: 20, alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="checkmark-circle" size={60} color="green" />
+              <Text style={{ fontFamily: FONTS.bold, fontSize: 22, marginTop: 10 }}>
+                {t("ride_completed_title", { defaultValue: "Ride Completed" })}
+              </Text>
+              <Text style={{ fontFamily: FONTS.regular, fontSize: 16, color: "#555", marginTop: 5 }}>
+                {activeRide?.finalFare ? `${activeRide.currency || "PKR"} ${activeRide.finalFare}` : ""}
+              </Text>
+            </View>
+          ) : rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" ? (
             <ArrivingCard
               driver={assignedDriver}
               pickup={pickup}
               destination={destination}
+              rideStatus={rideStatus}
               onClose={() => bottomSheetRef.current?.snapToIndex(0)}
             />
           ) : interestedDrivers.length > 0 ? (

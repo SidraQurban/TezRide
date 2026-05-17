@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, memo } from "react";
 import { StyleSheet, PermissionsAndroid, AppState, Animated, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from "react-native-maps";
 import { useTranslation } from "react-i18next";
 import MapViewDirections from "react-native-maps-directions";
@@ -20,6 +21,7 @@ const DEFAULT_REGION = {
 const MapComponent = memo(({ 
   pickup: propPickup, 
   destination: propDestination, 
+  driverLocation,
   showMarkers = true, 
   showRoute = true,
   animateZoomOut = false, 
@@ -116,7 +118,18 @@ const MapComponent = memo(({
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
 
-    if (showRoute && pickup && destination) {
+    if (driverLocation && pickup) {
+      mapRef.current.fitToCoordinates(
+        [
+          { latitude: pickup.latitude, longitude: pickup.longitude },
+          { latitude: driverLocation.latitude, longitude: driverLocation.longitude },
+        ],
+        {
+          edgePadding: { top: 120, right: 120, bottom: 120, left: 120 },
+          animated: true,
+        }
+      );
+    } else if (showRoute && pickup && destination) {
       mapRef.current.fitToCoordinates(
         [
           { latitude: pickup.latitude, longitude: pickup.longitude },
@@ -135,7 +148,7 @@ const MapComponent = memo(({
         longitudeDelta: 0.01,
       }, 600);
     }
-  }, [mapReady, pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, showRoute]);
+  }, [mapReady, pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, driverLocation?.latitude, driverLocation?.longitude, showRoute]);
 
   const handleUserLocationChange = useCallback(
     (event) => {
@@ -185,6 +198,31 @@ const MapComponent = memo(({
             pinColor="red"
             tracksViewChanges={false}
           />
+        )}
+
+        {driverLocation && (
+          <Marker
+            key="driver-marker"
+            coordinate={{ latitude: driverLocation.latitude, longitude: driverLocation.longitude }}
+            title={t("driver")}
+            anchor={{ x: 0.5, y: 0.5 }}
+            tracksViewChanges={false}
+          >
+            <View style={{
+              backgroundColor: COLORS.primary,
+              padding: 6,
+              borderRadius: 20,
+              borderWidth: 2,
+              borderColor: '#FFF',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5
+            }}>
+              <Ionicons name="car-sport" size={18} color="#FFF" />
+            </View>
+          </Marker>
         )}
 
         {showRoute && pickup && destination && (
