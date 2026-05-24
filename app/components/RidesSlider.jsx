@@ -35,6 +35,7 @@ const RidesSlider = ({
   duration,
   priceMap = {},
   priceLoading = false,
+  onPreferencePress,
 }) => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
@@ -291,6 +292,18 @@ const RidesSlider = ({
               {t("current_location")}
             </Text>
           </View>
+
+          <TouchableOpacity onPress={onPreferencePress}>
+            <Text
+              style={{
+                fontSize: responsiveFontSize(1.6),
+                color: COLORS.primary,
+                fontFamily: FONTS.semiBold,
+              }}
+            >
+              {t("rider_preference", "Rider Preference")}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Pickup Address */}
@@ -340,6 +353,7 @@ const RidesSlider = ({
             flexDirection: "row",
             alignItems: "center",
             marginLeft: -2,
+            marginTop: 2,
           }}
         >
           <Ionicons
@@ -348,28 +362,30 @@ const RidesSlider = ({
             color={COLORS.primary}
             style={{ marginRight: 6 }}
           />
-          <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontFamily: FONTS.medium,
+              textAlign: isRTL ? "right" : "left",
+            }}
+          >
+            {t("destination_address")}
+          </Text>
+        </View>
+
+        {/* Destination actual address value */}
+        <View style={{ marginLeft: 0 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <Text
               style={{
-                fontFamily: FONTS.medium,
+                fontSize: responsiveFontSize(1.4),
+                color: "#777",
+                fontFamily: FONTS.regular,
                 textAlign: isRTL ? "right" : "left",
               }}
             >
-              {t("destination_address")}
+              {destination?.address}
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <Text
-                style={{
-                  fontSize: responsiveFontSize(1.4),
-                  color: "#777",
-                  fontFamily: FONTS.regular,
-                  textAlign: isRTL ? "right" : "left",
-                }}
-              >
-                {destination?.address}
-              </Text>
-            </ScrollView>
-          </View>
+          </ScrollView>
         </View>
 
         {/* BOTTOM ROW — ETA summary */}

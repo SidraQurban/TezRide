@@ -1,20 +1,4 @@
 {
-  "skip": "Skip",
-  "get_started": "Get Started",
-
-  "onboard_title1": "Women ride with comfort",
-  "onboard_desc1": "Choose women drivers for a safer and more comfortable journey.",
-
-  "onboard_title2": "Hire a driver anytime",
-  "onboard_desc2": "Use your own vehicle and hire a professional driver whenever you need one.",
-
-  "onboard_title3": "Affordable and Transparent Pricing",
-  "onboard_desc3": "Check your fare upfront and pay only for what you travel.",
-
-  "enter_number": "Enter your number to",
-  "continue_text": "continue",
-  "privacy_policy": "Privacy Policy",
-  "phone_placeholder": "3XXXXXXXXX",
   "verify_desc_1": "Please enter the 4-digit code sent",
   "verify_desc_2": "to you on WhatsApp on",
   "continue_btn": "Continue",
@@ -84,9 +68,10 @@
   "morning": "Morning",
   "evening": "Evening",
   "full_day": "Full Day",
-  "driver_preference": "Driver Preference",
   "male": "Male",
   "female": "Female",
+  "male_driver": "Male Driver",
+  "female_driver": "Female Driver",
   "no_preference": "No Preference",
   "driver_rate_label": "Driver rate",
   "duration": "Duration",
@@ -192,7 +177,6 @@
   "pickup_placeholder": "Enter pickup address",
   "home_placeholder": "Enter home address",
   "confirm_location": "CONFIRM LOCATION",
-
   "error": "Error",
   "something_went_wrong": "Something went wrong. Please try again.",
   "search_failed": "No Drivers Found",
@@ -215,5 +199,8 @@
   "otp_send_failed": "Failed to send OTP. Please try again.",
   "otp_verification_failed": "Invalid OTP. Please check and try again.",
   "currency": "Rs.",
-  "swipe_to_confirm": "Swipe to Confirm"
+  "swipe_to_confirm": "Swipe to Confirm",
+  "rider_preference": "Rider Preference",
+  "driver_preference": "Driver Preference",
+  "confirm_btn": "Confirm"
 }

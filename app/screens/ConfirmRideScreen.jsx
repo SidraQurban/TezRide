@@ -9,15 +9,14 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Animated,
-  PanResponder,
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Modal,
 } from "react-native";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons, Fontisto, FontAwesome } from "@expo/vector-icons";
 import MapComponent from "../components/MapComponent";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -37,7 +36,6 @@ import pricingService from "../api/pricingService";
 import customerHub from "../api/customerHub";
 import { rides } from "../data/data.jsx";
 import { useRide } from "../context/RideContext";
-import * as Haptics from "expo-haptics";
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
@@ -77,6 +75,8 @@ const ConfirmRide = () => {
   const snapPoints = useMemo(() => ["55%", "56%"], []);
   const [selectedService, setSelectedService] = useState("bike");
   const [loading, setLoading] = useState(false);
+  const [genderPreference, setGenderPreference] = useState("any"); // 'any', 'male', 'female'
+  const [prefModalVisible, setPrefModalVisible] = useState(false);
 
   // ── Live pricing state ────────────────────────────────────────────────────
   // Map of vehicleTypeSlug → EstimateDto
@@ -85,61 +85,6 @@ const ConfirmRide = () => {
   const [priceLoading, setPriceLoading] = useState(false);
 
   const selectedRide = rides.find((r) => r.id === selectedService);
-
-  // ── Swipe-to-Confirm State ────────────────────────────────────────────────
-  const swipeAnim = useRef(new Animated.Value(0)).current;
-  const [trackWidth, setTrackWidth] = useState(300);
-  const THUMB_SIZE = 54; // Height of the track is responsiveHeight(7) ~ 56px, thumb is slightly smaller
-
-
-  const handleConfirmRideRef = useRef();
-  const loadingRef = useRef(loading);
-
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (_, gestureState) => {
-        if (
-          !loadingRef.current &&
-          gestureState.dx >= 0 &&
-          gestureState.dx <= trackWidth - THUMB_SIZE - 4
-        ) {
-          swipeAnim.setValue(gestureState.dx);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (loadingRef.current) return;
-        if (gestureState.dx >= (trackWidth - THUMB_SIZE) * 0.7) {
-          Animated.spring(swipeAnim, {
-            toValue: trackWidth - THUMB_SIZE - 4,
-            useNativeDriver: false,
-          }).start();
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-          if (handleConfirmRideRef.current) {
-            handleConfirmRideRef.current();
-          }
-
-          // Reset slider after some time in case it fails or finishes
-          setTimeout(() => {
-            Animated.spring(swipeAnim, {
-              toValue: 0,
-              useNativeDriver: false,
-            }).start();
-          }, 3000);
-        } else {
-          Animated.spring(swipeAnim, {
-            toValue: 0,
-            useNativeDriver: false,
-          }).start();
-        }
-      },
-    }),
-  ).current;
 
   // ── Called by MapViewDirections when route is computed ────────────────────
   const handleRouteReady = useCallback(
@@ -193,7 +138,7 @@ const ConfirmRide = () => {
         pickup: { lat: pickup.latitude, lon: pickup.longitude },
         dropoff: { lat: destination.latitude, lon: destination.longitude },
         vehicleType: selectedService,
-        genderPreference: "any",
+        genderPreference: genderPreference,
         minRating: 0,
       };
 
@@ -233,9 +178,79 @@ const ConfirmRide = () => {
     }
   };
 
-  useEffect(() => {
-    handleConfirmRideRef.current = handleConfirmRide;
-  }, [handleConfirmRide]);
+  // Preference Modal Component
+  const PreferenceModal = () => {
+    const [tempPref, setTempPref] = useState(genderPreference);
+
+    return (
+      <Modal visible={prefModalVisible} transparent animationType="fade">
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.modalOverlay}
+          onPress={() => setPrefModalVisible(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.modalContent}>
+            <View style={styles.modalIndicator} />
+            <Text style={styles.modalTitle}>{t("rider_preference")}</Text>
+
+            <View style={styles.prefOptions}>
+              {[
+                { id: "any", label: "no_preference", icon: "account" },
+                { id: "male", label: "male_driver", icon: "account-tie" },
+                { id: "female", label: "female_driver", icon: "account-tie-woman" },
+              ].map((opt) => (
+                <TouchableOpacity
+                  key={opt.id}
+                  style={[
+                    styles.prefItem,
+                    tempPref === opt.id && styles.prefItemActive,
+                  ]}
+                  onPress={() => setTempPref(opt.id)}
+                >
+                  <View
+                    style={[
+                      styles.iconCircle,
+                      tempPref === opt.id && styles.iconCircleActive,
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name={opt.icon}
+                      size={40}
+                      color={tempPref === opt.id ? COLORS.primary : "#374151"}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.prefLabel,
+                      tempPref === opt.id && styles.prefLabelActive,
+                    ]}
+                  >
+                    {t(opt.label)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              onPress={() => {
+                setGenderPreference(tempPref);
+                setPrefModalVisible(false);
+              }}
+            >
+              <LinearGradient
+                colors={[COLORS.primary, COLORS.secondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.confirmBtn}
+              >
+                <Text style={styles.confirmBtnText}>{t("confirm_btn")}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -255,58 +270,46 @@ const ConfirmRide = () => {
           <MapComponent
             pickup={pickup}
             destination={destination}
+            useGlobalState={true}
             onRouteReady={handleRouteReady}
           />
         </View>
       </View>
 
-      {/* SWIPE-TO-CONFIRM SLIDER */}
+      {/* CONFIRM BUTTON */}
       <View
         style={{
           position: "absolute",
           bottom: responsiveHeight(6),
           left: responsiveWidth(4),
           right: responsiveWidth(4),
-          zIndex: 5,
+          zIndex: 50,
         }}
       >
-        <View
-          style={styles.swipeTrack}
-          onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+        <TouchableOpacity
+          onPress={handleConfirmRide}
+          disabled={loading}
+          activeOpacity={0.8}
         >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.swipeTrack}
-            onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+            style={styles.mainConfirmBtn}
           >
             {loading ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <>
-                <Text style={styles.swipeText}>
-                  {t("swipe_to_confirm")}
-                </Text>
-
-                <Animated.View
-                  style={[
-                    styles.swipeThumb,
-                    { transform: [{ translateX: swipeAnim }] },
-                  ]}
-                  {...panResponder.panHandlers}
-                >
-                  <Ionicons
-                    name="arrow-forward"
-                    size={24}
-                    color={COLORS.primary}
-                  />
-                </Animated.View>
-              </>
+              <Text style={styles.mainConfirmBtnText}>
+                {t("confirm_ride")}
+              </Text>
             )}
           </LinearGradient>
-        </View>
+        </TouchableOpacity>
       </View>
+
+      {/* PREFERENCE MODAL */}
+      <PreferenceModal />
 
       {/* BOTTOM SHEET */}
       <BottomSheet
@@ -333,7 +336,7 @@ const ConfirmRide = () => {
           duration={routeDetails?.duration}
           priceMap={priceMap}
           priceLoading={priceLoading}
-          onClose={() => bottomSheetRef.current?.snapToIndex(0)}
+          onPreferencePress={() => setPrefModalVisible(true)}
         />
       </BottomSheet>
     </SafeAreaView>
@@ -341,39 +344,111 @@ const ConfirmRide = () => {
 };
 
 const styles = StyleSheet.create({
-  swipeTrack: {
-    width: "100%",
-    height: responsiveHeight(7), // approx 56px
-    // backgroundColor: COLORS.primary,
-    borderRadius: responsiveHeight(3.5),
+  mainConfirmBtn: {
+    height: 60,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    overflow: "hidden",
-    elevation: 5,
-    shadowColor: "#000",
+    elevation: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
-  swipeText: {
-    color: "#FFF",
-    fontSize: responsiveFontSize(2),
-    fontFamily: FONTS.semiBold,
-    letterSpacing: 1.2,
-    marginLeft: responsiveWidth(8), // Make room for the thumb
+  mainConfirmBtnText: {
+    color: COLORS.white,
+    fontSize: responsiveFontSize(2.2),
+    fontFamily: FONTS.bold,
   },
-  swipeThumb: {
-    position: "absolute",
-    left: 2,
-    width: responsiveHeight(7) - 4, // 52px
-    height: responsiveHeight(7) - 4,
-    borderRadius: (responsiveHeight(7) - 4) / 2,
-    backgroundColor: "#FFF",
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: responsiveHeight(4),
+    borderTopRightRadius: responsiveHeight(4),
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: responsiveHeight(2),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  modalIndicator: {
+    width: 32,
+    height: 4,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: responsiveFontSize(2.2),
+    fontFamily: FONTS.bold,
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  prefOptions: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  prefItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    padding: 10,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: "#F3F4F6",
+  },
+  prefItemActive: {
+    backgroundColor: "rgba(255, 92, 0, 0.04)",
+    borderColor: COLORS.primary,
+  },
+  iconCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "#E5E7EB",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+  },
+  iconCircleActive: {
+    backgroundColor: "#FFF7ED",
+    borderColor: COLORS.primary,
+  },
+  prefLabel: {
+    fontSize: responsiveFontSize(1.9),
+    fontFamily: FONTS.medium,
+    color: "#374151",
+  },
+  prefLabelActive: {
+    color: "#111827",
+    fontFamily: FONTS.semiBold,
+  },
+  confirmBtn: {
+    height: 54,
+    borderRadius: 27,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  confirmBtnText: {
+    color: COLORS.white,
+    fontSize: responsiveFontSize(2),
+    fontFamily: FONTS.bold,
   },
 });
 

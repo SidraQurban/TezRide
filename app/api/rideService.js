@@ -28,37 +28,37 @@ export const rideService = {
       minRating: data.minRating ?? 0,
     };
 
-    return apiClient.post('/api/rides/request', body);
+    return apiClient.post('/api/customer/rides/request', body);
   },
 
   /**
    * Returns the current status of a ride (from Redis or Postgres).
-   * GET /api/rides/{rideId}
+   * GET /api/customer/rides/{rideId}
    * @param {string} rideId
    */
   getRideStatus: async (rideId) => {
-    return apiClient.get(`/api/rides/${rideId}`);
+    return apiClient.get(`/api/customer/rides/${rideId}`);
   },
 
   /**
    * (Driver only) Updates the active ride state.
-   * POST /api/rides/{rideId}/status
+   * POST /api/customer/rides/{rideId}/status
    * Status codes: 2 = Arrived, 3 = InTransit
    * @param {string} rideId
    * @param {number} status
    */
   updateRideStatus: async (rideId, status) => {
-    return apiClient.post(`/api/rides/${rideId}/status`, { status });
+    return apiClient.post(`/api/customer/rides/${rideId}/status`, { status });
   },
 
   /**
    * (Driver only) Finalises the ride and flushes data to PostgreSQL.
-   * POST /api/rides/{rideId}/complete
+   * POST /api/customer/rides/{rideId}/complete
    * @param {string} rideId
    * @param {number} distanceKm
    */
   completeRide: async (rideId, distanceKm) => {
-    return apiClient.post(`/api/rides/${rideId}/complete`, { distanceKm });
+    return apiClient.post(`/api/customer/rides/${rideId}/complete`, { distanceKm });
   },
 };
 

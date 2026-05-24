@@ -28,6 +28,7 @@ const MapComponent = memo(({
   animateZoomOut = false, 
   showPickupMarker = false, 
   disablePolyline = false,
+  useGlobalState = false, // New prop to control global context fallback
   onRouteReady 
 }) => {
   const { t } = useTranslation();
@@ -35,9 +36,9 @@ const MapComponent = memo(({
   const isFocused = useIsFocused();
   const { routeCoords, setRouteCoords, pickup: ctxPickup, destination: ctxDestination } = useRide();
   
-  // Use context as the source of truth for better persistence, but respect explicit nulls
-  const pickup = propPickup !== undefined ? propPickup : ctxPickup;
-  const destination = propDestination !== undefined ? propDestination : ctxDestination;
+  // Only fallback to context if explicitly allowed
+  const pickup = propPickup !== undefined ? propPickup : (useGlobalState ? ctxPickup : null);
+  const destination = propDestination !== undefined ? propDestination : (useGlobalState ? ctxDestination : null);
 
   const [hasPermission, setHasPermission] = useState(false);
   const [centeredOnUser, setCenteredOnUser] = useState(false);

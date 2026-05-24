@@ -21,8 +21,11 @@ const authService = {
    * @returns {{ succeeded: boolean, message: string, data: boolean }}
    */
   sendOTP: async (phoneNumber) => {
+    // Format: 92xxxxxxxxxx (strip '+' if present)
+    const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
+    
     return apiClient.post(
-      `/api/Account/send-otp?phoneNumber=${encodeURIComponent(phoneNumber)}`
+      `/api/Account/send-otp?phoneNumber=${encodeURIComponent(formattedNumber)}`
     );
   },
 
@@ -39,8 +42,11 @@ const authService = {
    * @returns {{ succeeded: boolean, message: string, data: AuthDto }}
    */
   verifyOTP: async (phoneNumber, otp, role = 'Customer') => {
+    // Format: 92xxxxxxxxxx (strip '+' if present)
+    const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
+
     const response = await apiClient.post('/api/Account/verify-otp', {
-      phoneNumber,
+      phoneNumber: formattedNumber,
       otp,
       role,
     });

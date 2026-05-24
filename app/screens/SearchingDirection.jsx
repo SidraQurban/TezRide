@@ -393,6 +393,7 @@ const SearchingDirection = ({ route }) => {
             destination={destination}
             driverLocation={driverLocation}
             rideStatus={rideStatus}
+            useGlobalState={true}
             showMarkers={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
             showRoute={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
             showPickupMarker={true}
