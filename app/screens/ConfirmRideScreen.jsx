@@ -1,7 +1,3 @@
-<<<<<<< Updated upstream
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, TouchableOpacity, Animated, PanResponder, StyleSheet } from "react-native";
-=======
 import React, {
   useCallback,
   useEffect,
@@ -16,8 +12,10 @@ import {
   Animated,
   PanResponder,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
->>>>>>> Stashed changes
+
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import MapComponent from "../components/MapComponent";
@@ -38,13 +36,8 @@ import rideService from "../api/rideService";
 import pricingService from "../api/pricingService";
 import customerHub from "../api/customerHub";
 import { rides } from "../data/data.jsx";
-import { ActivityIndicator, Alert } from "react-native";
 import { useRide } from "../context/RideContext";
-<<<<<<< Updated upstream
-import * as Haptics from 'expo-haptics';
-=======
 import * as Haptics from "expo-haptics";
->>>>>>> Stashed changes
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
@@ -98,8 +91,7 @@ const ConfirmRide = () => {
   const [trackWidth, setTrackWidth] = useState(300);
   const THUMB_SIZE = 54; // Height of the track is responsiveHeight(7) ~ 56px, thumb is slightly smaller
 
-<<<<<<< Updated upstream
-=======
+
   const handleConfirmRideRef = useRef();
   const loadingRef = useRef(loading);
 
@@ -107,42 +99,26 @@ const ConfirmRide = () => {
     loadingRef.current = loading;
   }, [loading]);
 
->>>>>>> Stashed changes
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gestureState) => {
-<<<<<<< Updated upstream
-        if (!loading && gestureState.dx >= 0 && gestureState.dx <= trackWidth - THUMB_SIZE - 4) {
-=======
         if (
           !loadingRef.current &&
           gestureState.dx >= 0 &&
           gestureState.dx <= trackWidth - THUMB_SIZE - 4
         ) {
->>>>>>> Stashed changes
           swipeAnim.setValue(gestureState.dx);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-<<<<<<< Updated upstream
-        if (loading) return;
-=======
         if (loadingRef.current) return;
->>>>>>> Stashed changes
         if (gestureState.dx >= (trackWidth - THUMB_SIZE) * 0.7) {
           Animated.spring(swipeAnim, {
             toValue: trackWidth - THUMB_SIZE - 4,
             useNativeDriver: false,
           }).start();
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-<<<<<<< Updated upstream
-          handleConfirmRide();
-          
-          // Reset slider after some time in case it fails or finishes
-          setTimeout(() => {
-            Animated.spring(swipeAnim, { toValue: 0, useNativeDriver: false }).start();
-=======
 
           if (handleConfirmRideRef.current) {
             handleConfirmRideRef.current();
@@ -154,7 +130,6 @@ const ConfirmRide = () => {
               toValue: 0,
               useNativeDriver: false,
             }).start();
->>>>>>> Stashed changes
           }, 3000);
         } else {
           Animated.spring(swipeAnim, {
@@ -163,11 +138,7 @@ const ConfirmRide = () => {
           }).start();
         }
       },
-<<<<<<< Updated upstream
-    })
-=======
     }),
->>>>>>> Stashed changes
   ).current;
 
   // ── Called by MapViewDirections when route is computed ────────────────────
@@ -299,30 +270,6 @@ const ConfirmRide = () => {
           zIndex: 5,
         }}
       >
-<<<<<<< Updated upstream
-        <View 
-          style={styles.swipeTrack}
-          onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
-        >
-          {loading ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <>
-              <Text style={styles.swipeText}>
-                {t("swipe_to_confirm", "SWIPE TO CONFIRM")}
-              </Text>
-              <Animated.View 
-                style={[
-                  styles.swipeThumb, 
-                  { transform: [{ translateX: swipeAnim }] }
-                ]}
-                {...panResponder.panHandlers}
-              >
-                <Ionicons name="arrow-forward" size={24} color={COLORS.primary} />
-              </Animated.View>
-            </>
-          )}
-=======
         <View
           style={styles.swipeTrack}
           onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
@@ -339,7 +286,7 @@ const ConfirmRide = () => {
             ) : (
               <>
                 <Text style={styles.swipeText}>
-                  {t("swipe_to_confirm", "Swipe to Confirm")}
+                  {t("swipe_to_confirm")}
                 </Text>
 
                 <Animated.View
@@ -358,7 +305,6 @@ const ConfirmRide = () => {
               </>
             )}
           </LinearGradient>
->>>>>>> Stashed changes
         </View>
       </View>
 
@@ -398,11 +344,7 @@ const styles = StyleSheet.create({
   swipeTrack: {
     width: "100%",
     height: responsiveHeight(7), // approx 56px
-<<<<<<< Updated upstream
-    backgroundColor: COLORS.primary,
-=======
     // backgroundColor: COLORS.primary,
->>>>>>> Stashed changes
     borderRadius: responsiveHeight(3.5),
     justifyContent: "center",
     alignItems: "center",
@@ -414,13 +356,8 @@ const styles = StyleSheet.create({
   },
   swipeText: {
     color: "#FFF",
-<<<<<<< Updated upstream
-    fontSize: responsiveFontSize(1.8),
-    fontFamily: FONTS.bold,
-=======
     fontSize: responsiveFontSize(2),
     fontFamily: FONTS.semiBold,
->>>>>>> Stashed changes
     letterSpacing: 1.2,
     marginLeft: responsiveWidth(8), // Make room for the thumb
   },

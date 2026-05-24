@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  I18nManager,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -18,7 +21,6 @@ import { COLORS, SIZES } from "../constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
 import { useTranslation } from "react-i18next";
-import { I18nManager } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Animated, {
   useSharedValue,
@@ -30,7 +32,6 @@ import Animated, {
 } from "react-native-reanimated";
 
 import authService from "../api/authService";
-import { ActivityIndicator, Alert } from "react-native";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -95,19 +96,35 @@ const VerifyCodeScreen = ({ navigation, route }) => {
     }
   };
 
+  const [verificationInProgress, setVerificationInProgress] = useState(false);
+
+  useEffect(() => {
+    if (isCodeComplete && !loading && !verificationInProgress) {
+      handleContinue();
+    }
+  }, [isCodeComplete]);
+
   const handleContinue = async () => {
-    if (!isCodeComplete || loading) return;
+    if (!isCodeComplete || loading || verificationInProgress) return;
 
     const finalCode = code.join("");
     setLoading(true);
+    setVerificationInProgress(true);
 
     try {
-      const response = await authService.verifyOTP(phoneNumber, finalCode, 'Customer');
-      
+      const response = await authService.verifyOTP(phoneNumber, finalCode, "Customer");
+
       if (response.succeeded) {
-        navigation.navigate("MainDrawer", {
-          screen: "Home",
-          params: { showLocationModal: true },
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: "MainDrawer",
+              state: {
+                routes: [{ name: "Home", params: { showLocationModal: true } }],
+              },
+            },
+          ],
         });
       } else {
         Alert.alert(t("error"), response.message || t("otp_verification_failed"));
@@ -116,6 +133,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
       Alert.alert(t("error"), error.message || t("something_went_wrong"));
     } finally {
       setLoading(false);
+      setVerificationInProgress(false);
     }
   };
 
@@ -133,7 +151,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         {/* Sleek Language Toggle UI (Right Corner) */}

@@ -138,7 +138,7 @@ const SearchingDirection = ({ route }) => {
       // Persist to global context
       setActiveRide({ 
         status: "assigned", 
-        assignedDriver: { ...assignedDriver, ...driverData } 
+        assignedDriver: { ...assignedDriverRef.current, ...driverData } 
       });
 
       // Expand the bottom sheet to show the ArrivingCard

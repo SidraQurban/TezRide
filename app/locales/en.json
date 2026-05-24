@@ -214,5 +214,6 @@
   "fetching_prices": "Getting prices...",
   "otp_send_failed": "Failed to send OTP. Please try again.",
   "otp_verification_failed": "Invalid OTP. Please check and try again.",
-  "currency": "Rs."
+  "currency": "Rs.",
+  "swipe_to_confirm": "Swipe to Confirm"
 }

@@ -29,9 +29,9 @@ import { ActivityIndicator, Alert } from "react-native";
 
 const countries = [
   { code: "+92", flag: "🇵🇰", name: "Pakistan" },
-  { code: "+91", flag: "🇮🇳", name: "India" },
-  { code: "+1", flag: "🇺🇸", name: "USA" },
-  { code: "+44", flag: "🇬🇧", name: "UK" },
+  // { code: "+91", flag: "🇮🇳", name: "India" },
+  // { code: "+1", flag: "🇺🇸", name: "USA" },
+  // { code: "+44", flag: "🇬🇧", name: "UK" },
 ];
 
 const LoginScreen = () => {
@@ -316,8 +316,10 @@ const LoginScreen = () => {
         </View>
 
         {/* MODAL */}
-        <Modal visible={modalVisible} transparent animationType="slide">
-          <View
+        <Modal visible={modalVisible} transparent animationType="fade">
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setModalVisible(false)}
             style={{
               flex: 1,
               backgroundColor: "rgba(0,0,0,0.5)",
@@ -325,12 +327,14 @@ const LoginScreen = () => {
               alignItems: "center",
             }}
           >
-            <View
+            <TouchableOpacity
+              activeOpacity={1}
               style={{
                 backgroundColor: COLORS.white,
                 width: responsiveWidth(85),
                 borderRadius: responsiveWidth(4),
                 maxHeight: responsiveHeight(50),
+                overflow: "hidden",
               }}
             >
               <FlatList
@@ -341,9 +345,9 @@ const LoginScreen = () => {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      padding: responsiveWidth(3),
+                      padding: responsiveWidth(4),
                       borderBottomWidth: 0.5,
-                      borderColor: "#ccc",
+                      borderColor: "#F3F4F6",
                     }}
                     onPress={() => {
                       setSelectedCountry(item);
@@ -393,8 +397,8 @@ const LoginScreen = () => {
                   </TouchableOpacity>
                 )}
               />
-            </View>
-          </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>

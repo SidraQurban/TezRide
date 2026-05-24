@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, memo } from "react";
-import { StyleSheet, PermissionsAndroid, AppState, Animated, View, Image } from "react-native";
+import { StyleSheet, PermissionsAndroid, AppState, Animated, View, Image, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline, AnimatedRegion } from "react-native-maps";
 import { useTranslation } from "react-i18next";
@@ -117,11 +117,17 @@ const MapComponent = memo(({
   // Check if location permission is already granted
   const checkPermission = useCallback(async () => {
     try {
-      const granted = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-      );
-      setHasPermission(granted);
-      if (granted) setCenteredOnUser(false);
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.check(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        );
+        setHasPermission(granted);
+        if (granted) setCenteredOnUser(false);
+      } else {
+        // For iOS, assume true if we haven't implemented specific iOS checks
+        // or add Expo-Location check here.
+        setHasPermission(true);
+      }
     } catch (e) {
       setHasPermission(false);
     }
