@@ -1,5 +1,13 @@
 import React from "react";
-import { View, ScrollView, Image, Text, AppState } from "react-native";
+import {
+  View,
+  ScrollView,
+  Image,
+  Text,
+  AppState,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   responsiveHeight,
@@ -11,8 +19,11 @@ import AppHeader from "../components/AppHeader";
 import Services from "../components/Services";
 import SearchBar from "../components/SearchBar";
 import LocationModal from "../components/LocationModal";
+import SaveAddressModal from "../components/SaveAddressModal";
 import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
 import * as ExpoLocation from "expo-location";
+import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -22,13 +33,17 @@ import Animated, {
 } from "react-native-reanimated";
 import { FONTS } from "../constants/theme";
 
-
 const HomeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const [locationModalVisible, setLocationModalVisible] = React.useState(false);
   const dismissedManuallyRef = React.useRef(false);
   const appState = React.useRef(AppState.currentState);
 
+  const [currentAddressName, setCurrentAddressName] = React.useState(null);
+  const [currentAddressDetail, setCurrentAddressDetail] = React.useState(null);
+  const [fetchingLocation, setFetchingLocation] = React.useState(false);
+  const [saveAddressModalVisible, setSaveAddressModalVisible] =
+    React.useState(false);
 
   // Show modal if permission is missing OR device GPS is turned off
   const checkLocationStatus = React.useCallback(async () => {
@@ -36,7 +51,10 @@ const HomeScreen = ({ navigation, route }) => {
       const { status } = await ExpoLocation.getForegroundPermissionsAsync();
       const isGpsEnabled = await ExpoLocation.hasServicesEnabledAsync();
 
-      if ((status !== "granted" || !isGpsEnabled) && !dismissedManuallyRef.current) {
+      if (
+        (status !== "granted" || !isGpsEnabled) &&
+        !dismissedManuallyRef.current
+      ) {
         setLocationModalVisible(true);
       } else {
         setLocationModalVisible(false);
@@ -46,10 +64,50 @@ const HomeScreen = ({ navigation, route }) => {
     }
   }, []);
 
+  // Fetch real address
+  const fetchCurrentAddress = React.useCallback(async () => {
+    setFetchingLocation(true);
+    try {
+      const { status } = await ExpoLocation.getForegroundPermissionsAsync();
+      const isGpsEnabled = await ExpoLocation.hasServicesEnabledAsync();
+      if (status === "granted" && isGpsEnabled) {
+        let location = await ExpoLocation.getCurrentPositionAsync({
+          accuracy: ExpoLocation.Accuracy.Balanced,
+        });
+        const coords = location.coords;
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+        const response = await fetch(url);
+        const json = await response.json();
+        if (json.status === "OK") {
+          const result =
+            json.results.find((r) => !r.types.includes("plus_code")) ||
+            json.results[0];
+          let cleanAddress = result.formatted_address.replace(
+            /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/,
+            "",
+          );
+          const addressParts = cleanAddress.split(",");
+          if (addressParts.length > 1) {
+            setCurrentAddressName(addressParts[0].trim());
+            setCurrentAddressDetail(addressParts.slice(1).join(",").trim());
+          } else {
+            setCurrentAddressName(t("current_location") || "Current Location");
+            setCurrentAddressDetail(cleanAddress);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Error fetching address on home screen", e);
+    } finally {
+      setFetchingLocation(false);
+    }
+  }, [t]);
+
   // On mount: check location
   React.useEffect(() => {
     checkLocationStatus();
-  }, []);
+    fetchCurrentAddress();
+  }, [checkLocationStatus, fetchCurrentAddress]);
 
   // Re-check when user returns from Settings
   React.useEffect(() => {
@@ -59,11 +117,14 @@ const HomeScreen = ({ navigation, route }) => {
         nextAppState === "active"
       ) {
         checkLocationStatus();
+        if (!currentAddressName) {
+          fetchCurrentAddress();
+        }
       }
       appState.current = nextAppState;
     });
     return () => subscription.remove();
-  }, [checkLocationStatus]);
+  }, [checkLocationStatus, fetchCurrentAddress, currentAddressName]);
 
   const translateX = useSharedValue(0);
   const isUrdu = i18n.language?.startsWith("ur");
@@ -179,8 +240,82 @@ const HomeScreen = ({ navigation, route }) => {
           <SearchBar />
         </View>
 
+        {/* Current Location (Dynamic) */}
+        <View
+          style={{
+            marginTop: responsiveHeight(2),
+            marginHorizontal: responsiveWidth(2),
+          }}
+        >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: responsiveWidth(4),
+              paddingVertical: 4,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setSaveAddressModalVisible(true)}
+              style={{
+                backgroundColor: COLORS.white,
+                borderRadius: 12,
+                padding: responsiveWidth(3),
+                marginRight: responsiveWidth(3),
+                width: responsiveWidth(35),
+                elevation: 2,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.1,
+                shadowRadius: 2,
+              }}
+            >
+              {fetchingLocation ? (
+                <ActivityIndicator
+                  size="small"
+                  color={COLORS.primary}
+                  style={{ marginTop: responsiveHeight(2) }}
+                />
+              ) : (
+                <>
+                  <Ionicons
+                    name="bookmark"
+                    size={20}
+                    color="#C0C0C0"
+                    style={{ position: "absolute", top: 8, right: 8 }}
+                  />
+                  <Text
+                    style={{
+                      fontFamily: FONTS.medium,
+                      fontSize: responsiveFontSize(1.8),
+                      color: COLORS.black,
+                      marginTop: responsiveHeight(2),
+                    }}
+                    numberOfLines={1}
+                  >
+                    {currentAddressName || t("current_location")}
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: FONTS.regular,
+                      fontSize: responsiveFontSize(1.4),
+                      color: COLORS.gray,
+                      marginTop: 2,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {currentAddressDetail ||
+                      t("use_device_location", { defaultValue: "Fetching..." })}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
         {/* Services */}
-        <View style={{ marginTop: responsiveHeight(2) }}>
+        <View style={{ marginTop: responsiveHeight(1) }}>
           <Services />
         </View>
 
@@ -191,6 +326,16 @@ const HomeScreen = ({ navigation, route }) => {
             setLocationModalVisible(false);
             dismissedManuallyRef.current = true;
           }}
+        />
+
+        <SaveAddressModal
+          visible={saveAddressModalVisible}
+          onClose={() => setSaveAddressModalVisible(false)}
+          address={
+            currentAddressName
+              ? `${currentAddressName}, ${currentAddressDetail}`
+              : ""
+          }
         />
       </ScrollView>
     </SafeAreaView>

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, memo } from "react";
-import { StyleSheet, PermissionsAndroid, AppState, Animated, View } from "react-native";
+import { StyleSheet, PermissionsAndroid, AppState, Animated, View, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline, AnimatedRegion } from "react-native-maps";
 import { useTranslation } from "react-i18next";
 import MapViewDirections from "react-native-maps-directions";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
@@ -22,6 +22,7 @@ const MapComponent = memo(({
   pickup: propPickup, 
   destination: propDestination, 
   driverLocation,
+  rideStatus,
   showMarkers = true, 
   showRoute = true,
   animateZoomOut = false, 
@@ -44,6 +45,10 @@ const MapComponent = memo(({
   const [mapReady, setMapReady] = useState(false);
   const [lastRouteHash, setLastRouteHash] = useState("");
   const drawAnim = useRef(new Animated.Value(0)).current;
+  const initialFitDone = useRef(false);
+
+  // Check if driver is heading to pickup
+  const isHeadingToPickup = rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived";
 
   // Clear local visual route only if global coordinates are empty
   useEffect(() => {
@@ -57,6 +62,29 @@ const MapComponent = memo(({
   useEffect(() => {
     setVisibleCoords([]);
   }, [pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude]);
+
+  // Smooth Driver Marker Animation
+  const driverAnimRegion = useRef(null);
+
+  useEffect(() => {
+    if (driverLocation) {
+      if (!driverAnimRegion.current) {
+        driverAnimRegion.current = new AnimatedRegion({
+          latitude: driverLocation.latitude,
+          longitude: driverLocation.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        });
+      } else {
+        driverAnimRegion.current.timing({
+          latitude: driverLocation.latitude,
+          longitude: driverLocation.longitude,
+          duration: 1500,
+          useNativeDriver: false,
+        }).start();
+      }
+    }
+  }, [driverLocation?.latitude, driverLocation?.longitude]);
 
   // Handle drawing animation whenever routeCoords changes or component mounts with them
   useEffect(() => {
@@ -114,41 +142,40 @@ const MapComponent = memo(({
     return () => subscription.remove();
   }, [checkPermission]);
 
-  // Fit to coordinates when map is ready or locations change
+  // Fit to coordinates ONLY when map is initially ready or route endpoints completely change
+  // We ignore driverLocation changes to avoid continuous auto-zoom that prevents user panning
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
 
-    if (driverLocation && pickup) {
-      mapRef.current.fitToCoordinates(
-        [
-          { latitude: pickup.latitude, longitude: pickup.longitude },
-          { latitude: driverLocation.latitude, longitude: driverLocation.longitude },
-        ],
-        {
-          edgePadding: { top: 120, right: 120, bottom: 120, left: 120 },
-          animated: true,
+    if (!initialFitDone.current) {
+      if (pickup) {
+        const coordsToFit = [
+          { latitude: pickup.latitude, longitude: pickup.longitude }
+        ];
+        if (driverLocation) {
+          coordsToFit.push({ latitude: driverLocation.latitude, longitude: driverLocation.longitude });
         }
-      );
-    } else if (showRoute && pickup && destination) {
-      mapRef.current.fitToCoordinates(
-        [
-          { latitude: pickup.latitude, longitude: pickup.longitude },
-          { latitude: destination.latitude, longitude: destination.longitude },
-        ],
-        {
-          edgePadding: { top: 100, right: 100, bottom: 100, left: 100 },
-          animated: true,
+        if (destination) {
+          coordsToFit.push({ latitude: destination.latitude, longitude: destination.longitude });
         }
-      );
-    } else if (pickup) {
-      mapRef.current.animateToRegion({
-        latitude: pickup.latitude,
-        longitude: pickup.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      }, 600);
+
+        if (coordsToFit.length > 1) {
+          mapRef.current.fitToCoordinates(coordsToFit, {
+            edgePadding: { top: 120, right: 120, bottom: 120, left: 120 },
+            animated: true,
+          });
+        } else {
+          mapRef.current.animateToRegion({
+            latitude: pickup.latitude,
+            longitude: pickup.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          }, 600);
+        }
+        initialFitDone.current = true;
+      }
     }
-  }, [mapReady, pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, driverLocation?.latitude, driverLocation?.longitude, showRoute]);
+  }, [mapReady, pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, showRoute]);
 
   const handleUserLocationChange = useCallback(
     (event) => {
@@ -200,61 +227,64 @@ const MapComponent = memo(({
           />
         )}
 
-        {driverLocation && (
-          <Marker
+        {driverLocation && driverAnimRegion.current && (
+          <Marker.Animated
             key="driver-marker"
-            coordinate={{ latitude: driverLocation.latitude, longitude: driverLocation.longitude }}
+            coordinate={driverAnimRegion.current}
             title={t("driver")}
             anchor={{ x: 0.5, y: 0.5 }}
             tracksViewChanges={false}
           >
             <View style={{
-              backgroundColor: COLORS.primary,
-              padding: 6,
+              backgroundColor: '#FFF',
+              padding: 4,
               borderRadius: 20,
-              borderWidth: 2,
-              borderColor: '#FFF',
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.25,
               shadowRadius: 3.84,
               elevation: 5
             }}>
-              <Ionicons name="car-sport" size={18} color="#FFF" />
+              <Image 
+                source={require("../../assets/auto.png")} 
+                style={{ width: 28, height: 28, resizeMode: 'contain' }} 
+              />
             </View>
-          </Marker>
+          </Marker.Animated>
         )}
 
+        {/* LEG 1: Driver to Pickup (Visible when approaching) */}
+        {showRoute && isHeadingToPickup && driverLocation && pickup && (
+          <MapViewDirections
+            origin={{ latitude: driverLocation.latitude, longitude: driverLocation.longitude }}
+            destination={{ latitude: pickup.latitude, longitude: pickup.longitude }}
+            apikey={GOOGLE_MAPS_API_KEY}
+            strokeWidth={4} 
+            strokeColor={COLORS.primary}
+            onReady={(result) => {
+              if (onRouteReady) onRouteReady(result);
+            }}
+          />
+        )}
+
+        {/* LEG 2: Pickup to Destination (Always visible if pickup and dest exist) */}
         {showRoute && pickup && destination && (
           <MapViewDirections
             origin={{ latitude: pickup.latitude, longitude: pickup.longitude }}
             destination={{ latitude: destination.latitude, longitude: destination.longitude }}
             apikey={GOOGLE_MAPS_API_KEY}
-            strokeWidth={0} 
-            strokeColor="transparent"
+            strokeWidth={isHeadingToPickup ? 3 : 4} 
+            strokeColor={isHeadingToPickup ? '#A0A0A0' : COLORS.primary}
+            lineDashPattern={isHeadingToPickup ? [10, 10] : null}
             onReady={(result) => {
-              const routeHash = `${result.coordinates.length}-${result.coordinates[0]?.latitude.toFixed(4)}-${result.coordinates[result.coordinates.length-1]?.latitude.toFixed(4)}`;
-              if (routeHash !== lastRouteHash) {
-                setRouteCoords(result.coordinates);
-                setLastRouteHash(routeHash);
-              }
-              if (onRouteReady) {
+              if (!isHeadingToPickup && onRouteReady) {
                 onRouteReady(result);
               }
             }}
           />
         )}
 
-        {showRoute && !disablePolyline && (
-          <Polyline
-            key={`animated-route-${isFocused ? 'focused' : 'blurred'}`}
-            coordinates={visibleCoords.length > 1 ? visibleCoords : []}
-            strokeWidth={4}
-            strokeColor={COLORS.primary}
-            lineCap="round"
-            lineJoin="round"
-          />
-        )}
+
       </MapView>
     </View>
   );

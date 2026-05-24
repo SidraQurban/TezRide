@@ -264,3 +264,21 @@ export const timeOptions = ["morning", "evening", "full_day"];
 export const driverPreferences = ["male", "female", "no_preference"];
 
 export const pkgWeight = ["Light (0-5kg)", "Medium (5-15kg)", "Heavy (>15kg)"];
+
+export const savedLocations = [
+  {
+    id: "1",
+    name: "Bismillah",
+    address: "Chowk Rd Se...",
+  },
+  {
+    id: "2",
+    name: "Indus",
+    address: "University, Nat...",
+  },
+  {
+    id: "3",
+    name: "National",
+    address: "Stadium, N...",
+  },
+];

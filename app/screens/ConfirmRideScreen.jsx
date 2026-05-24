@@ -1,5 +1,23 @@
+<<<<<<< Updated upstream
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Animated, PanResponder, StyleSheet } from "react-native";
+=======
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  PanResponder,
+  StyleSheet,
+} from "react-native";
+>>>>>>> Stashed changes
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import MapComponent from "../components/MapComponent";
@@ -22,6 +40,11 @@ import customerHub from "../api/customerHub";
 import { rides } from "../data/data.jsx";
 import { ActivityIndicator, Alert } from "react-native";
 import { useRide } from "../context/RideContext";
+<<<<<<< Updated upstream
+import * as Haptics from 'expo-haptics';
+=======
+import * as Haptics from "expo-haptics";
+>>>>>>> Stashed changes
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
@@ -49,7 +72,8 @@ const ConfirmRide = () => {
     }
     if (
       route.params?.destination &&
-      JSON.stringify(route.params.destination) !== JSON.stringify(ctxDestination)
+      JSON.stringify(route.params.destination) !==
+        JSON.stringify(ctxDestination)
     ) {
       setDestination(route.params.destination);
     }
@@ -68,6 +92,83 @@ const ConfirmRide = () => {
   const [priceLoading, setPriceLoading] = useState(false);
 
   const selectedRide = rides.find((r) => r.id === selectedService);
+
+  // ── Swipe-to-Confirm State ────────────────────────────────────────────────
+  const swipeAnim = useRef(new Animated.Value(0)).current;
+  const [trackWidth, setTrackWidth] = useState(300);
+  const THUMB_SIZE = 54; // Height of the track is responsiveHeight(7) ~ 56px, thumb is slightly smaller
+
+<<<<<<< Updated upstream
+=======
+  const handleConfirmRideRef = useRef();
+  const loadingRef = useRef(loading);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+
+>>>>>>> Stashed changes
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, gestureState) => {
+<<<<<<< Updated upstream
+        if (!loading && gestureState.dx >= 0 && gestureState.dx <= trackWidth - THUMB_SIZE - 4) {
+=======
+        if (
+          !loadingRef.current &&
+          gestureState.dx >= 0 &&
+          gestureState.dx <= trackWidth - THUMB_SIZE - 4
+        ) {
+>>>>>>> Stashed changes
+          swipeAnim.setValue(gestureState.dx);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+<<<<<<< Updated upstream
+        if (loading) return;
+=======
+        if (loadingRef.current) return;
+>>>>>>> Stashed changes
+        if (gestureState.dx >= (trackWidth - THUMB_SIZE) * 0.7) {
+          Animated.spring(swipeAnim, {
+            toValue: trackWidth - THUMB_SIZE - 4,
+            useNativeDriver: false,
+          }).start();
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+<<<<<<< Updated upstream
+          handleConfirmRide();
+          
+          // Reset slider after some time in case it fails or finishes
+          setTimeout(() => {
+            Animated.spring(swipeAnim, { toValue: 0, useNativeDriver: false }).start();
+=======
+
+          if (handleConfirmRideRef.current) {
+            handleConfirmRideRef.current();
+          }
+
+          // Reset slider after some time in case it fails or finishes
+          setTimeout(() => {
+            Animated.spring(swipeAnim, {
+              toValue: 0,
+              useNativeDriver: false,
+            }).start();
+>>>>>>> Stashed changes
+          }, 3000);
+        } else {
+          Animated.spring(swipeAnim, {
+            toValue: 0,
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+<<<<<<< Updated upstream
+    })
+=======
+    }),
+>>>>>>> Stashed changes
+  ).current;
 
   // ── Called by MapViewDirections when route is computed ────────────────────
   const handleRouteReady = useCallback(
@@ -99,12 +200,12 @@ const ConfirmRide = () => {
         }
       } catch (err) {
         // Fail silently — cards will still show static fallback prices
-        console.warn('[ConfirmRide] Pricing fetch failed:', err?.message);
+        console.warn("[ConfirmRide] Pricing fetch failed:", err?.message);
       } finally {
         setPriceLoading(false);
       }
     },
-    [pickup, destination, setRouteDetails]
+    [pickup, destination, setRouteDetails],
   );
 
   // ── Confirm ride ──────────────────────────────────────────────────────────
@@ -161,6 +262,10 @@ const ConfirmRide = () => {
     }
   };
 
+  useEffect(() => {
+    handleConfirmRideRef.current = handleConfirmRide;
+  }, [handleConfirmRide]);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       {/* MAIN CONTENT */}
@@ -184,7 +289,7 @@ const ConfirmRide = () => {
         </View>
       </View>
 
-      {/* CONFIRM BUTTON */}
+      {/* SWIPE-TO-CONFIRM SLIDER */}
       <View
         style={{
           position: "absolute",
@@ -194,38 +299,67 @@ const ConfirmRide = () => {
           zIndex: 5,
         }}
       >
-        <TouchableOpacity
-          activeOpacity={0.8}
-          disabled={loading}
-          onPress={handleConfirmRide}
+<<<<<<< Updated upstream
+        <View 
+          style={styles.swipeTrack}
+          onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+        >
+          {loading ? (
+            <ActivityIndicator color={COLORS.white} />
+          ) : (
+            <>
+              <Text style={styles.swipeText}>
+                {t("swipe_to_confirm", "SWIPE TO CONFIRM")}
+              </Text>
+              <Animated.View 
+                style={[
+                  styles.swipeThumb, 
+                  { transform: [{ translateX: swipeAnim }] }
+                ]}
+                {...panResponder.panHandlers}
+              >
+                <Ionicons name="arrow-forward" size={24} color={COLORS.primary} />
+              </Animated.View>
+            </>
+          )}
+=======
+        <View
+          style={styles.swipeTrack}
+          onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
         >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={{
-              width: "100%",
-              height: responsiveHeight(7),
-              borderRadius: responsiveHeight(3.5),
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+            style={styles.swipeTrack}
+            onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
           >
             {loading ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text
-                style={{
-                  color: COLORS.white,
-                  fontFamily: FONTS.semiBold,
-                  fontSize: responsiveFontSize(2),
-                }}
-              >
-                {t("confirm_ride")}
-              </Text>
+              <>
+                <Text style={styles.swipeText}>
+                  {t("swipe_to_confirm", "Swipe to Confirm")}
+                </Text>
+
+                <Animated.View
+                  style={[
+                    styles.swipeThumb,
+                    { transform: [{ translateX: swipeAnim }] },
+                  ]}
+                  {...panResponder.panHandlers}
+                >
+                  <Ionicons
+                    name="arrow-forward"
+                    size={24}
+                    color={COLORS.primary}
+                  />
+                </Animated.View>
+              </>
             )}
           </LinearGradient>
-        </TouchableOpacity>
+>>>>>>> Stashed changes
+        </View>
       </View>
 
       {/* BOTTOM SHEET */}
@@ -259,5 +393,51 @@ const ConfirmRide = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  swipeTrack: {
+    width: "100%",
+    height: responsiveHeight(7), // approx 56px
+<<<<<<< Updated upstream
+    backgroundColor: COLORS.primary,
+=======
+    // backgroundColor: COLORS.primary,
+>>>>>>> Stashed changes
+    borderRadius: responsiveHeight(3.5),
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  swipeText: {
+    color: "#FFF",
+<<<<<<< Updated upstream
+    fontSize: responsiveFontSize(1.8),
+    fontFamily: FONTS.bold,
+=======
+    fontSize: responsiveFontSize(2),
+    fontFamily: FONTS.semiBold,
+>>>>>>> Stashed changes
+    letterSpacing: 1.2,
+    marginLeft: responsiveWidth(8), // Make room for the thumb
+  },
+  swipeThumb: {
+    position: "absolute",
+    left: 2,
+    width: responsiveHeight(7) - 4, // 52px
+    height: responsiveHeight(7) - 4,
+    borderRadius: (responsiveHeight(7) - 4) / 2,
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+});
 
 export default ConfirmRide;
