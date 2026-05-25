@@ -153,9 +153,11 @@ const authService = {
     await storage.removeItem('userId');
     await storage.removeItem('userRole');
     await storage.removeItem('customerName');
+    await storage.removeItem('customerPhone');
     await storage.removeItem('customerGender');
     await storage.removeItem('customerStatus');
     await storage.removeItem('riderStatus');
+    await storage.removeItem('profilePictureUrl');
 
     // Disconnect SignalR hub on logout to prevent stale connections
     try {

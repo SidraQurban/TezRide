@@ -35,14 +35,17 @@ const CustomDrawer = (props) => {
 
   const [userName, setUserName] = useState("");
   const [profilePic, setProfilePic] = useState("");
+  const [userPhone, setUserPhone] = useState("");
 
   // Load name & avatar from local storage each time drawer mounts
   useEffect(() => {
     const loadProfile = async () => {
       const name = await storage.getItem("customerName");
       const pic  = await storage.getItem("profilePictureUrl");
+      const phone = await storage.getItem("customerPhone");
       if (name) setUserName(name);
       if (pic)  setProfilePic(pic);
+      if (phone) setUserPhone(phone);
     };
     loadProfile();
   }, []);
@@ -148,6 +151,23 @@ const CustomDrawer = (props) => {
               >
                 {userName || t("user", "User")}
               </Text>
+
+              {!!userPhone && (
+                <Text
+                  style={{
+                    fontSize: responsiveFontSize(1.6),
+                    color: COLORS.black,
+                    fontFamily: FONTS.regular,
+                    marginTop: 2,
+                    includeFontPadding: false,
+                  }}
+                >
+                  {userPhone.startsWith("92") 
+                    ? `+92 ${userPhone.substring(2)}` 
+                    : userPhone}
+                </Text>
+              )}
+
               <Text
                 style={{
                   fontSize: responsiveFontSize(1.4),

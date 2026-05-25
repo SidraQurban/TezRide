@@ -104,7 +104,8 @@ const RidesSlider = ({
         surgeFactor: estimate.surgeFactor,
       };
     }
-    return { fare: service.price, currency: "Rs.", isSurge: false, surgeFactor: 1 };
+    // Return nulls if not loaded yet so it triggers shimmer or empty state until live prices load
+    return { fare: "...", currency: "PKR", isSurge: false, surgeFactor: 1 };
   };
 
   return (
@@ -122,7 +123,7 @@ const RidesSlider = ({
       >
         {rides.map((service) => {
           const active = selectedService === service.id;
-          const { fare, currency, isSurge, surgeFactor } = resolvePrice(service);
+          const { fare, currency, isSurge, surgeFactor, loading } = resolvePrice(service);
           const hasLivePrice = Boolean(priceMap[service.id]);
 
           return (
@@ -222,8 +223,8 @@ const RidesSlider = ({
                     : "---"}
                 </Text>
 
-                {/* Price — shimmer while loading */}
-                {priceLoading && !hasLivePrice ? (
+                {/* Price — shimmer while strictly loading OR waiting for first price map */}
+                {!hasLivePrice ? (
                   <Animated.View
                     style={{
                       opacity: shimmerAnim,

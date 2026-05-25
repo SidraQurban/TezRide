@@ -131,8 +131,35 @@ const ConfirmRide = () => {
 
   const selectedRide = rides.find((r) => r.id === selectedService);
 
-  // Real-time wave drivers listener
+  // Real-time wave drivers listener & polling idle drivers
   useEffect(() => {
+    let intervalId;
+    let isActive = true;
+
+    const setupHubAndPoll = async () => {
+      await customerHub.start();
+
+      // Poll every 5 seconds for nearby drivers
+      intervalId = setInterval(async () => {
+        if (isActive && pickup?.latitude && pickup?.longitude) {
+          const drivers = await customerHub.getNearbyDrivers(selectedService, pickup.latitude, pickup.longitude);
+          if (drivers && drivers.length >= 0) {
+            setWaveDrivers(drivers);
+          }
+        }
+      }, 5000);
+      
+      // Do an immediate fetch as well
+      if (isActive && pickup?.latitude && pickup?.longitude) {
+        const drivers = await customerHub.getNearbyDrivers(selectedService, pickup.latitude, pickup.longitude);
+        if (drivers && drivers.length >= 0) {
+          setWaveDrivers(drivers);
+        }
+      }
+    };
+
+    setupHubAndPoll();
+
     const onWaveDrivers = (payload) => {
       if (payload && payload.drivers) {
         setWaveDrivers(payload.drivers);
@@ -140,8 +167,13 @@ const ConfirmRide = () => {
     };
 
     customerHub.on("wave_drivers", onWaveDrivers);
-    return () => customerHub.off("wave_drivers", onWaveDrivers);
-  }, []);
+    
+    return () => {
+      isActive = false;
+      if (intervalId) clearInterval(intervalId);
+      customerHub.off("wave_drivers", onWaveDrivers);
+    };
+  }, [pickup, selectedService]);
 
   // ── Called by MapViewDirections when route is computed ────────────────────
   const handleRouteReady = useCallback(
@@ -378,8 +410,9 @@ const ConfirmRide = () => {
       });
 
       const response = await authService.submitCustomerVerification(formData);
-      if (response.succeeded) {
-        Alert.alert(t("verification_success_title"), t("verification_success_msg"));
+      const isSuccess = response.succeeded === true || response.success === true || (response.message && response.message.toLowerCase().includes("success"));
+      if (isSuccess) {
+        Alert.alert(t("success", "Success"), response.message || t("verification_success_msg"));
         setVModalVisible(false);
         setCustomerStatus(1); // Set to pending locally
       } else {
@@ -545,7 +578,9 @@ const ConfirmRide = () => {
           <View style={[styles.modalContent, { height: responsiveHeight(85) }]}>
             <View style={styles.modalIndicator} />
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <View style={{ width: 40 }} />
+              <TouchableOpacity onPress={() => setVModalVisible(false)} style={{ width: 40, alignItems: "flex-start" }}>
+                <Ionicons name="close" size={26} color={COLORS.black} />
+              </TouchableOpacity>
               <Text style={[styles.modalTitle, { marginBottom: 0 }]}>{t("verification_title")}</Text>
               <TouchableOpacity onPress={() => setGModalVisible(true)} style={{ width: 40, alignItems: "flex-end" }}>
                 <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} />

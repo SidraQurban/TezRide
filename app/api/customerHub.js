@@ -182,6 +182,21 @@ class CustomerHub {
   }
 
   /**
+   * Fetches the nearby idle drivers before booking.
+   */
+  async getNearbyDrivers(vehicleType, lat, lon) {
+    if (!this.isConnected()) {
+      return [];
+    }
+    try {
+      return await this.connection.invoke('GetNearbyDrivers', vehicleType, lat, lon);
+    } catch (e) {
+      console.warn('[CustomerHub] getNearbyDrivers failed:', e);
+      return [];
+    }
+  }
+
+  /**
    * Aborts an active searching process.
    * @param {string} rideId
    */

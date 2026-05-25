@@ -23,12 +23,15 @@ import authService from "../api/authService";
 import storage from "../utils/storage";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Platform } from "react-native";
 
 const ProfileScreen = ({ navigation }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [profile, setProfile] = useState({
     id: "",
     firstName: "",
@@ -63,6 +66,8 @@ const ProfileScreen = ({ navigation }) => {
           await storage.setItem("customerName", `${d.firstName || ""} ${d.lastName || ""}`.trim());
         if (d.profilePictureUrl)
           await storage.setItem("profilePictureUrl", d.profilePictureUrl);
+        if (d.phoneNumber)
+          await storage.setItem("customerPhone", d.phoneNumber);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -287,7 +292,11 @@ const ProfileScreen = ({ navigation }) => {
               <Ionicons name="camera" size={16} color="#fff" />
             </View>
           </TouchableOpacity>
-          <Text style={styles.phoneNumber}>{profile.phoneNumber}</Text>
+          <Text style={styles.phoneNumber}>
+            {profile.phoneNumber?.startsWith("92") 
+              ? `+92 ${profile.phoneNumber.substring(2)}` 
+              : profile.phoneNumber}
+          </Text>
           <Text style={styles.tapHint}>Tap photo to change</Text>
         </View>
 
@@ -348,18 +357,33 @@ const ProfileScreen = ({ navigation }) => {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t("dob", "Date of Birth")}</Text>
-            <TextInput
-              style={styles.input}
-              value={
-                profile.dateOfBirth ? profile.dateOfBirth.split("T")[0] : ""
-              }
-              onChangeText={(t) =>
-                setProfile((p) => ({ ...p, dateOfBirth: t }))
-              }
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor="#bbb"
-              keyboardType="numeric"
-            />
+            <TouchableOpacity
+              style={[styles.input, { justifyContent: "center" }]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={{ color: profile.dateOfBirth ? COLORS.black : "#bbb", fontSize: 16 }}>
+                {profile.dateOfBirth ? profile.dateOfBirth.split("T")[0] : "YYYY-MM-DD"}
+              </Text>
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={profile.dateOfBirth ? new Date(profile.dateOfBirth) : new Date()}
+                mode="date"
+                display="default"
+                maximumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(Platform.OS === 'ios');
+                  if (event.type === "set" && selectedDate) {
+                    const localDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000);
+                    setProfile((p) => ({
+                      ...p,
+                      dateOfBirth: localDate.toISOString().split("T")[0],
+                    }));
+                  }
+                }}
+              />
+            )}
           </View>
         </View>
 
@@ -376,27 +400,6 @@ const ProfileScreen = ({ navigation }) => {
           </Text>
         </View>
 
-        {/* Update button */}
-        <TouchableOpacity
-          style={styles.updateButton}
-          onPress={handleUpdate}
-          disabled={updating}
-        >
-          <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.gradientBtn}
-          >
-            {updating ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>
-                {t("update_profile", "Update Profile")}
-              </Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

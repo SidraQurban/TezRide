@@ -191,20 +191,21 @@ const MapComponent = memo(({
       }
 
       if (coordsToFit.length > 1) {
+        // Find center coordinates to animate padding correctly
         mapRef.current.fitToCoordinates(coordsToFit, {
           edgePadding: { 
-            top: responsiveHeight(10), 
-            right: responsiveWidth(10), 
-            bottom: responsiveHeight(38), 
-            left: responsiveWidth(10) 
+            top: responsiveHeight(15), 
+            right: responsiveWidth(12), 
+            bottom: responsiveHeight(45), // increased bottom padding to account for bottom sheet over content
+            left: responsiveWidth(12) 
           },
           animated: true,
         });
       } else {
         mapRef.current.animateToRegion({
           ...pickup,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
+          latitudeDelta: 0.005, // zoomed in tighter
+          longitudeDelta: 0.005,
         }, 600);
       }
     }
@@ -268,34 +269,36 @@ const MapComponent = memo(({
               </View>
            </Marker>
         )}
+        {/* Pickup Marker */}
         {(showMarkers || showPickupMarker) && pickup && (!isSelectionMode || selectionType === 'destination') && (
           <Marker
             key={`marker-pickup-${pickup.latitude}-${pickup.longitude}`}
             coordinate={{ latitude: pickup.latitude, longitude: pickup.longitude }}
             anchor={{ x: 0.5, y: 1 }}
-            tracksViewChanges={false}
           >
             <View style={styles.modernMarker}>
-              <View style={styles.blackSquare}>
-                <Ionicons name="person" size={18} color="#FFF" />
+              <View style={[styles.blackSquare, { backgroundColor: COLORS.primary, width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', borderColor: '#FFF', borderWidth: 3 }]}>
+                <Ionicons name="person" size={20} color="#FFF" />
               </View>
-              <View style={styles.squarePointer} />
+              <View style={[styles.squarePointer, { borderTopColor: '#FFF', borderLeftWidth: 8, borderRightWidth: 8, borderTopWidth: 10, marginTop: -2 }]} />
+              <View style={[styles.squarePointer, { borderTopColor: COLORS.primary, borderLeftWidth: 5, borderRightWidth: 5, borderTopWidth: 7, marginTop: -9, zIndex: 2 }]} />
             </View>
           </Marker>
         )}
         
+        {/* Destination Marker */}
         {showMarkers && destination && (!isSelectionMode || selectionType === 'pickup') && (
           <Marker
             key={`marker-dest-${destination.latitude}-${destination.longitude}`}
             coordinate={{ latitude: destination.latitude, longitude: destination.longitude }}
             anchor={{ x: 0.5, y: 1 }}
-            tracksViewChanges={false}
           >
             <View style={styles.modernMarker}>
-              <View style={styles.blackSquare}>
-                <Ionicons name="flag" size={18} color="#FFF" />
+              <View style={[styles.blackSquare, { backgroundColor: '#FF3B30', width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', borderColor: '#FFF', borderWidth: 3 }]}>
+                <Ionicons name="flag" size={20} color="#FFF" />
               </View>
-              <View style={styles.squarePointer} />
+              <View style={[styles.squarePointer, { borderTopColor: '#FFF', borderLeftWidth: 8, borderRightWidth: 8, borderTopWidth: 10, marginTop: -2 }]} />
+              <View style={[styles.squarePointer, { borderTopColor: '#FF3B30', borderLeftWidth: 5, borderRightWidth: 5, borderTopWidth: 7, marginTop: -9, zIndex: 2 }]} />
             </View>
           </Marker>
         )}
@@ -306,7 +309,6 @@ const MapComponent = memo(({
              coordinate={driverAnimRegion.current}
              title={t("driver")}
              anchor={{ x: 0.5, y: 0.5 }}
-             tracksViewChanges={false}
            >
              <View style={styles.driverMarkerContainer}>
                <Image 
@@ -323,7 +325,6 @@ const MapComponent = memo(({
             key={`wave-driver-${driver.driverId}`}
             coordinate={{ latitude: driver.lat, longitude: driver.lon }}
             anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges={false}
           >
             <View style={styles.driverMarkerContainer}>
               <Image 
@@ -373,29 +374,24 @@ const MapComponent = memo(({
 
       </MapView>
 
-      {/* Floating Controls */}
-      <View style={styles.floatingControls}>
-        <TouchableOpacity 
-          style={styles.controlButton}
-          onPress={handleRecenter}
-        >
-          <Ionicons name="locate" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-      </View>
-
       {/* Fixed Center Pin for Selection Mode */}
       {isSelectionMode && (
         <View style={styles.centerPinContainer} pointerEvents="none">
           <View style={styles.centerPinBob}>
             <View style={styles.modernMarker}>
-              <View style={styles.blackSquare}>
+              <View style={[styles.blackSquare, { 
+                backgroundColor: selectionType === 'pickup' ? COLORS.primary : '#FF3B30', 
+                width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' 
+              }]}>
                 <Ionicons 
                   name={selectionType === 'pickup' ? "person" : "flag"} 
                   size={18} 
                   color="#FFF" 
                 />
               </View>
-              <View style={styles.squarePointer} />
+              <View style={[styles.squarePointer, { 
+                borderTopColor: selectionType === 'pickup' ? COLORS.primary : '#FF3B30' 
+              }]} />
             </View>
             <View style={styles.pinShadow} />
           </View>
