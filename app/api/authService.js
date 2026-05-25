@@ -185,6 +185,14 @@ const authService = {
   },
 
   /**
+   * Update user profile details.
+   * PUT /api/user/profile
+   */
+  updateProfile: async (profileData) => {
+    return apiClient.put('/api/user/profile', profileData);
+  },
+
+  /**
    * Submits customer verification data.
    * POST /api/user/verify/customer
    * formData must be multipart/form-data

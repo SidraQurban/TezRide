@@ -22,6 +22,7 @@ const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
   { label: "Wallet", icon: "wallet-outline", route: "Wallet" },
   { label: "Your Rides", icon: "car-outline", route: "RideHistory" },
+  { label: "Profile", icon: "person-circle-outline", route: "Profile" },
   { label: "Settings", icon: "settings-outline", route: "Settings" },
   { label: "Contact Us", icon: "call-outline", route: "ContactUs" },
 ];
@@ -75,7 +76,8 @@ const CustomDrawer = (props) => {
           contentContainerStyle={{ paddingTop: 0 }}
         >
           {/* Profile Section */}
-          <View
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Profile")}
             style={{
               flexDirection: "row",
               alignItems: "center",
@@ -154,7 +156,7 @@ const CustomDrawer = (props) => {
                 color={COLORS.primary}
               />
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
 
           {/* Drawer Items */}
           <View style={{ marginTop: responsiveHeight(2) }}>

@@ -56,7 +56,7 @@ const Settings = ({ navigation }) => {
           <SettingItem 
             icon="person-outline" 
             label={t("profile", "Profile")} 
-            onPress={() => {}} 
+            onPress={() => navigation.navigate("Profile")} 
           />
           <SettingItem 
             icon="card-outline" 
