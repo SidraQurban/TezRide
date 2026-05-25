@@ -19,6 +19,10 @@ import ShopsScreen from "../screens/ShopsScreen";
 import HireDriverScreen from "../screens/HireDriverScreen";
 import SearchDriverScreen from "../screens/SearchDriverScreen";
 import CargoScreen from "../screens/CargoScreen";
+import WalletScreen from "../screens/WalletScreen";
+import RideHistoryScreen from "../screens/RideHistoryScreen";
+import Settings from "../screens/Settings";
+import ContactUsScreen from "../screens/ContactUsScreen";
 
 import authService from "../api/authService";
 import { COLORS } from "../constants";
@@ -88,6 +92,10 @@ const AppNavigator = () => {
         <Stack.Screen name="SearchingDirection" component={SearchingDirection} />
         <Stack.Screen name="DriverProfile" component={DriverProfileScreen} />
         <Stack.Screen name="SearchDriver" component={SearchDriverScreen} />
+        <Stack.Screen name="Wallet" component={WalletScreen} />
+        <Stack.Screen name="RideHistory" component={RideHistoryScreen} />
+        <Stack.Screen name="Settings" component={Settings} />
+        <Stack.Screen name="ContactUs" component={ContactUsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

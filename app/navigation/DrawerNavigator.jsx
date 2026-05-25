@@ -7,6 +7,9 @@ import ContactUsScreen from "../screens/ContactUsScreen";
 import CustomDrawer from "../components/CustomDrawer";
 import { useTranslation } from "react-i18next";
 import { responsiveWidth } from "react-native-responsive-dimensions";
+import WalletScreen from "../screens/WalletScreen";
+import RideHistoryScreen from "../screens/RideHistoryScreen";
+import Settings from "../screens/Settings";
 
 const Drawer = createDrawerNavigator();
 
@@ -44,8 +47,10 @@ const DrawerNavigator = () => {
       }}
     >
       <Drawer.Screen name="Home" component={HomeScreenWrapper} />
-      {/* <Drawer.Screen name="Booking" component={BookingScreen} /> */}
-      {/* <Drawer.Screen name="ContactUs" component={ContactUsScreen} /> */}
+      <Drawer.Screen name="Wallet" component={WalletScreen} />
+      <Drawer.Screen name="RideHistory" component={RideHistoryScreen} />
+      <Drawer.Screen name="Settings" component={Settings} />
+      <Drawer.Screen name="ContactUs" component={ContactUsScreen} />
     </Drawer.Navigator>
   );
 };

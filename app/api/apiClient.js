@@ -69,7 +69,6 @@ apiClient.interceptors.response.use(
         if (!storedRefreshToken) throw new Error('No refresh token stored');
 
         // Use a clean axios instance for the refresh call to avoid recursive interceptor loops
-        // Backend expects the refresh token as a query parameter
         const response = await axios.post(
           `${BASE_URL}/api/Account/refresh-token?refreshToken=${encodeURIComponent(storedRefreshToken)}`
         );

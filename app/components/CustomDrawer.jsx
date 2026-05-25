@@ -20,15 +20,10 @@ import authService from "../api/authService";
 
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
-  { label: "Booking", icon: "calendar-outline", route: "Booking" },
-  { label: "Contact Us", icon: "call-outline", route: "ContactUs" },
-  {
-    label: "Notifications",
-    icon: "notifications-outline",
-    badge: 4,
-    route: "Notifications",
-  },
+  { label: "Wallet", icon: "wallet-outline", route: "Wallet" },
+  { label: "Your Rides", icon: "car-outline", route: "RideHistory" },
   { label: "Settings", icon: "settings-outline", route: "Settings" },
+  { label: "Contact Us", icon: "call-outline", route: "ContactUs" },
 ];
 
 const CustomDrawer = (props) => {

@@ -177,34 +177,35 @@ const MapComponent = memo(({
   // Fit to coordinates ONLY when map is initially ready or route endpoints completely change
   // We ignore driverLocation changes to avoid continuous auto-zoom that prevents user panning
   useEffect(() => {
-    if (!mapReady || !mapRef.current) return;
+    if (!mapReady || !mapRef.current || isSelectionMode) return;
 
-    if (!initialFitDone.current) {
-      if (pickup) {
-        const coordsToFit = [
-          { latitude: pickup.latitude, longitude: pickup.longitude }
-        ];
-        if (driverLocation) {
-          coordsToFit.push({ latitude: driverLocation.latitude, longitude: driverLocation.longitude });
-        }
-        if (destination) {
-          coordsToFit.push({ latitude: destination.latitude, longitude: destination.longitude });
-        }
+    if (pickup) {
+      const coordsToFit = [
+        { latitude: pickup.latitude, longitude: pickup.longitude }
+      ];
+      if (driverLocation) {
+        coordsToFit.push({ latitude: driverLocation.latitude, longitude: driverLocation.longitude });
+      }
+      if (destination) {
+        coordsToFit.push({ latitude: destination.latitude, longitude: destination.longitude });
+      }
 
-        if (coordsToFit.length > 1) {
-          mapRef.current.fitToCoordinates(coordsToFit, {
-            edgePadding: { top: 120, right: 120, bottom: 120, left: 120 },
-            animated: true,
-          });
-        } else {
-          mapRef.current.animateToRegion({
-            latitude: pickup.latitude,
-            longitude: pickup.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }, 600);
-        }
-        initialFitDone.current = true;
+      if (coordsToFit.length > 1) {
+        mapRef.current.fitToCoordinates(coordsToFit, {
+          edgePadding: { 
+            top: responsiveHeight(10), 
+            right: responsiveWidth(10), 
+            bottom: responsiveHeight(38), 
+            left: responsiveWidth(10) 
+          },
+          animated: true,
+        });
+      } else {
+        mapRef.current.animateToRegion({
+          ...pickup,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }, 600);
       }
     }
   }, [mapReady, pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, showRoute]);
@@ -267,34 +268,34 @@ const MapComponent = memo(({
               </View>
            </Marker>
         )}
-        {(showMarkers || showPickupMarker) && pickup && (
+        {(showMarkers || showPickupMarker) && pickup && (!isSelectionMode || selectionType === 'destination') && (
           <Marker
             key={`marker-pickup-${pickup.latitude}-${pickup.longitude}`}
             coordinate={{ latitude: pickup.latitude, longitude: pickup.longitude }}
-            title={t("pickup")}
-            description={pickup.address}
-            draggable
-            onDragEnd={(e) => onPickupDragEnd && onPickupDragEnd(e.nativeEvent.coordinate)}
+            anchor={{ x: 0.5, y: 1 }}
             tracksViewChanges={false}
           >
             <View style={styles.modernMarker}>
-              <View style={[styles.markerInner, { backgroundColor: COLORS.success || "#4CAF50" }]} />
+              <View style={styles.blackSquare}>
+                <Ionicons name="person" size={18} color="#FFF" />
+              </View>
+              <View style={styles.squarePointer} />
             </View>
           </Marker>
         )}
         
-        {showMarkers && destination && (
+        {showMarkers && destination && (!isSelectionMode || selectionType === 'pickup') && (
           <Marker
             key={`marker-dest-${destination.latitude}-${destination.longitude}`}
             coordinate={{ latitude: destination.latitude, longitude: destination.longitude }}
-            title={t("destination")}
-            description={destination.address}
-            draggable
-            onDragEnd={(e) => onDestinationDragEnd && onDestinationDragEnd(e.nativeEvent.coordinate)}
+            anchor={{ x: 0.5, y: 1 }}
             tracksViewChanges={false}
           >
             <View style={styles.modernMarker}>
-              <View style={[styles.markerInner, { backgroundColor: COLORS.error || "#F44336" }]} />
+              <View style={styles.blackSquare}>
+                <Ionicons name="flag" size={18} color="#FFF" />
+              </View>
+              <View style={styles.squarePointer} />
             </View>
           </Marker>
         )}
@@ -386,14 +387,15 @@ const MapComponent = memo(({
       {isSelectionMode && (
         <View style={styles.centerPinContainer} pointerEvents="none">
           <View style={styles.centerPinBob}>
-            <View style={[
-              styles.modernMarker, 
-              { borderColor: selectionType === 'pickup' ? COLORS.success : COLORS.error }
-            ]}>
-              <View style={[
-                styles.markerInner, 
-                { backgroundColor: selectionType === 'pickup' ? COLORS.success : COLORS.error }
-              ]} />
+            <View style={styles.modernMarker}>
+              <View style={styles.blackSquare}>
+                <Ionicons 
+                  name={selectionType === 'pickup' ? "person" : "flag"} 
+                  size={18} 
+                  color="#FFF" 
+                />
+              </View>
+              <View style={styles.squarePointer} />
             </View>
             <View style={styles.pinShadow} />
           </View>
@@ -414,24 +416,34 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   modernMarker: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  blackSquare: {
+    width: 36,
+    height: 36,
+    backgroundColor: '#333',
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+    elevation: 8,
   },
-  markerInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  squarePointer: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderTopWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#333',
+    marginTop: -1,
   },
   driverMarkerContainer: {
     backgroundColor: '#FFF',
