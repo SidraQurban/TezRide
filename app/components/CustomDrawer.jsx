@@ -55,12 +55,18 @@ const CustomDrawer = (props) => {
       t("logout_confirmation"),
       [
         { text: t("cancel"), style: "cancel" },
-        { 
-          text: t("yes"), 
+        {
+          text: t("yes"),
           onPress: async () => {
             await authService.logout();
-            navigation.replace("Login");
-          } 
+            // The drawer's navigation is scoped inside DrawerNavigator.
+            // We must use getParent() to reach the root NativeStack and
+            // reset it to "login", preventing the user from navigating back.
+            navigation.getParent()?.reset({
+              index: 0,
+              routes: [{ name: "login" }],
+            });
+          },
         },
       ]
     );

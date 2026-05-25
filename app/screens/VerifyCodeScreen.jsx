@@ -49,7 +49,8 @@ const VerifyCodeScreen = ({ navigation, route }) => {
     }
   };
 
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(60);
+  const [resendLoading, setResendLoading] = useState(false);
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
 
@@ -66,7 +67,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     // Animate circular progress down as the timer decreases
-    progressValue.value = withTiming(timer / 30, {
+    progressValue.value = withTiming(timer / 60, {
       duration: 1000,
       easing: Easing.linear,
     });
@@ -134,6 +135,25 @@ const VerifyCodeScreen = ({ navigation, route }) => {
     } finally {
       setLoading(false);
       setVerificationInProgress(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (timer > 0 || resendLoading) return;
+
+    setResendLoading(true);
+    try {
+      const response = await authService.sendOTP(phoneNumber);
+      if (response.succeeded) {
+        setTimer(60); // Reset timer
+        // Alert.alert(t("success"), t("otp_sent_successfully"));
+      } else {
+        Alert.alert(t("error"), response.message || t("otp_send_failed"));
+      }
+    } catch (error) {
+      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -351,6 +371,50 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                   }
                 />
               ))}
+            </View>
+
+            {/* Resend Section */}
+            <View
+              style={{
+                marginTop: responsiveHeight(2),
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: FONTS.regular,
+                  fontSize: responsiveFontSize(1.8),
+                  color: "#6B7280",
+                }}
+              >
+                {t("didnt_receive_code")}{" "}
+              </Text>
+              <TouchableOpacity
+                disabled={timer > 0 || resendLoading}
+                onPress={handleResend}
+                activeOpacity={0.7}
+              >
+                {resendLoading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={COLORS.primary}
+                    style={{ marginLeft: 5 }}
+                  />
+                ) : (
+                  <Text
+                    style={{
+                      fontFamily: FONTS.semiBold,
+                      fontSize: responsiveFontSize(1.8),
+                      color: timer > 0 ? "#9CA3AF" : COLORS.primary,
+                      textDecorationLine: timer > 0 ? "none" : "underline",
+                    }}
+                  >
+                    {t("resend_code")}
+                    {timer > 0 ? ` (${timer}s)` : ""}
+                  </Text>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
 

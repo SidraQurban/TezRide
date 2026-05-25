@@ -157,6 +157,13 @@ class CustomerHub {
       console.log('[CustomerHub] RideCancelled:', payload);
       this._trigger('RideCancelled', payload);
     });
+
+    // Wave drivers update during search.
+    // Payload: { rideId, waveNumber, drivers: [...] }
+    this.connection.on('wave_drivers', (payload) => {
+      console.log('[CustomerHub] wave_drivers:', payload);
+      this._trigger('wave_drivers', payload);
+    });
   }
 
   // ── Client → Server Methods ──────────────────────────────────────────────

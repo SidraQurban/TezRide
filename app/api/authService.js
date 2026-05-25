@@ -132,10 +132,7 @@ const authService = {
 
     try {
       // Shared backend expects both expired token and refresh token
-      const response = await apiClient.post('/api/Account/refresh-token', { 
-        token, 
-        refreshToken 
-      });
+      const response = await apiClient.post(`/api/Account/refresh-token?refreshToken=${encodeURIComponent(refreshToken)}`);
       if (response.succeeded && response.data.jwToken) {
         await authService._persistSession(response.data, false);
         return response.data.jwToken;
@@ -179,6 +176,27 @@ const authService = {
     return !!token;
   },
 
+  /**
+   * Fetches full user profile details.
+   * GET /api/user/{id}
+   */
+  getUserProfile: async (userId) => {
+    return apiClient.get(`/api/user/${userId}`);
+  },
+
+  /**
+   * Submits customer verification data.
+   * POST /api/user/verify/customer
+   * formData must be multipart/form-data
+   */
+  submitCustomerVerification: async (formData) => {
+    return apiClient.post('/api/user/verify/customer', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
   // ── Internal helpers ────────────────────────────────────────────────────
 
   /**
@@ -188,10 +206,12 @@ const authService = {
    * @param {AuthDto} data  – The `data` field from the API response
    */
   _persistSession: async (data, shouldRestartHub = true) => {
-    await storage.setItem('jwToken', data.jwToken);
-    await storage.setItem('refreshToken', data.refreshToken);
-    await storage.setItem('userId', data.id);
-    await storage.setItem('userRole', 'Customer');
+    if (data.jwToken) await storage.setItem('jwToken', data.jwToken);
+    if (data.refreshToken) await storage.setItem('refreshToken', data.refreshToken);
+    if (data.id) await storage.setItem('userId', data.id);
+    
+    // Default or provided values
+    await storage.setItem('userRole', data.roles?.[0] || 'Customer');
 
     // Persist display fields used by ride requests
     if (data.username) {
@@ -207,7 +227,7 @@ const authService = {
       await storage.setItem('riderStatus', data.riderStatus);
     }
 
-    console.log('[Auth] Session persisted. userId:', data.id);
+    console.log('[Auth] Session persisted. userId:', data.id || 'preserved');
 
     // Only restart the hub if explicitly requested (e.g., on initial login)
     // Background refreshes should NOT restart the hub as the HubConnection

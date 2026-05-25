@@ -206,7 +206,7 @@ const SearchScreen = () => {
           setPickupData(locationData);
           setPredictions([]);
           setSearchPerformed(false);
-          if (destinationData) {
+          if (destinationData && destination.trim().length > 0) {
             setCtxPickup(locationData);
             setCtxDestination(destinationData);
             navigation.navigate("ConfirmRide", {
@@ -222,7 +222,7 @@ const SearchScreen = () => {
           setDestinationData(locationData);
           setPredictions([]);
           setSearchPerformed(false);
-          if (pickupData) {
+          if (pickupData && pickup.trim().length > 0) {
             setCtxPickup(pickupData);
             setCtxDestination(locationData);
             navigation.navigate("ConfirmRide", {
@@ -343,11 +343,13 @@ const SearchScreen = () => {
         pickup={pickup}
         setPickup={(text) => {
           setPickup(text);
+          if (text === "") setPickupData(null);
           setActiveField("pickup");
         }}
         destination={destination}
         setDestination={(text) => {
           setDestination(text);
+          if (text === "") setDestinationData(null);
           setActiveField("destination");
         }}
         onSwapLocations={handleSwapLocations}

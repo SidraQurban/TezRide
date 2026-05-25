@@ -13,11 +13,15 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  TextInput,
+  Image,
+  ScrollView,
 } from "react-native";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons, MaterialCommunityIcons, Fontisto, FontAwesome } from "@expo/vector-icons";
 import MapComponent from "../components/MapComponent";
+import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomSheet from "@gorhom/bottom-sheet";
 import {
@@ -34,6 +38,9 @@ import { useTranslation } from "react-i18next";
 import rideService from "../api/rideService";
 import pricingService from "../api/pricingService";
 import customerHub from "../api/customerHub";
+import authService from "../api/authService";
+import * as ImagePicker from "expo-image-picker";
+import storage from "../utils/storage";
 import { rides } from "../data/data.jsx";
 import { useRide } from "../context/RideContext";
 
@@ -83,8 +90,58 @@ const ConfirmRide = () => {
   // e.g. { bike: { estimatedFare: 192, currency: 'PKR', surgeFactor: 1.0, ... } }
   const [priceMap, setPriceMap] = useState({});
   const [priceLoading, setPriceLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [customerStatus, setCustomerStatus] = useState(null); // 0: NotSubmitted, 1: Pending, 2: Approved
+  const [vModalVisible, setVModalVisible] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [tempPref, setTempPref] = useState("any");
+  const [gModalVisible, setGModalVisible] = useState(false);
+  const [waveDrivers, setWaveDrivers] = useState([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectionType, setSelectionType] = useState("pickup");
+
+  // Verification form state
+  const [vForm, setVForm] = useState({
+    firstName: "",
+    lastName: "",
+    gender: "Female",
+    cnicNumber: "",
+    address: "",
+    frontImage: null,
+    backImage: null,
+    requiresWomenOnlyRides: true,
+  });
+
+  // Pre-fill form from storage if available
+  useEffect(() => {
+    const prefill = async () => {
+      const name = await storage.getItem("customerName");
+      const gender = await storage.getItem("customerGender");
+      if (name || gender) {
+        setVForm(prev => ({
+          ...prev,
+          firstName: name ? name.split(" ")[0] : prev.firstName,
+          lastName: name && name.split(" ").length > 1 ? name.split(" ").slice(1).join(" ") : prev.lastName,
+          gender: gender === "female" ? "Female" : (gender === "male" ? "Male" : prev.gender)
+        }));
+      }
+    };
+    prefill();
+  }, []);
 
   const selectedRide = rides.find((r) => r.id === selectedService);
+
+  // Real-time wave drivers listener
+  useEffect(() => {
+    const onWaveDrivers = (payload) => {
+      if (payload && payload.drivers) {
+        setWaveDrivers(payload.drivers);
+      }
+    };
+
+    customerHub.on("wave_drivers", onWaveDrivers);
+    return () => customerHub.off("wave_drivers", onWaveDrivers);
+  }, []);
 
   // ── Called by MapViewDirections when route is computed ────────────────────
   const handleRouteReady = useCallback(
@@ -127,6 +184,12 @@ const ConfirmRide = () => {
   // ── Confirm ride ──────────────────────────────────────────────────────────
   const handleConfirmRide = async () => {
     if (!pickup || !destination || loading) return;
+
+    // Final guard for women preference
+    if (genderPreference === "female" && (customerStatus !== 2 && customerStatus !== "Approved")) {
+      Alert.alert(t("verification_required_title"), t("verification_required_msg"));
+      return;
+    }
 
     setLoading(true);
     try {
@@ -178,11 +241,230 @@ const ConfirmRide = () => {
     }
   };
 
-  // Preference Modal Component
-  const PreferenceModal = () => {
-    const [tempPref, setTempPref] = useState(genderPreference);
+  const reverseGeocode = async (coords) => {
+    try {
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+      const response = await fetch(url);
+      const json = await response.json();
+      if (json.status === "OK") {
+        const result = json.results[0];
+        const address = result.formatted_address;
+        const name = address.split(',')[0];
+        return {
+          id: result.place_id,
+          address,
+          name,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        };
+      }
+    } catch (error) {
+      console.warn("[ConfirmRide] Reverse geocode error:", error);
+    }
+    return null;
+  };
 
-    return (
+  const handlePickupDragEnd = async (coords) => {
+    const data = await reverseGeocode(coords);
+    if (data) {
+      setPickup(data);
+    }
+  };
+
+  const handleDestinationDragEnd = async (coords) => {
+    const data = await reverseGeocode(coords);
+    if (data) {
+      setDestination(data);
+    }
+  };
+
+  const handleLocationConfirm = () => {
+    setIsSelectionMode(false);
+    bottomSheetRef.current?.snapToIndex(0);
+  };
+
+  const startSelection = (type) => {
+    setSelectionType(type);
+    setIsSelectionMode(true);
+    bottomSheetRef.current?.close();
+  };
+
+  const checkStatusAndSetPref = async (newPref) => {
+    if (newPref !== "female") {
+      setGenderPreference(newPref);
+      setPrefModalVisible(false);
+      return;
+    }
+
+    try {
+      setStatusLoading(true);
+      const userId = await storage.getItem("userId");
+      const response = await authService.getUserProfile(userId);
+
+      if (response.succeeded) {
+        // Based on audit, response.data holds the user profile directly
+        const status = response.data.customerProfile?.customerStatus;
+        setCustomerStatus(status);
+
+        if (status === 2 || status === "Approved") {
+          setGenderPreference("female");
+          setPrefModalVisible(false);
+        } else if (status === 1 || status === "Pending") {
+          Alert.alert(t("pending_verification_title"), t("pending_verification_msg"));
+        } else {
+          // status 0 or NotSubmitted
+          Alert.alert(
+            t("verification_required_title"),
+            t("verification_required_msg"),
+            [
+              { text: t("cancel_btn"), style: "cancel" },
+              { text: t("continue_btn"), onPress: () => setVModalVisible(true) },
+            ]
+          );
+        }
+      }
+    } catch (error) {
+      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const pickImage = async (field) => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setVForm(prev => ({ ...prev, [field]: result.assets[0].uri }));
+    }
+  };
+
+  const handleVerifySubmit = async () => {
+    if (!vForm.firstName || !vForm.lastName || !vForm.cnicNumber || !vForm.address || !vForm.frontImage || !vForm.backImage) {
+      Alert.alert(t("error"), "Please fill all fields and provide images.");
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      const userId = await storage.getItem("userId");
+      const formData = new FormData();
+      formData.append("UserId", userId);
+      formData.append("FirstName", vForm.firstName);
+      formData.append("LastName", vForm.lastName);
+      formData.append("Gender", vForm.gender);
+      formData.append("CnicNumber", vForm.cnicNumber);
+      formData.append("Address", vForm.address);
+      formData.append("RequiresWomenOnlyRides", "true");
+
+      // Append images
+      const frontUri = vForm.frontImage;
+      const frontName = frontUri.split("/").pop();
+      formData.append("CnicFrontImage", {
+        uri: frontUri,
+        name: frontName,
+        type: "image/jpeg",
+      });
+
+      const backUri = vForm.backImage;
+      const backName = backUri.split("/").pop();
+      formData.append("CnicBackImage", {
+        uri: backUri,
+        name: backName,
+        type: "image/jpeg",
+      });
+
+      const response = await authService.submitCustomerVerification(formData);
+      if (response.succeeded) {
+        Alert.alert(t("verification_success_title"), t("verification_success_msg"));
+        setVModalVisible(false);
+        setCustomerStatus(1); // Set to pending locally
+      } else {
+        Alert.alert(t("error"), response.message || t("something_went_wrong"));
+      }
+    } catch (error) {
+      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  // ── Modals are inlined in the return below to avoid re-rendering issues ──
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      {/* MAIN CONTENT */}
+      <View style={{ flex: 1 }}>
+        <View style={{ left: responsiveWidth(1.5) }}>
+          <BackBtn />
+        </View>
+
+        <View
+          style={{
+            height: responsiveHeight(60),
+            marginBottom: responsiveHeight(0.5),
+          }}
+        >
+          <MapComponent
+            pickup={pickup}
+            destination={destination}
+            useGlobalState={true}
+            onRouteReady={handleRouteReady}
+            onPickupDragEnd={handlePickupDragEnd}
+            onDestinationDragEnd={handleDestinationDragEnd}
+            waveDrivers={waveDrivers}
+            selectedCategory={selectedService}
+            isSelectionMode={isSelectionMode}
+            selectionType={selectionType}
+            onLocationSelected={async (region) => {
+              const data = await reverseGeocode(region);
+              if (data) {
+                if (selectionType === "pickup") setPickup(data);
+                else setDestination(data);
+              }
+            }}
+          />
+        </View>
+      </View>
+
+      {/* CONFIRM / SELECTION BUTTON */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: responsiveHeight(6),
+          left: responsiveWidth(4),
+          right: responsiveWidth(4),
+          zIndex: 50,
+        }}
+      >
+        <TouchableOpacity
+          onPress={isSelectionMode ? handleLocationConfirm : handleConfirmRide}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={[COLORS.primary, COLORS.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.mainConfirmBtn}
+          >
+            {loading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <Text style={styles.mainConfirmBtnText}>
+                {isSelectionMode 
+                  ? (selectionType === "pickup" ? t("set_pickup") : t("set_destination"))
+                  : t("confirm_ride")}
+              </Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+
+      {/* PREFERENCE MODAL */}
       <Modal visible={prefModalVisible} transparent animationType="fade">
         <TouchableOpacity
           activeOpacity={1}
@@ -190,8 +472,13 @@ const ConfirmRide = () => {
           onPress={() => setPrefModalVisible(false)}
         >
           <TouchableOpacity activeOpacity={1} style={styles.modalContent}>
-            <View style={styles.modalIndicator} />
-            <Text style={styles.modalTitle}>{t("rider_preference")}</Text>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <View style={{ width: 40 }} />
+              <Text style={[styles.modalTitle, { marginBottom: 0 }]}>{t("rider_preference")}</Text>
+              <TouchableOpacity onPress={() => setGModalVisible(true)} style={{ width: 40, alignItems: "flex-end" }}>
+                <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.prefOptions}>
               {[
@@ -232,10 +519,8 @@ const ConfirmRide = () => {
             </View>
 
             <TouchableOpacity
-              onPress={() => {
-                setGenderPreference(tempPref);
-                setPrefModalVisible(false);
-              }}
+              onPress={() => checkStatusAndSetPref(tempPref)}
+              disabled={statusLoading}
             >
               <LinearGradient
                 colors={[COLORS.primary, COLORS.secondary]}
@@ -243,73 +528,163 @@ const ConfirmRide = () => {
                 end={{ x: 1, y: 0 }}
                 style={styles.confirmBtn}
               >
-                <Text style={styles.confirmBtnText}>{t("confirm_btn")}</Text>
+                {statusLoading ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <Text style={styles.confirmBtnText}>{t("confirm_btn")}</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-    );
-  };
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
-      {/* MAIN CONTENT */}
-      <View style={{ flex: 1 }}>
-        <View style={{ left: responsiveWidth(1.5) }}>
-          <BackBtn />
+      {/* VERIFICATION MODAL */}
+      <Modal visible={vModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { height: responsiveHeight(85) }]}>
+            <View style={styles.modalIndicator} />
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <View style={{ width: 40 }} />
+              <Text style={[styles.modalTitle, { marginBottom: 0 }]}>{t("verification_title")}</Text>
+              <TouchableOpacity onPress={() => setGModalVisible(true)} style={{ width: 40, alignItems: "flex-end" }}>
+                <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t("first_name")}</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder={t("first_name")}
+                  value={vForm.firstName}
+                  onChangeText={(text) => setVForm((prev) => ({ ...prev, firstName: text }))}
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t("last_name")}</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder={t("last_name")}
+                  value={vForm.lastName}
+                  onChangeText={(text) => setVForm((prev) => ({ ...prev, lastName: text }))}
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t("gender")}</Text>
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  {["Male", "Female", "Other"].map((g) => (
+                    <TouchableOpacity
+                      key={g}
+                      style={[
+                        styles.prefItem,
+                        { flex: 1, justifyContent: "center", paddingVertical: 10 },
+                        vForm.gender === g && styles.prefItemActive,
+                      ]}
+                      onPress={() => setVForm((prev) => ({ ...prev, gender: g }))}
+                    >
+                      <Text style={[styles.prefLabel, vForm.gender === g && styles.prefLabelActive]}>
+                        {g}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t("cnic_number")}</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="42101-XXXXXXX-X"
+                  value={vForm.cnicNumber}
+                  onChangeText={(text) => setVForm((prev) => ({ ...prev, cnicNumber: text }))}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>{t("address")}</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder={t("address")}
+                  value={vForm.address}
+                  onChangeText={(text) => setVForm((prev) => ({ ...prev, address: text }))}
+                  multiline
+                />
+              </View>
+
+              <View style={styles.imageSelectors}>
+                <TouchableOpacity style={styles.imageBtn} onPress={() => pickImage("frontImage")}>
+                  <Ionicons name="camera" size={24} color={COLORS.primary} />
+                  <Text style={styles.imageBtnText}>{vForm.frontImage ? "Change Front" : t("cnic_front")}</Text>
+                  {vForm.frontImage && <Image source={{ uri: vForm.frontImage }} style={styles.previewThumb} />}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.imageBtn} onPress={() => pickImage("backImage")}>
+                  <Ionicons name="camera" size={24} color={COLORS.primary} />
+                  <Text style={styles.imageBtnText}>{vForm.backImage ? "Change Back" : t("cnic_back")}</Text>
+                  {vForm.backImage && <Image source={{ uri: vForm.backImage }} style={styles.previewThumb} />}
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.submitBtn}
+                onPress={handleVerifySubmit}
+                disabled={verifying}
+              >
+                <LinearGradient
+                  colors={[COLORS.primary, COLORS.secondary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.confirmBtn}
+                >
+                  {verifying ? (
+                    <ActivityIndicator color={COLORS.white} />
+                  ) : (
+                    <Text style={styles.confirmBtnText}>{t("submit_verification")}</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setVModalVisible(false)} style={{ marginTop: 15 }}>
+                <Text style={{ textAlign: "center", color: "#666", fontFamily: FONTS.medium }}>{t("cancel_btn")}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
         </View>
+      </Modal>
 
-        {/* MAP */}
-        <View
-          style={{
-            height: responsiveHeight(60),
-            marginBottom: responsiveHeight(0.5),
-          }}
-        >
-          <MapComponent
-            pickup={pickup}
-            destination={destination}
-            useGlobalState={true}
-            onRouteReady={handleRouteReady}
-          />
-        </View>
-      </View>
-
-      {/* CONFIRM BUTTON */}
-      <View
-        style={{
-          position: "absolute",
-          bottom: responsiveHeight(6),
-          left: responsiveWidth(4),
-          right: responsiveWidth(4),
-          zIndex: 50,
-        }}
-      >
+      {/* VERIFICATION GUIDE MODAL */}
+      <Modal visible={gModalVisible} transparent animationType="fade">
         <TouchableOpacity
-          onPress={handleConfirmRide}
-          disabled={loading}
-          activeOpacity={0.8}
+          activeOpacity={1}
+          style={styles.modalOverlay}
+          onPress={() => setGModalVisible(false)}
         >
-          <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.mainConfirmBtn}
-          >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text style={styles.mainConfirmBtnText}>
-                {t("confirm_ride")}
-              </Text>
-            )}
-          </LinearGradient>
+          <TouchableOpacity activeOpacity={1} style={[styles.modalContent, { paddingBottom: 30 }]}>
+            <View style={styles.modalIndicator} />
+            <Ionicons name="shield-checkmark" size={60} color={COLORS.primary} style={{ alignSelf: "center", marginBottom: 15 }} />
+            <Text style={styles.modalTitle}>{t("verification_guide_title")}</Text>
+            <Text style={{
+              textAlign: "center",
+              fontSize: responsiveFontSize(1.8),
+              color: "#4B5563",
+              lineHeight: 24,
+              fontFamily: FONTS.regular,
+              marginBottom: 30,
+              paddingHorizontal: 10
+            }}>
+              {t("verification_guide_desc")}
+            </Text>
+            <TouchableOpacity onPress={() => setGModalVisible(false)}>
+              <LinearGradient
+                colors={[COLORS.primary, COLORS.secondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.confirmBtn}
+              >
+                <Text style={styles.confirmBtnText}>{t("ok_btn", "Got it!")}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </TouchableOpacity>
-      </View>
-
-      {/* PREFERENCE MODAL */}
-      <PreferenceModal />
+      </Modal>
 
       {/* BOTTOM SHEET */}
       <BottomSheet
@@ -336,7 +711,13 @@ const ConfirmRide = () => {
           duration={routeDetails?.duration}
           priceMap={priceMap}
           priceLoading={priceLoading}
-          onPreferencePress={() => setPrefModalVisible(true)}
+          genderPreference={genderPreference}
+          onPreferencePress={() => {
+            setTempPref(genderPreference);
+            setPrefModalVisible(true);
+          }}
+          onPickupPress={() => startSelection("pickup")}
+          onDestinationPress={() => startSelection("destination")}
         />
       </BottomSheet>
     </SafeAreaView>
@@ -449,6 +830,58 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: responsiveFontSize(2),
     fontFamily: FONTS.bold,
+  },
+  inputGroup: {
+    marginBottom: 15,
+  },
+  inputLabel: {
+    fontFamily: FONTS.medium,
+    fontSize: responsiveFontSize(1.6),
+    color: "#374151",
+    marginBottom: 5,
+  },
+  textInput: {
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    fontFamily: FONTS.regular,
+    fontSize: responsiveFontSize(1.8),
+  },
+  imageSelectors: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 20,
+    gap: 10,
+  },
+  imageBtn: {
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 15,
+    padding: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: COLORS.primary,
+  },
+  imageBtnText: {
+    fontFamily: FONTS.semiBold,
+    fontSize: responsiveFontSize(1.3),
+    color: COLORS.primary,
+    marginTop: 5,
+    textAlign: "center",
+  },
+  previewThumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  submitBtn: {
+    marginTop: 10,
   },
 });
 

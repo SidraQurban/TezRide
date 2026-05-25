@@ -35,6 +35,7 @@ const RidesSlider = ({
   duration,
   priceMap = {},
   priceLoading = false,
+  genderPreference = "any",
   onPreferencePress,
 }) => {
   const navigation = useNavigation();
@@ -301,7 +302,11 @@ const RidesSlider = ({
                 fontFamily: FONTS.semiBold,
               }}
             >
-              {t("rider_preference", "Rider Preference")}
+              {genderPreference === "any" 
+                ? t("rider_preference", "Rider Preference") 
+                : genderPreference === "female" 
+                  ? t("female_driver") 
+                  : t("male_driver")}
             </Text>
           </TouchableOpacity>
         </View>
