@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, Alert, Image } from "react-native";
 import {
   DrawerContentScrollView,
   useDrawerStatus,
@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import { I18nManager } from "react-native";
 import { FONTS } from "../constants/theme";
 import authService from "../api/authService";
+import storage from "../utils/storage";
 
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
@@ -31,6 +32,21 @@ const CustomDrawer = (props) => {
   const { state, navigation } = props;
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ur";
+
+  const [userName, setUserName] = useState("");
+  const [profilePic, setProfilePic] = useState("");
+
+  // Load name & avatar from local storage each time drawer mounts
+  useEffect(() => {
+    const loadProfile = async () => {
+      const name = await storage.getItem("customerName");
+      const pic  = await storage.getItem("profilePictureUrl");
+      if (name) setUserName(name);
+      if (pic)  setProfilePic(pic);
+    };
+    loadProfile();
+  }, []);
+
 
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ur" : "en";
@@ -90,23 +106,37 @@ const CustomDrawer = (props) => {
             {/* Avatar */}
             <View
               style={{
-                width: responsiveWidth(12),
-                height: responsiveWidth(12),
-                borderRadius: responsiveWidth(6),
-                backgroundColor: "#E0E0E0",
+                width: responsiveWidth(13),
+                height: responsiveWidth(13),
+                borderRadius: responsiveWidth(6.5),
+                backgroundColor: "#E8E8E8",
                 justifyContent: "center",
                 alignItems: "center",
                 marginHorizontal: responsiveWidth(3),
+                borderWidth: 2,
+                borderColor: COLORS.primary,
+                overflow: "hidden",
               }}
             >
-              <Ionicons
-                name="person"
-                size={responsiveFontSize(3)}
-                color="#777"
-              />
+              {profilePic ? (
+                <Image
+                  source={{ uri: profilePic }}
+                  style={{
+                    width: responsiveWidth(13),
+                    height: responsiveWidth(13),
+                    borderRadius: responsiveWidth(6.5),
+                  }}
+                />
+              ) : (
+                <Ionicons
+                  name="person"
+                  size={responsiveFontSize(3)}
+                  color="#999"
+                />
+              )}
             </View>
 
-            {/* Name + Rating */}
+            {/* Name + Phone hint */}
             <View style={{ flex: 1 }}>
               <Text
                 style={{
@@ -116,33 +146,19 @@ const CustomDrawer = (props) => {
                   includeFontPadding: false,
                 }}
               >
-                {t("user")}
+                {userName || t("user", "User")}
               </Text>
-
-              <View
+              <Text
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: responsiveHeight(0.5),
+                  fontSize: responsiveFontSize(1.4),
+                  color: "#999",
+                  fontFamily: FONTS.regular,
+                  marginTop: 2,
+                  includeFontPadding: false,
                 }}
               >
-                <Ionicons name="star" size={14} color={COLORS.secondary} />
-                <Ionicons name="star" size={14} color={COLORS.secondary} />
-                <Ionicons name="star" size={14} color={COLORS.secondary} />
-                <Ionicons name="star" size={14} color={COLORS.secondary} />
-                <Ionicons name="star-half" size={14} color={COLORS.secondary} />
-                <Text
-                  style={{
-                    marginHorizontal: responsiveWidth(1.5),
-                    fontSize: responsiveFontSize(1.5),
-                    color: "#777",
-                    fontFamily: FONTS.medium,
-                    includeFontPadding: false,
-                  }}
-                >
-                  4.8 (4)
-                </Text>
-              </View>
+                {t("view_profile", "View profile")}
+              </Text>
             </View>
 
             {/* Close Drawer */}

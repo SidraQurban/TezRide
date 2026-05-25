@@ -1,5 +1,14 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Switch,
+  Modal,
+  I18nManager,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -10,26 +19,53 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS, FONTS } from "../constants";
 
+const LANGUAGES = [
+  { code: "en", label: "English", native: "English", flag: "🇬🇧" },
+  { code: "ur", label: "Urdu", native: "اردو", flag: "🇵🇰" },
+];
+
 const Settings = ({ navigation }) => {
   const { t, i18n } = useTranslation();
+  const [langModalVisible, setLangModalVisible] = useState(false);
 
-  const SettingItem = ({ icon, label, onPress, value, type = "link" }) => (
-    <TouchableOpacity 
-      style={styles.settingItem} 
+  const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
+
+  const switchLanguage = (code) => {
+    setLangModalVisible(false);
+    if (code === i18n.language) return;
+
+    i18n.changeLanguage(code);
+    const isRtl = code === "ur";
+    if (isRtl !== I18nManager.isRTL) {
+      I18nManager.allowRTL(isRtl);
+      I18nManager.forceRTL(isRtl);
+    }
+  };
+
+  // ─── Reusable row ──────────────────────────────────────────────────────────
+  const SettingItem = ({ icon, label, value, onPress, type = "link", last = false }) => (
+    <TouchableOpacity
+      style={[styles.settingItem, last && styles.settingItemLast]}
       onPress={onPress}
       disabled={type === "switch"}
+      activeOpacity={0.7}
     >
       <View style={styles.settingItemLeft}>
         <View style={styles.iconBox}>
-          <Ionicons name={icon} size={22} color={COLORS.primary} />
+          <Ionicons name={icon} size={20} color={COLORS.primary} />
         </View>
         <Text style={styles.settingLabel}>{label}</Text>
       </View>
-      {type === "link" ? (
-        <Ionicons name="chevron-forward" size={20} color="#ccc" />
-      ) : (
-        <Switch 
-          value={value} 
+
+      {type === "link" && (
+        <View style={styles.settingRight}>
+          {value ? <Text style={styles.settingValue}>{value}</Text> : null}
+          <Ionicons name="chevron-forward" size={18} color="#ccc" />
+        </View>
+      )}
+      {type === "switch" && (
+        <Switch
+          value={value}
           onValueChange={onPress}
           trackColor={{ false: "#eee", true: COLORS.primary }}
           thumbColor={value ? "#fff" : "#f4f3f4"}
@@ -49,56 +85,63 @@ const Settings = ({ navigation }) => {
         <View style={{ width: 30 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Account Section */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Account ─────────────────────────────────────────────── */}
         <Text style={styles.sectionTitle}>{t("account", "Account")}</Text>
         <View style={styles.sectionBox}>
-          <SettingItem 
-            icon="person-outline" 
-            label={t("profile", "Profile")} 
-            onPress={() => navigation.navigate("Profile")} 
+          <SettingItem
+            icon="person-outline"
+            label={t("profile", "Profile")}
+            onPress={() => navigation.navigate("Profile")}
           />
-          <SettingItem 
-            icon="card-outline" 
-            label={t("payment_methods", "Payment Methods")} 
-            onPress={() => {}} 
+          <SettingItem
+            icon="card-outline"
+            label={t("payment_methods", "Payment Methods")}
+            onPress={() => {}}
+            last
           />
         </View>
 
-        {/* App Settings */}
+        {/* ── App Settings ─────────────────────────────────────────── */}
         <Text style={styles.sectionTitle}>{t("app_settings", "App Settings")}</Text>
         <View style={styles.sectionBox}>
-          <SettingItem 
-            icon="globe-outline" 
-            label={t("language", "Language")} 
-            onPress={() => {}} 
+          <SettingItem
+            icon="globe-outline"
+            label={t("language", "Language")}
+            value={`${currentLang.flag} ${currentLang.native}`}
+            onPress={() => setLangModalVisible(true)}
           />
-          <SettingItem 
-            icon="moon-outline" 
-            label={t("dark_mode", "Dark Mode")} 
+          <SettingItem
+            icon="moon-outline"
+            label={t("dark_mode", "Dark Mode")}
             type="switch"
             value={false}
-            onPress={() => {}} 
+            onPress={() => {}}
+            last
           />
         </View>
 
-        {/* Support & Legal */}
+        {/* ── More ─────────────────────────────────────────────────── */}
         <Text style={styles.sectionTitle}>{t("more", "More")}</Text>
         <View style={styles.sectionBox}>
-          <SettingItem 
-            icon="help-circle-outline" 
-            label={t("help_support", "Help & Support")} 
-            onPress={() => {}} 
+          <SettingItem
+            icon="help-circle-outline"
+            label={t("help_support", "Help & Support")}
+            onPress={() => {}}
           />
-          <SettingItem 
-            icon="document-text-outline" 
-            label={t("terms_conditions", "Terms & Conditions")} 
-            onPress={() => {}} 
+          <SettingItem
+            icon="document-text-outline"
+            label={t("terms_conditions", "Terms & Conditions")}
+            onPress={() => {}}
           />
-          <SettingItem 
-            icon="shield-checkmark-outline" 
-            label={t("privacy_policy", "Privacy Policy")} 
-            onPress={() => {}} 
+          <SettingItem
+            icon="shield-checkmark-outline"
+            label={t("privacy_policy", "Privacy Policy")}
+            onPress={() => {}}
+            last
           />
         </View>
 
@@ -106,21 +149,81 @@ const Settings = ({ navigation }) => {
           <Text style={styles.deleteText}>{t("delete_account", "Delete Account")}</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* ── Language Modal ──────────────────────────────────────────── */}
+      <Modal
+        visible={langModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLangModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setLangModalVisible(false)}
+        >
+          <View style={styles.modalCard}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t("language", "Language")}</Text>
+              <TouchableOpacity onPress={() => setLangModalVisible(false)}>
+                <Ionicons name="close" size={22} color="#555" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Language options */}
+            {LANGUAGES.map((lang) => {
+              const isSelected = i18n.language === lang.code;
+              return (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.langOption,
+                    isSelected && styles.langOptionActive,
+                  ]}
+                  onPress={() => switchLanguage(lang.code)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.langLeft}>
+                    <Text style={styles.langFlag}>{lang.flag}</Text>
+                    <View>
+                      <Text
+                        style={[
+                          styles.langLabel,
+                          isSelected && styles.langLabelActive,
+                        ]}
+                      >
+                        {lang.label}
+                      </Text>
+                      <Text style={styles.langNative}>{lang.native}</Text>
+                    </View>
+                  </View>
+                  {isSelected && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={22}
+                      color={COLORS.primary}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  container: { flex: 1, backgroundColor: "#F5F7FA" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: responsiveWidth(5),
     paddingVertical: responsiveHeight(2),
+    backgroundColor: "#F5F7FA",
   },
   headerTitle: {
     fontSize: responsiveFontSize(2.2),
@@ -128,62 +231,132 @@ const styles = StyleSheet.create({
     color: COLORS.black,
   },
   scrollContent: {
-    paddingHorizontal: responsiveWidth(5),
+    paddingHorizontal: responsiveWidth(4),
     paddingBottom: responsiveHeight(5),
   },
   sectionTitle: {
-    fontSize: responsiveFontSize(1.8),
+    fontSize: responsiveFontSize(1.5),
     fontFamily: FONTS.bold,
     color: "#999",
     marginTop: responsiveHeight(3),
-    marginBottom: responsiveHeight(1.5),
-    paddingLeft: 5,
+    marginBottom: responsiveHeight(1.2),
+    paddingLeft: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
   },
   sectionBox: {
     backgroundColor: "#fff",
-    borderRadius: 15,
+    borderRadius: 16,
     overflow: "hidden",
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#f9f9f9",
+    borderBottomColor: "#F3F4F6",
   },
-  settingItemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  settingItemLast: { borderBottomWidth: 0 },
+  settingItemLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   iconBox: {
-    width: 35,
-    height: 35,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 107, 0, 0.05)",
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "rgba(255, 92, 0, 0.07)",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 15,
+    marginRight: 14,
   },
   settingLabel: {
     fontSize: responsiveFontSize(1.7),
     fontFamily: FONTS.medium,
     color: COLORS.black,
   },
+  settingRight: { flexDirection: "row", alignItems: "center", gap: 6 },
+  settingValue: {
+    fontSize: responsiveFontSize(1.5),
+    color: "#888",
+    fontFamily: FONTS.regular,
+  },
   deleteAccount: {
     marginTop: responsiveHeight(5),
     alignItems: "center",
-    padding: 15,
+    paddingVertical: 15,
   },
   deleteText: {
     color: "#FF3B30",
     fontFamily: FONTS.semiBold,
     fontSize: responsiveFontSize(1.7),
+  },
+
+  // ─── Language Modal ───────────────────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: responsiveWidth(6),
+  },
+  modalCard: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    paddingTop: 16,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 18,
+  },
+  modalTitle: {
+    fontSize: responsiveFontSize(2),
+    fontFamily: FONTS.bold,
+    color: COLORS.black,
+  },
+  langOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    marginBottom: 10,
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1.5,
+    borderColor: "transparent",
+  },
+  langOptionActive: {
+    backgroundColor: "rgba(255, 92, 0, 0.06)",
+    borderColor: COLORS.primary,
+  },
+  langLeft: { flexDirection: "row", alignItems: "center", gap: 14 },
+  langFlag: { fontSize: 28 },
+  langLabel: {
+    fontSize: responsiveFontSize(1.8),
+    fontFamily: FONTS.semiBold,
+    color: COLORS.black,
+  },
+  langLabelActive: { color: COLORS.primary },
+  langNative: {
+    fontSize: responsiveFontSize(1.4),
+    color: "#888",
+    fontFamily: FONTS.regular,
+    marginTop: 2,
   },
 });
 
