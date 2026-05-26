@@ -176,13 +176,17 @@ const SearchingDirection = ({ route }) => {
 
     // ride_completed: { rideId, finalFare, currency }
     const handleRideCompleted = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
+
+      const fare = payload.finalFare ?? payload.FinalFare ?? 0;
+      const curr = payload.currency ?? payload.Currency ?? "PKR";
 
       setRideStatus("completed");
       setActiveRide({
         status: "completed",
-        finalFare: payload.finalFare,
-        currency: payload.currency,
+        finalFare: fare,
+        currency: curr,
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -191,7 +195,9 @@ const SearchingDirection = ({ route }) => {
 
     // no_drivers_found: { rideId }
     const handleNoDriversFound = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
+      
       // Ignore if we already have interested drivers or the ride is assigned/completed
       if (
         rideStatusRef.current === "assigned" ||
@@ -210,28 +216,31 @@ const SearchingDirection = ({ route }) => {
 
     // search_progress: { rideId, currentWave, maxWaves, minRing, maxRing }
     const handleSearchProgress = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
+      
       setSearchWave({
-        currentWave: payload.currentWave,
-        maxWaves: payload.maxWaves,
+        currentWave: payload.currentWave ?? payload.CurrentWave,
+        maxWaves: payload.maxWaves ?? payload.MaxWaves,
       });
     };
 
     // SelectDriverFailed: { rideId, reason }
-    // Only alert when we are still actively searching — ignore if DriverSelected
-    // was already acknowledged (the server may fire this for concurrent attempts).
     const handleSelectDriverFailed = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
+      
       if (rideStatusRef.current !== "searching") return; // already handled
-      Alert.alert(t("error"), payload.reason || t("selection_failed"));
+      Alert.alert(t("error"), payload.reason || payload.Reason || t("selection_failed"));
     };
 
     // DriverSelected: { rideId, driverId, success: true }
-    // Server ACK that our SelectDriver call was accepted.
-    // Immediately lock the UI so no further selectDriver calls can fire.
     const handleDriverSelected = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
-      if (!payload.success) return; // handled by SelectDriverFailed
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
+      
+      const success = payload.success ?? payload.Success;
+      if (!success) return; // handled by SelectDriverFailed
 
       // Lock against any further accept attempts
       selectionSentRef.current = true;
@@ -241,12 +250,13 @@ const SearchingDirection = ({ route }) => {
       setSearchWave(null);
       setRideStatus("driver_selected");
       setActiveRide({ status: "driver_selected" });
-      // ride_assigned will follow and expand the ArrivingCard
     };
 
     // RideCancelled: { rideId, success }
     const handleRideCancelled = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
+      
       setShowCancelModal(false);
       clearActiveRide();
       // Disconnect hub — no more events expected for this ride

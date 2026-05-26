@@ -202,8 +202,8 @@ class CustomerHub {
    */
   async cancelRide(rideId) {
     if (!this.isConnected()) {
-      console.warn('[CustomerHub] cancelRide: not connected.');
-      return;
+      // Throw so callers (e.g. confirmCancelRide) can catch and run their offline fallback path.
+      throw new Error('CustomerHub is not connected. Cannot send CancelRide.');
     }
     return this.connection.invoke('CancelRide', rideId);
   }
