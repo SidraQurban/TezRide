@@ -10,6 +10,7 @@ import { responsiveWidth } from "react-native-responsive-dimensions";
 import WalletScreen from "../screens/WalletScreen";
 import RideHistoryScreen from "../screens/RideHistoryScreen";
 import Settings from "../screens/Settings";
+import ProfileScreen from "../screens/ProfileScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -49,6 +50,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="Home" component={HomeScreenWrapper} />
       <Drawer.Screen name="Wallet" component={WalletScreen} />
       <Drawer.Screen name="RideHistory" component={RideHistoryScreen} />
+      <Drawer.Screen name="Profile" component={ProfileScreen} />
       <Drawer.Screen name="Settings" component={Settings} />
       <Drawer.Screen name="ContactUs" component={ContactUsScreen} />
     </Drawer.Navigator>

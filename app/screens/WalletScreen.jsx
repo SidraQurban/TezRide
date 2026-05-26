@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { DrawerActions } from "@react-navigation/native";
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -20,9 +19,11 @@ import {
 import { COLORS, FONTS } from "../constants";
 import customerService from "../api/customerService";
 import { LinearGradient } from "expo-linear-gradient";
+import AppHeader from "../components/AppHeader";
 
 const WalletScreen = ({ navigation }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language?.startsWith("ur");
   const [loading, setLoading] = useState(true);
   const [balanceData, setBalanceData] = useState({ balance: 0, currency: "PKR" });
   const [refreshing, setRefreshing] = useState(false);
@@ -52,13 +53,11 @@ const WalletScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}>
-          <Ionicons name="menu-outline" size={30} color={COLORS.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("wallet", "Wallet")}</Text>
-        <View style={{ width: 30 }} />
+      <AppHeader isRtlIcon={true} />
+
+      {/* Page title */}
+      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("wallet", "Wallet")}</Text>
       </View>
 
       <ScrollView
@@ -70,17 +69,17 @@ const WalletScreen = ({ navigation }) => {
         {/* Balance Card */}
         <LinearGradient
           colors={[COLORS.primary, COLORS.secondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.balanceCard}
+          start={{ x: isRTL ? 1 : 0, y: 0 }}
+          end={{ x: isRTL ? 0 : 1, y: 0 }}
+          style={[styles.balanceCard, { flexDirection: isRTL ? "row-reverse" : "row" }]}
         >
-          <View>
-            <Text style={styles.balanceLabel}>{t("total_balance", "Total Balance")}</Text>
+          <View style={{ alignItems: isRTL ? "flex-end" : "flex-start" }}>
+            <Text style={[styles.balanceLabel, { textAlign: isRTL ? "right" : "left" }]}>{t("total_balance", "Total Balance")}</Text>
             {loading && !refreshing ? (
               <ActivityIndicator color="#fff" style={{ marginTop: 10 }} />
             ) : (
-              <Text style={styles.balanceAmount}>
-                {balanceData.currency} {balanceData.balance.toLocaleString()}
+              <Text style={[styles.balanceAmount, { textAlign: isRTL ? "right" : "left" }]}>
+                {isRTL ? `${balanceData.balance.toLocaleString()} ${balanceData.currency}` : `${balanceData.currency} ${balanceData.balance.toLocaleString()}`}
               </Text>
             )}
           </View>
@@ -111,13 +110,13 @@ const WalletScreen = ({ navigation }) => {
         </View>
 
         {/* Recent Transactions Placeholder */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t("recent_activity", "Recent Activity")}</Text>
+        <View style={[styles.sectionHeader, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("recent_activity", "Recent Activity")}</Text>
         </View>
         
         <View style={styles.emptyActivity}>
           <Ionicons name="receipt-outline" size={40} color="#ccc" />
-          <Text style={styles.emptyText}>{t("no_recent_activity", "No recent activity")}</Text>
+          <Text style={[styles.emptyText, { textAlign: "center" }]}>{t("no_recent_activity", "No recent activity")}</Text>
         </View>
 
       </ScrollView>
@@ -128,20 +127,21 @@ const WalletScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.white,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  pageTitleRow: {
     paddingHorizontal: responsiveWidth(5),
-    paddingVertical: responsiveHeight(2),
+    paddingVertical: responsiveHeight(1.5),
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
   },
-  headerTitle: {
+  pageTitle: {
     fontSize: responsiveFontSize(2.2),
     fontFamily: FONTS.bold,
     color: COLORS.black,
   },
+
   scrollContent: {
     paddingHorizontal: responsiveWidth(5),
     paddingBottom: responsiveHeight(5),

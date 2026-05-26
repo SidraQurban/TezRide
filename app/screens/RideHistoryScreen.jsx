@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   FlatList,
   ActivityIndicator,
 } from "react-native";
@@ -11,7 +10,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ExpoLocation from "expo-location";
 import { useTranslation } from "react-i18next";
-import { DrawerActions } from "@react-navigation/native";
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -19,9 +17,11 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS, FONTS } from "../constants";
 import customerService from "../api/customerService";
+import AppHeader from "../components/AppHeader";
 
 const RideHistoryScreen = ({ navigation }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language?.startsWith("ur");
   const [loading, setLoading] = useState(true);
   const [rides, setRides] = useState([]);
   const [pageIndex, setPageIndex] = useState(1);
@@ -106,29 +106,29 @@ const RideHistoryScreen = ({ navigation }) => {
 
   const renderRideItem = ({ item }) => (
     <View style={styles.rideItem}>
-      <View style={styles.rideHeader}>
-        <View style={styles.vehicleInfo}>
+      <View style={[styles.rideHeader, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+        <View style={[styles.vehicleInfo, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
           <Ionicons name={item.vehicleType === 'bike' ? 'bicycle-outline' : 'car-outline'} size={24} color={COLORS.primary} />
-          <Text style={styles.vehicleText}>{item.vehicleType?.toUpperCase() || t("ride")}</Text>
+          <Text style={[styles.vehicleText, { [isRTL ? "marginRight" : "marginLeft"]: 8 }]}>{item.vehicleType?.toUpperCase() || t("ride")}</Text>
         </View>
-        <Text style={styles.ridePrice}>
+        <Text style={[styles.ridePrice, { textAlign: isRTL ? "right" : "left" }]}>
           PKR {item.finalCost || item.fare || 0}
         </Text>
       </View>
       
-      <View style={styles.addressContainer}>
+      <View style={[styles.addressContainer, { flexDirection: isRTL ? "row-reverse" : "row", paddingLeft: isRTL ? 0 : 5, paddingRight: isRTL ? 5 : 0 }]}>
         <View style={styles.dotLineBox}>
           <View style={[styles.dot, { backgroundColor: COLORS.success }]} />
           <View style={styles.line} />
           <View style={[styles.dot, { backgroundColor: COLORS.error }]} />
         </View>
-        <View style={styles.addressBox}>
-          <Text style={styles.addressText} numberOfLines={1}>{item.pickupAddress || "Fetching address..."}</Text>
-          <Text style={styles.addressText} numberOfLines={1}>{item.dropoffAddress || item.destinationAddress || "Fetching address..."}</Text>
+        <View style={[styles.addressBox, { [isRTL ? "marginRight" : "marginLeft"]: 10, alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+          <Text style={[styles.addressText, { textAlign: isRTL ? "right" : "left" }]} numberOfLines={1}>{item.pickupAddress || "Fetching address..."}</Text>
+          <Text style={[styles.addressText, { textAlign: isRTL ? "right" : "left" }]} numberOfLines={1}>{item.dropoffAddress || item.destinationAddress || "Fetching address..."}</Text>
         </View>
       </View>
 
-      <View style={styles.rideFooter}>
+      <View style={[styles.rideFooter, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
         <Text style={styles.dateText}>
           {item.completedAt ? new Date(item.completedAt).toLocaleDateString() : 
            item.assignedAt ? new Date(item.assignedAt).toLocaleDateString() : ""}
@@ -150,13 +150,11 @@ const RideHistoryScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}>
-          <Ionicons name="menu-outline" size={30} color={COLORS.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("ride_history", "Ride History")}</Text>
-        <View style={{ width: 30 }} />
+      <AppHeader isRtlIcon={true} />
+
+      {/* Page title */}
+      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("ride_history", "Ride History")}</Text>
       </View>
 
       {loading && pageIndex === 1 ? (
@@ -191,20 +189,21 @@ const RideHistoryScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.white,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  pageTitleRow: {
     paddingHorizontal: responsiveWidth(5),
-    paddingVertical: responsiveHeight(2),
+    paddingVertical: responsiveHeight(1.5),
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
   },
-  headerTitle: {
+  pageTitle: {
     fontSize: responsiveFontSize(2.2),
     fontFamily: FONTS.bold,
     color: COLORS.black,
   },
+
   loadingCenter: {
     flex: 1,
     justifyContent: "center",

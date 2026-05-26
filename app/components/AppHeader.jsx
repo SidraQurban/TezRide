@@ -8,7 +8,7 @@ import { COLORS } from "../constants";
 import DrawerHeader from "../components/DrawerHeader";
 import { useTranslation } from "react-i18next";
 
-const AppHeader = () => {
+const AppHeader = ({ isRtlIcon = false }) => {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ur";
 
@@ -25,7 +25,7 @@ const AppHeader = () => {
       <View
         style={{
           width: '100%',
-          flexDirection: "row",
+          flexDirection: isRtl && isRtlIcon ? "row-reverse" : "row",
           alignItems: "center",
           justifyContent: "space-between",
           paddingHorizontal: responsiveWidth(4),

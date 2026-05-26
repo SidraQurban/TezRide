@@ -12,13 +12,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { DrawerActions } from "@react-navigation/native";
 import {
   responsiveFontSize,
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
 import { COLORS, FONTS } from "../constants";
+import AppHeader from "../components/AppHeader";
 
 const LANGUAGES = [
   { code: "en", label: "English", native: "English", flag: "🇬🇧" },
@@ -27,6 +27,7 @@ const LANGUAGES = [
 
 const Settings = ({ navigation }) => {
   const { t, i18n } = useTranslation();
+  const isRTL = i18n.language?.startsWith("ur");
   const [langModalVisible, setLangModalVisible] = useState(false);
 
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
@@ -46,22 +47,22 @@ const Settings = ({ navigation }) => {
   // ─── Reusable row ──────────────────────────────────────────────────────────
   const SettingItem = ({ icon, label, value, onPress, type = "link", last = false }) => (
     <TouchableOpacity
-      style={[styles.settingItem, last && styles.settingItemLast]}
+      style={[styles.settingItem, { flexDirection: isRTL ? "row-reverse" : "row" }, last && styles.settingItemLast]}
       onPress={onPress}
       disabled={type === "switch"}
       activeOpacity={0.7}
     >
-      <View style={styles.settingItemLeft}>
-        <View style={styles.iconBox}>
+      <View style={[styles.settingItemLeft, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+        <View style={[styles.iconBox, { [isRTL ? "marginLeft" : "marginRight"]: 14 }]}>
           <Ionicons name={icon} size={20} color={COLORS.primary} />
         </View>
-        <Text style={styles.settingLabel}>{label}</Text>
+        <Text style={[styles.settingLabel, { textAlign: isRTL ? "right" : "left" }]}>{label}</Text>
       </View>
 
       {type === "link" && (
-        <View style={styles.settingRight}>
+        <View style={[styles.settingRight, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
           {value ? <Text style={styles.settingValue}>{value}</Text> : null}
-          <Ionicons name="chevron-forward" size={18} color="#ccc" />
+          <Ionicons name={isRTL ? "chevron-back" : "chevron-forward"} size={18} color="#ccc" />
         </View>
       )}
       {type === "switch" && (
@@ -77,21 +78,20 @@ const Settings = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}>
-          <Ionicons name="menu-outline" size={30} color={COLORS.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("settings", "Settings")}</Text>
-        <View style={{ width: 30 }} />
+      <AppHeader isRtlIcon={true} />
+
+      {/* Page title */}
+      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("settings", "Settings")}</Text>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.contentArea}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
         {/* ── Account ─────────────────────────────────────────────── */}
-        <Text style={styles.sectionTitle}>{t("account", "Account")}</Text>
+        <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left", paddingRight: isRTL ? 4 : 0, paddingLeft: isRTL ? 0 : 4 }]}>{t("account", "Account")}</Text>
         <View style={styles.sectionBox}>
           <SettingItem
             icon="person-outline"
@@ -107,7 +107,7 @@ const Settings = ({ navigation }) => {
         </View>
 
         {/* ── App Settings ─────────────────────────────────────────── */}
-        <Text style={styles.sectionTitle}>{t("app_settings", "App Settings")}</Text>
+        <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left", paddingRight: isRTL ? 4 : 0, paddingLeft: isRTL ? 0 : 4 }]}>{t("app_settings", "App Settings")}</Text>
         <View style={styles.sectionBox}>
           <SettingItem
             icon="globe-outline"
@@ -126,7 +126,7 @@ const Settings = ({ navigation }) => {
         </View>
 
         {/* ── More ─────────────────────────────────────────────────── */}
-        <Text style={styles.sectionTitle}>{t("more", "More")}</Text>
+        <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left", paddingRight: isRTL ? 4 : 0, paddingLeft: isRTL ? 0 : 4 }]}>{t("more", "More")}</Text>
         <View style={styles.sectionBox}>
           <SettingItem
             icon="help-circle-outline"
@@ -149,7 +149,8 @@ const Settings = ({ navigation }) => {
         <TouchableOpacity style={styles.deleteAccount}>
           <Text style={styles.deleteText}>{t("delete_account", "Delete Account")}</Text>
         </TouchableOpacity>
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {/* ── Language Modal ──────────────────────────────────────────── */}
       <Modal
@@ -165,7 +166,7 @@ const Settings = ({ navigation }) => {
         >
           <View style={styles.modalCard}>
             {/* Modal Header */}
-            <View style={styles.modalHeader}>
+            <View style={[styles.modalHeader, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
               <Text style={styles.modalTitle}>{t("language", "Language")}</Text>
               <TouchableOpacity onPress={() => setLangModalVisible(false)}>
                 <Ionicons name="close" size={22} color="#555" />
@@ -180,14 +181,15 @@ const Settings = ({ navigation }) => {
                   key={lang.code}
                   style={[
                     styles.langOption,
+                    { flexDirection: isRTL ? "row-reverse" : "row" },
                     isSelected && styles.langOptionActive,
                   ]}
                   onPress={() => switchLanguage(lang.code)}
                   activeOpacity={0.8}
                 >
-                  <View style={styles.langLeft}>
+                  <View style={[styles.langLeft, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
                     <Text style={styles.langFlag}>{lang.flag}</Text>
-                    <View>
+                    <View style={{ alignItems: isRTL ? "flex-end" : "flex-start", marginHorizontal: 14 }}>
                       <Text
                         style={[
                           styles.langLabel,
@@ -217,20 +219,21 @@ const Settings = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F7FA" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  container: { flex: 1, backgroundColor: COLORS.white },
+  contentArea: { flex: 1, backgroundColor: "#F5F7FA" },
+  pageTitleRow: {
     paddingHorizontal: responsiveWidth(5),
-    paddingVertical: responsiveHeight(2),
-    backgroundColor: "#F5F7FA",
+    paddingVertical: responsiveHeight(1.5),
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
   },
-  headerTitle: {
+  pageTitle: {
     fontSize: responsiveFontSize(2.2),
     fontFamily: FONTS.bold,
     color: COLORS.black,
   },
+
   scrollContent: {
     paddingHorizontal: responsiveWidth(4),
     paddingBottom: responsiveHeight(5),

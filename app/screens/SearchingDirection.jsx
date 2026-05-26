@@ -9,6 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  StyleSheet,
 } from "react-native";
 import React, {
   useRef,
@@ -373,8 +374,39 @@ const SearchingDirection = ({ route }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View style={{ flex: 1, paddingBottom: responsiveHeight(2) }}>
-        <View style={{ left: responsiveWidth(1.5) }}>
-          <BackBtn />
+        {/* TOP ROUTE BANNER */}
+        <View style={styles.topBannerContainer}>
+          <View style={styles.routeBanner}>
+            {/* Route Dots */}
+            <View style={styles.dotsContainer}>
+              <View style={[styles.dot, { backgroundColor: "#10B981" }]} />
+              <View style={styles.dottedLine} />
+              <View style={[styles.dot, { backgroundColor: "#8B5CF6" }]} />
+            </View>
+
+            {/* Addresses */}
+            <View style={styles.addressContainer}>
+              <Text numberOfLines={1} style={styles.addressText}>
+                {pickup?.name || pickup?.address || "Current Location"}
+              </Text>
+              <Text numberOfLines={1} style={styles.addressText}>
+                {destination?.name || destination?.address || "Destination"}
+              </Text>
+            </View>
+
+            {/* Edit Icon */}
+            <TouchableOpacity style={styles.editIcon}>
+              <Ionicons name="pencil" size={16} color="#9CA3AF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Close Button */}
+          <TouchableOpacity
+            onPress={handleCancelRide}
+            style={styles.closeBannerBtn}
+          >
+            <Ionicons name="close" size={24} color="#EF4444" />
+          </TouchableOpacity>
         </View>
 
         {/* MAP + OVERLAY */}
@@ -782,5 +814,80 @@ const SearchingDirection = ({ route }) => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  topBannerContainer: {
+    position: "absolute",
+    top: responsiveHeight(7),
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    zIndex: 1001,
+  },
+  routeBanner: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(240, 253, 244, 0.95)",
+    borderRadius: 20,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#DCFCE7",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  dotsContainer: {
+    alignItems: "center",
+    marginRight: 10,
+    height: 40,
+    justifyContent: "space-between",
+    paddingVertical: 4,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  dottedLine: {
+    width: 1,
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderStyle: "dashed",
+    marginVertical: 2,
+  },
+  addressContainer: {
+    flex: 1,
+    gap: 4,
+  },
+  addressText: {
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: FONTS.medium,
+    color: "#374151",
+  },
+  editIcon: {
+    padding: 4,
+  },
+  closeBannerBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#FFF",
+    marginLeft: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#EF4444",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+});
 
 export default SearchingDirection;

@@ -22,8 +22,8 @@ import storage from "../utils/storage";
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
   { label: "Wallet", icon: "wallet-outline", route: "Wallet" },
-  { label: "Your Rides", icon: "car-outline", route: "RideHistory" },
-  { label: "Profile", icon: "person-circle-outline", route: "Profile" },
+  { label: "Your Rides", icon: "car-sport-outline", route: "RideHistory" },
+  { label: "Profile", icon: "person-outline", route: "Profile" },
   { label: "Settings", icon: "settings-outline", route: "Settings" },
   { label: "Contact Us", icon: "call-outline", route: "ContactUs" },
 ];
@@ -37,18 +37,28 @@ const CustomDrawer = (props) => {
   const [profilePic, setProfilePic] = useState("");
   const [userPhone, setUserPhone] = useState("");
 
-  // Load name & avatar from local storage each time drawer mounts
+  const drawerStatus = useDrawerStatus();
+
+  const loadProfile = async () => {
+    const name = await storage.getItem("customerName");
+    const pic = await storage.getItem("profilePictureUrl");
+    const phone = await storage.getItem("customerPhone");
+    if (name) setUserName(name);
+    if (pic) setProfilePic(pic);
+    if (phone) setUserPhone(phone);
+  };
+
+  // Load on mount
   useEffect(() => {
-    const loadProfile = async () => {
-      const name = await storage.getItem("customerName");
-      const pic  = await storage.getItem("profilePictureUrl");
-      const phone = await storage.getItem("customerPhone");
-      if (name) setUserName(name);
-      if (pic)  setProfilePic(pic);
-      if (phone) setUserPhone(phone);
-    };
     loadProfile();
   }, []);
+
+  // Reload when drawer opens
+  useEffect(() => {
+    if (drawerStatus === "open") {
+      loadProfile();
+    }
+  }, [drawerStatus]);
 
 
   const toggleLanguage = () => {
@@ -100,7 +110,7 @@ const CustomDrawer = (props) => {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              paddingHorizontal: responsiveWidth(4),
+              paddingHorizontal: responsiveWidth(1),
               paddingVertical: responsiveHeight(2),
               borderBottomWidth: 1,
               borderColor: "#eee",
@@ -215,7 +225,7 @@ const CustomDrawer = (props) => {
                 >
                   <Ionicons
                     name={item.icon}
-                    size={responsiveFontSize(2.2)}
+                    size={responsiveFontSize(2.4)}
                     color={COLORS.black}
                   />
                   <Text

@@ -778,8 +778,8 @@ const ConfirmRide = () => {
             setTempPref(genderPreference);
             setPrefModalVisible(true);
           }}
-          onEditPickup={handleEditPickup}
-          onEditDestination={handleEditDestination}
+          onEditPickup={null}
+          onEditDestination={null}
           waveDrivers={waveDrivers}
           onPickupPress={() => startSelection("pickup")}
           onDestinationPress={() => startSelection("destination")}

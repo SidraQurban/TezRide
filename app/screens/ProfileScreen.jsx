@@ -25,9 +25,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
+import AppHeader from "../components/AppHeader";
 
 const ProfileScreen = ({ navigation }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language?.startsWith("ur");
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -126,6 +128,7 @@ const ProfileScreen = ({ navigation }) => {
       const response = await authService.updateProfile(updateData);
       if (response.succeeded) {
         // Keep the local URI displayed; server holds the base64 version
+        await storage.setItem("profilePictureUrl", asset.uri);
         Alert.alert(t("success"), "Profile picture updated!");
       } else {
         // Revert on failure
@@ -180,6 +183,7 @@ const ProfileScreen = ({ navigation }) => {
       if (!response.succeeded) {
         Alert.alert(t("error"), response.message || t("something_went_wrong"));
       } else {
+        await storage.setItem("profilePictureUrl", asset.uri);
         Alert.alert(t("success"), "Profile picture updated!");
       }
     } catch (err) {
@@ -250,19 +254,11 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color={COLORS.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("profile", "Profile")}</Text>
-        <TouchableOpacity onPress={handleUpdate} disabled={updating}>
-          {updating ? (
-            <ActivityIndicator size="small" color={COLORS.primary} />
-          ) : (
-            <Text style={styles.saveText}>{t("save", "Save")}</Text>
-          )}
-        </TouchableOpacity>
+      <AppHeader isRtlIcon={true} />
+
+      {/* Page title row */}
+      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("profile", "Profile")}</Text>
       </View>
 
       <ScrollView
@@ -303,9 +299,9 @@ const ProfileScreen = ({ navigation }) => {
         {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t("first_name", "First Name")}</Text>
+            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("first_name", "First Name")}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
               value={profile.firstName}
               onChangeText={(t) => setProfile((p) => ({ ...p, firstName: t }))}
               placeholder={t("first_name")}
@@ -314,9 +310,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t("last_name", "Last Name")}</Text>
+            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("last_name", "Last Name")}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
               value={profile.lastName}
               onChangeText={(t) => setProfile((p) => ({ ...p, lastName: t }))}
               placeholder={t("last_name")}
@@ -325,8 +321,8 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t("gender", "Gender")}</Text>
-            <View style={styles.genderRow}>
+            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("gender", "Gender")}</Text>
+            <View style={[styles.genderRow, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
               {["Male", "Female"].map((g) => (
                 <TouchableOpacity
                   key={g}
@@ -340,7 +336,7 @@ const ProfileScreen = ({ navigation }) => {
                     name={g === "Male" ? "male" : "female"}
                     size={16}
                     color={profile.gender === g ? COLORS.primary : "#aaa"}
-                    style={{ marginRight: 6 }}
+                    style={{ [isRTL ? "marginLeft" : "marginRight"]: 6 }}
                   />
                   <Text
                     style={[
@@ -356,9 +352,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t("dob", "Date of Birth")}</Text>
+            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("dob", "Date of Birth")}</Text>
             <TouchableOpacity
-              style={[styles.input, { justifyContent: "center" }]}
+              style={[styles.input, { justifyContent: "center", alignItems: isRTL ? "flex-end" : "flex-start" }]}
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={{ color: profile.dateOfBirth ? COLORS.black : "#bbb", fontSize: 16 }}>
@@ -388,17 +384,37 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         {/* Security note */}
-        <View style={styles.infoBox}>
+        <View style={[styles.infoBox, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
           <Ionicons
             name="shield-checkmark-outline"
             size={20}
             color="#15803d"
           />
-          <Text style={styles.infoText}>
+          <Text style={[styles.infoText, { textAlign: isRTL ? "right" : "left" }]}>
             Your data is encrypted and protected following the highest security
             standards.
           </Text>
         </View>
+
+        {/* Save Button */}
+        <TouchableOpacity 
+          style={styles.updateButton} 
+          onPress={handleUpdate}
+          disabled={updating}
+        >
+          <LinearGradient
+            colors={[COLORS.primary, COLORS.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientBtn}
+          >
+            {updating ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.btnText}>{t("save", "Save")}</Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
 
       </ScrollView>
     </SafeAreaView>
@@ -406,24 +422,32 @@ const ProfileScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1, backgroundColor: COLORS.white },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  pageTitleRow: {
     paddingHorizontal: responsiveWidth(5),
-    paddingVertical: responsiveHeight(2),
+    paddingVertical: responsiveHeight(1.5),
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
   },
-  headerTitle: {
+  pageTitle: {
     fontSize: responsiveFontSize(2.2),
     fontFamily: FONTS.bold,
     color: COLORS.black,
   },
-  saveText: {
-    color: COLORS.primary,
+  saveBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: responsiveWidth(4),
+    paddingVertical: responsiveHeight(0.7),
+    borderRadius: 20,
+    minWidth: responsiveWidth(14),
+    alignItems: "center",
+  },
+  saveBtnText: {
+    color: "#fff",
     fontFamily: FONTS.bold,
-    fontSize: responsiveFontSize(1.8),
+    fontSize: responsiveFontSize(1.7),
   },
   scrollContent: {
     paddingHorizontal: responsiveWidth(5),

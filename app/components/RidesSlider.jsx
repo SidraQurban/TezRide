@@ -345,7 +345,8 @@ const RidesSlider = ({
         <TouchableOpacity 
           style={{ marginLeft: responsiveWidth(1) }} 
           onPress={onEditPickup}
-          activeOpacity={0.7}
+          activeOpacity={onEditPickup ? 0.7 : 1}
+          disabled={!onEditPickup}
         >
           <Text
             style={{
@@ -412,7 +413,8 @@ const RidesSlider = ({
         <TouchableOpacity 
           style={{ marginLeft: responsiveWidth(1), }} 
           onPress={onEditDestination}
-          activeOpacity={0.7}
+          activeOpacity={onEditDestination ? 0.7 : 1}
+          disabled={!onEditDestination}
         >
           <Text
             style={{
