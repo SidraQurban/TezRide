@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { COLORS, FONTS } from "../constants/theme";
 import {
   responsiveFontSize,
@@ -27,6 +27,7 @@ import { useRide } from "../context/RideContext";
 const SearchScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
+  const route = useRoute();
   const isUrdu = i18n.language?.startsWith("ur");
   const { setPickup: setCtxPickup, setDestination: setCtxDestination } = useRide();
 
@@ -34,7 +35,7 @@ const SearchScreen = () => {
   const [destination, setDestination] = useState("");
   const [pickupData, setPickupData] = useState(null);
   const [destinationData, setDestinationData] = useState(null);
-  const [activeField, setActiveField] = useState("pickup");
+  const [activeField, setActiveField] = useState(route.params?.activeField || "pickup");
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sessionToken, setSessionToken] = useState("");
@@ -44,6 +45,15 @@ const SearchScreen = () => {
   const pickupRef = useRef(null);
   const destinationRef = useRef(null);
   const [searchPerformed, setSearchPerformed] = useState(false);
+
+  // Auto-focus the field if passed in params
+  useEffect(() => {
+    if (route.params?.activeField === "destination") {
+      setTimeout(() => destinationRef.current?.focus(), 500);
+    } else {
+      setTimeout(() => pickupRef.current?.focus(), 500);
+    }
+  }, [route.params?.activeField]);
 
   // Generate a new session token for cost-effective billing
   const generateSessionToken = () => {

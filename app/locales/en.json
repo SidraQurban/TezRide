@@ -268,5 +268,7 @@
   "verification_success_title": "Submitted Successfully",
   "verification_success_msg": "Your details have been successfully submitted for review.",
   "verification_guide_title": "Why Verify?",
-  "verification_guide_desc": "To ensure a safe and comfortable environment for our female community, we require identity verification. This process helps us maintain a trustworthy community by confirming the identity of all users requesting women-only ride preferences."
+  "verification_guide_desc": "To ensure a safe and comfortable environment for our female community, we require identity verification. This process helps us maintain a trustworthy community by confirming the identity of all users requesting women-only ride preferences.",
+  "insufficient_balance_msg": "Insufficient wallet balance. Please top up your wallet.",
+  "could_not_create_ride": "Could not create ride. Please try again."
 }

@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { DrawerActions } from "@react-navigation/native";
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -53,7 +54,7 @@ const WalletScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}>
           <Ionicons name="menu-outline" size={30} color={COLORS.black} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t("wallet", "Wallet")}</Text>

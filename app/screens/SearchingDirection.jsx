@@ -182,30 +182,8 @@ const SearchingDirection = ({ route }) => {
         currency: payload.currency,
       });
 
-      const fareText = payload.finalFare
-        ? `${payload.currency || "PKR"} ${payload.finalFare}`
-        : "";
-
-      Alert.alert(
-        t("ride_completed_title"),
-        fareText
-          ? `${t("final_fare_label")}: ${fareText}`
-          : t("ride_completed_title"),
-        [
-          {
-            text: t("ok_btn"),
-            onPress: async () => {
-              clearActiveRide();
-              // Disconnect the hub — ride lifecycle is fully over
-              await customerHub.stop();
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "MainDrawer" }],
-              });
-            },
-          },
-        ]
-      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      bottomSheetRef.current?.snapToIndex(1); // Show summary
     };
 
     // no_drivers_found: { rideId }
@@ -566,14 +544,72 @@ const SearchingDirection = ({ route }) => {
           }}
         >
           {rideStatus === "completed" ? (
-            <View style={{ flex: 1, padding: 20, alignItems: "center", justifyContent: "center" }}>
-              <Ionicons name="checkmark-circle" size={60} color="green" />
-              <Text style={{ fontFamily: FONTS.bold, fontSize: 22, marginTop: 10 }}>
-                {t("ride_completed_title", { defaultValue: "Ride Completed" })}
+            <View style={{ flex: 1, padding: 24, alignItems: "center" }}>
+              <View style={{ 
+                width: 80, 
+                height: 80, 
+                borderRadius: 40, 
+                backgroundColor: '#F0FDF4', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                marginBottom: 16
+              }}>
+                <Ionicons name="checkmark-circle" size={50} color="#10B981" />
+              </View>
+              
+              <Text style={{ fontFamily: FONTS.bold, fontSize: 24, color: COLORS.text }}>
+                {t("ride_completed_title", { defaultValue: "Trip Completed!" })}
               </Text>
-              <Text style={{ fontFamily: FONTS.regular, fontSize: 16, color: "#555", marginTop: 5 }}>
-                {activeRide?.finalFare ? `${activeRide.currency || "PKR"} ${activeRide.finalFare}` : ""}
-              </Text>
+              
+              <View style={{ 
+                width: '100%', 
+                backgroundColor: '#F8F9FA', 
+                borderRadius: 16, 
+                padding: 20, 
+                marginVertical: 20,
+                borderWidth: 1,
+                borderColor: '#E9ECEF'
+              }}>
+                <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D', textAlign: 'center', marginBottom: 8 }}>
+                  {t("total_fare_paid", { defaultValue: "TOTAL FARE PAID" })}
+                </Text>
+                <Text style={{ fontFamily: FONTS.bold, fontSize: 32, color: COLORS.primary, textAlign: 'center' }}>
+                  {activeRide?.finalFare ? `${activeRide.currency || "PKR"} ${activeRide.finalFare}` : "PKR 0"}
+                </Text>
+                <View style={{ height: 1, backgroundColor: '#DEE2E6', marginVertical: 15 }} />
+                <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: '#6C757D', textAlign: 'center' }}>
+                  {t("ride_summary_footer", { defaultValue: "Thank you for riding with TezRide" })}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={async () => {
+                  clearActiveRide();
+                  await customerHub.stop();
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: "MainDrawer" }],
+                  });
+                }}
+                style={{
+                  width: '100%',
+                  height: 56,
+                  borderRadius: 16,
+                  backgroundColor: COLORS.primary,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  elevation: 4,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                }}
+              >
+                <Text style={{ fontFamily: FONTS.bold, fontSize: 16, color: '#FFF' }}>
+                  {t("back_to_home", { defaultValue: "Back to Home" })}
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" ? (
             <ArrivingCard

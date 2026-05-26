@@ -1,6 +1,6 @@
 import { View, TouchableOpacity } from "react-native";
 import React from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, DrawerActions } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { COLORS, SIZES } from "../constants";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,7 +20,7 @@ const DrawerHeader = () => {
     >
       {/* Drawer Menu Button */}
       <TouchableOpacity
-        onPress={() => navigation.toggleDrawer()}
+        onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
         style={{
           // backgroundColor: COLORS.active,
           padding: SIZES.base * 1.2,

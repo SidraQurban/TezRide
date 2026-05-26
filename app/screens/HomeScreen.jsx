@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RefreshControl } from "react-native";
 import {
   responsiveHeight,
   responsiveWidth,
@@ -33,6 +34,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { FONTS } from "../constants/theme";
 
+import preferenceService from "../api/preferenceService";
+// import walletService from "../api/walletService"; // Removed as per request
+
 const HomeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const [locationModalVisible, setLocationModalVisible] = React.useState(false);
@@ -44,6 +48,25 @@ const HomeScreen = ({ navigation, route }) => {
   const [fetchingLocation, setFetchingLocation] = React.useState(false);
   const [saveAddressModalVisible, setSaveAddressModalVisible] =
     React.useState(false);
+  const [preferences, setPreferences] = React.useState([]);
+  const [fetchingPreferences, setFetchingPreferences] = React.useState(false);
+  // walletBalance and fetchingBalance removed as per request
+
+  // fetchWalletBalance removed as per request
+
+  const fetchUserPreferences = React.useCallback(async () => {
+    setFetchingPreferences(true);
+    try {
+      const response = await preferenceService.getPreferences();
+      if (response.succeeded) {
+        setPreferences(response.data || []);
+      }
+    } catch (error) {
+      console.warn("Failed to fetch user preferences", error);
+    } finally {
+      setFetchingPreferences(false);
+    }
+  }, []);
 
   // Show modal if permission is missing OR device GPS is turned off
   const checkLocationStatus = React.useCallback(async () => {
@@ -107,7 +130,8 @@ const HomeScreen = ({ navigation, route }) => {
   React.useEffect(() => {
     checkLocationStatus();
     fetchCurrentAddress();
-  }, [checkLocationStatus, fetchCurrentAddress]);
+    fetchUserPreferences();
+  }, [checkLocationStatus, fetchCurrentAddress, fetchUserPreferences]);
 
   // Re-check when user returns from Settings
   React.useEffect(() => {
@@ -125,6 +149,18 @@ const HomeScreen = ({ navigation, route }) => {
     });
     return () => subscription.remove();
   }, [checkLocationStatus, fetchCurrentAddress, currentAddressName]);
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([
+      fetchCurrentAddress(),
+      fetchUserPreferences(),
+      checkLocationStatus(),
+    ]);
+    setRefreshing(false);
+  }, [fetchCurrentAddress, fetchUserPreferences, checkLocationStatus]);
 
   const translateX = useSharedValue(0);
   const isUrdu = i18n.language?.startsWith("ur");
@@ -159,6 +195,14 @@ const HomeScreen = ({ navigation, route }) => {
       <ScrollView
         contentContainerStyle={{ paddingBottom: responsiveHeight(5) }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
       >
         {/* Banner Section */}
         <View
@@ -255,6 +299,7 @@ const HomeScreen = ({ navigation, route }) => {
               paddingVertical: 4,
             }}
           >
+            {/* Current Location Card */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setSaveAddressModalVisible(true)}
@@ -263,7 +308,7 @@ const HomeScreen = ({ navigation, route }) => {
                 borderRadius: 12,
                 padding: responsiveWidth(3),
                 marginRight: responsiveWidth(3),
-                width: responsiveWidth(35),
+                width: responsiveWidth(38),
                 elevation: 2,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 1 },
@@ -275,22 +320,22 @@ const HomeScreen = ({ navigation, route }) => {
                 <ActivityIndicator
                   size="small"
                   color={COLORS.primary}
-                  style={{ marginTop: responsiveHeight(2) }}
+                  style={{ paddingVertical: responsiveHeight(1) }}
                 />
               ) : (
                 <>
                   <Ionicons
-                    name="bookmark"
+                    name="bookmark-outline"
                     size={20}
-                    color="#C0C0C0"
+                    color={COLORS.primary}
                     style={{ position: "absolute", top: 8, right: 8 }}
                   />
                   <Text
                     style={{
-                      fontFamily: FONTS.medium,
-                      fontSize: responsiveFontSize(1.8),
+                      fontFamily: FONTS.semiBold,
+                      fontSize: responsiveFontSize(1.7),
                       color: COLORS.black,
-                      marginTop: responsiveHeight(2),
+                      marginTop: responsiveHeight(1),
                     }}
                     numberOfLines={1}
                   >
@@ -299,18 +344,90 @@ const HomeScreen = ({ navigation, route }) => {
                   <Text
                     style={{
                       fontFamily: FONTS.regular,
-                      fontSize: responsiveFontSize(1.4),
+                      fontSize: responsiveFontSize(1.3),
                       color: COLORS.gray,
                       marginTop: 2,
                     }}
                     numberOfLines={1}
                   >
-                    {currentAddressDetail ||
-                      t("use_device_location", { defaultValue: "Fetching..." })}
+                    {currentAddressDetail || t("fetching")}
                   </Text>
                 </>
               )}
             </TouchableOpacity>
+
+            {/* Saved Preferences (Home, Work, etc.) */}
+            {preferences.map((pref) => {
+              let detail = {};
+              try {
+                detail = JSON.parse(pref.value);
+              } catch {
+                detail = { address: pref.value };
+              }
+
+              return (
+                <TouchableOpacity
+                  key={pref.id}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    // Navigate to search with this as destination
+                    navigation.navigate("Search", { 
+                      destination: {
+                        address: detail.address,
+                        name: pref.key
+                      }
+                    });
+                  }}
+                  style={{
+                    backgroundColor: COLORS.white,
+                    borderRadius: 12,
+                    padding: responsiveWidth(3),
+                    marginRight: responsiveWidth(3),
+                    width: responsiveWidth(38),
+                    elevation: 2,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 2,
+                  }}
+                >
+                  <Ionicons
+                    name={pref.icon || "location"}
+                    size={20}
+                    color={COLORS.primary}
+                    style={{ position: "absolute", top: 8, right: 8 }}
+                  />
+                  <Text
+                    style={{
+                      fontFamily: FONTS.semiBold,
+                      fontSize: responsiveFontSize(1.7),
+                      color: COLORS.black,
+                      marginTop: responsiveHeight(1),
+                    }}
+                    numberOfLines={1}
+                  >
+                    {pref.key}
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: FONTS.regular,
+                      fontSize: responsiveFontSize(1.3),
+                      color: COLORS.gray,
+                      marginTop: 2,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {detail.address || detail.houseNo || ""}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+
+            {fetchingPreferences && (
+              <View style={{ width: 100, justifyContent: 'center' }}>
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              </View>
+            )}
           </ScrollView>
         </View>
 
@@ -330,7 +447,10 @@ const HomeScreen = ({ navigation, route }) => {
 
         <SaveAddressModal
           visible={saveAddressModalVisible}
-          onClose={() => setSaveAddressModalVisible(false)}
+          onClose={() => {
+            setSaveAddressModalVisible(false);
+            fetchUserPreferences();
+          }}
           address={
             currentAddressName
               ? `${currentAddressName}, ${currentAddressDetail}`

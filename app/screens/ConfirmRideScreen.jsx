@@ -229,18 +229,28 @@ const ConfirmRide = () => {
       // Must happen BEFORE requestRide so the server can push events immediately
       await customerHub.start();
 
+      const liveEstimate = priceMap[selectedService];
       const requestData = {
         pickup: { lat: pickup.latitude, lon: pickup.longitude },
         dropoff: { lat: destination.latitude, lon: destination.longitude },
         vehicleType: selectedService,
         genderPreference: genderPreference,
         minRating: 0,
+        estimatedFare: liveEstimate?.estimatedFare || 0,
+        estimatedDistance: liveEstimate?.distance || 0,
+        estimatedDuration: liveEstimate?.estimatedDuration || 0,
       };
 
       const response = await rideService.requestRide(requestData);
 
       if (response.succeeded) {
         const rideId = response.data.rideId;
+        const status = response.data.status;
+
+        if (!rideId || rideId === "00000000-0000-0000-0000-000000000000") {
+          Alert.alert(t("error"), t("could_not_create_ride") || "Could not create ride. Please try again.");
+          return;
+        }
 
         setActiveRide({
           rideId,
@@ -427,6 +437,14 @@ const ConfirmRide = () => {
 
   // ── Modals are inlined in the return below to avoid re-rendering issues ──
 
+  const handleEditPickup = () => {
+    navigation.navigate("Search", { activeField: "pickup" });
+  };
+
+  const handleEditDestination = () => {
+    navigation.navigate("Search", { activeField: "destination" });
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       {/* MAIN CONTENT */}
@@ -448,6 +466,8 @@ const ConfirmRide = () => {
             onRouteReady={handleRouteReady}
             onPickupDragEnd={handlePickupDragEnd}
             onDestinationDragEnd={handleDestinationDragEnd}
+            onEditPickup={handleEditPickup}
+            onEditDestination={handleEditDestination}
             waveDrivers={waveDrivers}
             selectedCategory={selectedService}
             isSelectionMode={isSelectionMode}
@@ -751,6 +771,9 @@ const ConfirmRide = () => {
             setTempPref(genderPreference);
             setPrefModalVisible(true);
           }}
+          onEditPickup={handleEditPickup}
+          onEditDestination={handleEditDestination}
+          waveDrivers={waveDrivers}
           onPickupPress={() => startSelection("pickup")}
           onDestinationPress={() => startSelection("destination")}
         />

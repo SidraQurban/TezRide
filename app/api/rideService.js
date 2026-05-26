@@ -26,6 +26,9 @@ export const rideService = {
       dropoff: data.dropoff, // { lat, lon }
       genderPreference: data.genderPreference || 'any',
       minRating: data.minRating ?? 0,
+      offeredFare: data.estimatedFare || 0,
+      estimatedDistanceKm: data.estimatedDistance || 0,
+      estimatedDurationMinutes: data.estimatedDuration || 0,
     };
 
     return apiClient.post('/api/customer/rides/request', body);

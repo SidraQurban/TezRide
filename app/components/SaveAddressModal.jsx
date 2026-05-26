@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import {
   responsiveFontSize,
@@ -20,6 +21,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { COLORS, FONTS } from "../constants/theme";
 import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
+import preferenceService from "../api/preferenceService";
 
 const CATEGORIES = [
   { id: "home", label: "Home", icon: "home" },
@@ -35,17 +37,50 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
   const [houseNo, setHouseNo] = useState("");
   const [street, setStreet] = useState("");
   const [landmark, setLandmark] = useState("");
+  const [editableAddress, setEditableAddress] = useState("");
 
-  const handleSave = () => {
-    // In a real app, you would save this to state/backend
-    console.log("Saving address:", {
-      address,
-      houseNo,
-      street,
-      landmark,
-      selectedCategory,
-    });
-    onClose();
+  const [loading, setLoading] = useState(false);
+
+  // Sync prop to local state when modal becomes visible
+  React.useEffect(() => {
+    if (visible) {
+      setEditableAddress(address || "");
+    }
+  }, [visible, address]);
+
+  const handleSave = async () => {
+    if (!editableAddress) {
+      alert(t("enter_address_error") || "Please enter an address");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const fullDetail = {
+        address: editableAddress,
+        houseNo,
+        street,
+        landmark,
+        type: selectedCategory
+      };
+
+      // Map common categories to clean keys
+      const key = selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
+      
+      await preferenceService.savePreference(
+        key, 
+        JSON.stringify(fullDetail), 
+        'Location',
+        CATEGORIES.find(c => c.id === selectedCategory)?.icon
+      );
+      
+      onClose();
+    } catch (error) {
+      console.error("Failed to save address preference:", error);
+      alert(t("save_failed") || "Failed to save address. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -102,27 +137,45 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
                 {t("save_address") || "Save Address"}
               </Text>
 
-              {/* Address Display */}
+              {/* Address Input Section */}
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
                   marginBottom: responsiveHeight(3),
+                  backgroundColor: '#F8F9FA',
+                  borderRadius: 16,
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                  borderWidth: 1,
+                  borderColor: '#E9ECEF'
                 }}
               >
                 <Ionicons name="location" size={24} color={COLORS.primary} />
-                <Text
+                <TextInput
+                  value={editableAddress}
+                  onChangeText={setEditableAddress}
+                  placeholder={t("enter_address_placeholder") || "Enter address manually"}
+                  multiline
                   style={{
                     flex: 1,
                     marginLeft: 10,
                     fontSize: responsiveFontSize(1.6),
                     fontFamily: FONTS.regular,
                     color: COLORS.black,
+                    minHeight: 50,
+                    paddingTop: 8,
+                    paddingBottom: 8,
                   }}
-                  numberOfLines={2}
-                >
-                  {address || ""}
-                </Text>
+                />
+                {address && editableAddress !== address && (
+                  <TouchableOpacity 
+                    onPress={() => setEditableAddress(address)}
+                    style={{ padding: 4 }}
+                  >
+                    <MaterialCommunityIcons name="map-marker-radius" size={24} color={COLORS.primary} />
+                  </TouchableOpacity>
+                )}
               </View>
 
               {/* Inputs */}
@@ -240,8 +293,10 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
               {/* Save Button */}
               <TouchableOpacity
                 onPress={handleSave}
+                disabled={loading}
                 style={{
                   width: "100%",
+                  opacity: loading ? 0.7 : 1
                 }}
               >
                 <LinearGradient
@@ -256,7 +311,11 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
                     width: "100%",
                   }}
                 >
-                  <Ionicons name="checkmark" size={28} color={COLORS.white} />
+                  {loading ? (
+                    <ActivityIndicator color={COLORS.white} />
+                  ) : (
+                    <Ionicons name="checkmark" size={28} color={COLORS.white} />
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>

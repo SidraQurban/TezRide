@@ -172,31 +172,24 @@ export const promoData = [
 export const rides = [
   {
     id: "bike",
-    label: "BIKE",
-    image: require("../../assets/bike.png"),
+    label: "Bike",
+    image: require("../../assets/bike-removebg.png"),
     eta: "8 mins",
     price: 150,
   },
   {
     id: "rickshaw",
-    label: "RICKSHAW",
-    image: require("../../assets/auto.png"),
+    label: "Rickshaw",
+    image: require("../../assets/rickshaw-removebg.png"),
     eta: "6 mins",
     price: 200,
   },
   {
     id: "car",
-    label: "CAR",
-    image: require("../../assets/car.png"),
+    label: "Car",
+    image: require("../../assets/car-removebg.png"),
     eta: "5 mins",
     price: 280,
-  },
-  {
-    id: "prem",
-    label: "Comfort",
-    image: require("../../assets/prem.png"),
-    eta: "4 mins",
-    price: 330,
   },
 ];
 

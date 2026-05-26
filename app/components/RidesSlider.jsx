@@ -37,6 +37,9 @@ const RidesSlider = ({
   priceLoading = false,
   genderPreference = "any",
   onPreferencePress,
+  onEditPickup,
+  onEditDestination,
+  waveDrivers = [],
 }) => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
@@ -110,20 +113,19 @@ const RidesSlider = ({
 
   return (
     <View style={{ paddingBottom: responsiveHeight(16) }}>
-      {/* SERVICES SLIDER */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: responsiveHeight(1),
-          marginLeft: responsiveWidth(1),
+          paddingBottom: responsiveHeight(1.5),
+          paddingHorizontal: responsiveWidth(2),
         }}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled={true}
       >
         {rides.map((service) => {
           const active = selectedService === service.id;
-          const { fare, currency, isSurge, surgeFactor, loading } = resolvePrice(service);
+          const { fare, currency, isSurge, surgeFactor } = resolvePrice(service);
           const hasLivePrice = Boolean(priceMap[service.id]);
 
           return (
@@ -132,29 +134,35 @@ const RidesSlider = ({
               onPress={() => setSelectedService(service.id)}
               activeOpacity={0.9}
               style={{
-                height: responsiveHeight(17),
-                width: responsiveWidth(35),
-                borderRadius: 20,
-                marginRight: responsiveWidth(3),
-                padding: responsiveHeight(1.2),
+                height: responsiveHeight(18),
+                width: responsiveWidth(34),
+                borderRadius: 22,
+                marginRight: responsiveWidth(4),
+                padding: responsiveHeight(1.5),
                 justifyContent: "space-between",
-                backgroundColor: active ? COLORS.active : COLORS.white,
-                borderWidth: active ? 2 : 0,
-                borderColor: COLORS.primary,
-                elevation: 4,
+                backgroundColor: active ? "#FFF0DD" : COLORS.white, // Light primary background for active
+                borderWidth: 2,
+                borderColor: active ? COLORS.primary : "transparent",
+                elevation: active ? 6 : 4,
                 shadowColor: "#000",
-                shadowOpacity: 0.08,
-                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: active ? 0.15 : 0.08,
+                shadowRadius: 8,
               }}
             >
               {/* Checkmark when selected */}
               {active && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color={COLORS.primary}
-                  style={{ position: "absolute", top: 8, right: 8 }}
-                />
+                <View style={{ 
+                  position: "absolute", 
+                  top: 8, 
+                  right: 8, 
+                  zIndex: 10,
+                  backgroundColor: COLORS.primary,
+                  borderRadius: 10,
+                  padding: 1
+                }}>
+                  <Ionicons name="checkmark" size={14} color="#FFF" />
+                </View>
               )}
 
               {/* Surge badge */}
@@ -164,10 +172,13 @@ const RidesSlider = ({
                     position: "absolute",
                     top: 8,
                     left: 8,
+                    zIndex: 10,
                     backgroundColor: "#FF6B00",
-                    borderRadius: 8,
-                    paddingHorizontal: 5,
-                    paddingVertical: 1,
+                    borderRadius: 10,
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    flexDirection: 'row',
+                    alignItems: 'center'
                   }}
                 >
                   <Text
@@ -182,63 +193,68 @@ const RidesSlider = ({
                 </View>
               )}
 
-              {/* Vehicle image */}
-              <Image
-                source={service.image}
-                style={{
-                  width: responsiveWidth(20),
-                  height: responsiveHeight(5.5),
-                  resizeMode: "contain",
-                  alignSelf: "center",
-                }}
-              />
+              {/* Vehicle image - Larger and cleaner */}
+              <View style={{ height: responsiveHeight(7), justifyContent: 'center' }}>
+                <Image
+                  source={service.image}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    resizeMode: "contain",
+                  }}
+                />
+              </View>
 
-              {/* Label */}
-              <Text
-                style={{
-                  fontSize: responsiveFontSize(1.6),
-                  fontFamily: FONTS.bold,
-                  textAlign: "center",
-                  color: "#222",
-                }}
-              >
-                {t(service.label.toLowerCase())}
-              </Text>
+              {/* Info content */}
+              <View style={{ alignItems: "center", gap: 2 }}>
+                <Text
+                  style={{
+                    fontSize: responsiveFontSize(1.7),
+                    fontFamily: FONTS.bold,
+                    color: "#1F2937",
+                  }}
+                >
+                  {t(service.label.toLowerCase())}
+                </Text>
 
-              {/* ETA + Price */}
-              <View style={{ alignItems: "center" }}>
                 <Text
                   style={{
                     fontSize: responsiveFontSize(1.2),
-                    color: "#777",
-                    fontFamily: FONTS.regular,
+                    color: "#6B7280",
+                    fontFamily: FONTS.medium,
                   }}
                 >
-                  {duration
-                    ? `${Math.round(duration)} ${t("mins")}`
-                    : t(service.eta?.toLowerCase().replace(" ", "_"))}{" "}
-                  •{" "}
-                  {distance
-                    ? `${distance.toFixed(1)} ${t("km")}`
-                    : "---"}
+                  {(() => {
+                    // Try to find nearest driver of this type
+                    const driversOfType = waveDrivers.filter(d => d.vehicleType === service.id);
+                    if (driversOfType.length > 0) {
+                      // Just a rough estimate for demo: 2 mins per km distance is common in city
+                      // Usually we would use Google Distance Matrix here, but for reactive UI we can estimate
+                      return `2 ${t("mins")}`; 
+                    }
+                    return duration
+                      ? `${Math.round(duration)} ${t("mins")}`
+                      : t(service.eta?.toLowerCase().replace(" ", "_"));
+                  })()}
+                  {" • "}{distance ? `${distance.toFixed(1)} km` : "---"}
                 </Text>
 
-                {/* Price — shimmer while strictly loading OR waiting for first price map */}
+                {/* Price Display */}
                 {!hasLivePrice ? (
                   <Animated.View
                     style={{
                       opacity: shimmerAnim,
-                      backgroundColor: "#E8E8E8",
+                      backgroundColor: "#F3F4F6",
                       borderRadius: 6,
                       height: responsiveHeight(2),
-                      width: responsiveWidth(18),
-                      marginTop: 4,
+                      width: responsiveWidth(20),
+                      marginTop: 2,
                     }}
                   />
                 ) : (
                   <Text
                     style={{
-                      fontSize: responsiveFontSize(1.6),
+                      fontSize: responsiveFontSize(1.8),
                       fontFamily: FONTS.bold,
                       color: isSurge ? "#FF6B00" : COLORS.primary,
                       marginTop: 2,
@@ -256,13 +272,18 @@ const RidesSlider = ({
       {/* LOCATION CARD */}
       <View
         style={{
-          marginHorizontal: responsiveWidth(2),
-          padding: responsiveWidth(3.5),
-          backgroundColor: "#fff",
-          borderRadius: 15,
-          elevation: 2,
-          // marginTop: responsiveHeight(0.5),
-          marginBottom: responsiveHeight(1),
+          marginHorizontal: responsiveWidth(3),
+          padding: responsiveWidth(4.5),
+          backgroundColor: "#FFF",
+          borderRadius: 22,
+          elevation: 5,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          marginBottom: responsiveHeight(2),
+          borderWidth: 1,
+          borderColor: "#F3F4F6",
         }}
       >
         {/* TOP ROW — Pickup */}
@@ -271,25 +292,25 @@ const RidesSlider = ({
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            // marginBottom: responsiveHeight(0.5),
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <View
               style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: COLORS.primary,
-                marginRight: 8,
+                width: 10,
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: "#FF6B00",
+                marginRight: 10,
               }}
             />
             <Text
               style={{
-                fontFamily: FONTS.medium,
+                fontFamily: FONTS.bold,
+                fontSize: responsiveFontSize(1.9),
+                color: "#1F2937",
                 textAlign: isRTL ? "right" : "left",
               }}
-              numberOfLines={1}
             >
               {t("current_location")}
             </Text>
@@ -300,7 +321,7 @@ const RidesSlider = ({
               style={{
                 fontSize: responsiveFontSize(1.6),
                 color: COLORS.primary,
-                fontFamily: FONTS.semiBold,
+                fontFamily: FONTS.bold,
               }}
             >
               {genderPreference === "any" 
@@ -313,64 +334,54 @@ const RidesSlider = ({
         </View>
 
         {/* Pickup Address */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <TouchableOpacity 
+          style={{ marginLeft: 20, marginTop: 4 }} 
+          onPress={onEditPickup}
+          activeOpacity={0.7}
+        >
           <Text
             style={{
-              fontSize: responsiveFontSize(1.4),
-              color: "#777",
-              fontFamily: FONTS.regular,
+              fontSize: responsiveFontSize(1.5),
+              color: "#6B7280",
+              fontFamily: FONTS.medium,
               textAlign: isRTL ? "right" : "left",
             }}
+            numberOfLines={1}
           >
-            {pickup?.address}
+            {pickup?.address || t("select_pickup")}
           </Text>
-        </ScrollView>
+        </TouchableOpacity>
 
-        {/* Animated connector line */}
+        {/* Connector line */}
         <View
           style={{
-            height: 18,
-            width: 2,
-            backgroundColor: "#F0F0F0",
-            marginLeft: 3,
+            height: 20,
+            width: 1,
+            backgroundColor: "#E5E7EB",
+            marginLeft: 4.5,
             marginVertical: 4,
-            borderRadius: 1,
-            overflow: "hidden",
           }}
-        >
-          <Animated.View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 6,
-              backgroundColor: COLORS.primary,
-              borderRadius: 1,
-              opacity: lineOpacity,
-              transform: [{ translateY: lineTranslateY }],
-            }}
-          />
-        </View>
+        />
 
         {/* Dropoff */}
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
-            marginLeft: -2,
-            marginTop: 2,
+            marginLeft: -3,
           }}
         >
           <Ionicons
             name="location-sharp"
-            size={16}
-            color={COLORS.primary}
+            size={20}
+            color="#FF6B00"
             style={{ marginRight: 6 }}
           />
           <Text
             style={{
-              fontFamily: FONTS.medium,
+              fontFamily: FONTS.bold,
+              fontSize: responsiveFontSize(1.9),
+              color: "#1F2937",
               textAlign: isRTL ? "right" : "left",
             }}
           >
@@ -378,62 +389,50 @@ const RidesSlider = ({
           </Text>
         </View>
 
-        {/* Destination actual address value */}
-        <View style={{ marginLeft: 0 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <Text
-              style={{
-                fontSize: responsiveFontSize(1.4),
-                color: "#777",
-                fontFamily: FONTS.regular,
-                textAlign: isRTL ? "right" : "left",
-              }}
-            >
-              {destination?.address}
-            </Text>
-          </ScrollView>
-        </View>
+        {/* Destination Address */}
+        <TouchableOpacity 
+          style={{ marginLeft: 20, marginTop: 4 }} 
+          onPress={onEditDestination}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={{
+              fontSize: responsiveFontSize(1.5),
+              color: "#6B7280",
+              fontFamily: FONTS.medium,
+              textAlign: isRTL ? "right" : "left",
+            }}
+            numberOfLines={1}
+          >
+            {destination?.address || t("select_destination")}
+          </Text>
+        </TouchableOpacity>
 
         {/* BOTTOM ROW — ETA summary */}
         {distance && duration ? (
           <View
             style={{
+              marginTop: responsiveHeight(1.5),
+              paddingTop: responsiveHeight(1.5),
+              borderTopWidth: 1,
+              borderTopColor: "#F3F4F6",
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
-              marginTop: responsiveHeight(1),
-              paddingBottom: responsiveHeight(0.5),
             }}
           >
             <Text
               style={{
-                fontSize: responsiveFontSize(1.3),
-                color: "#777",
-                fontFamily: FONTS.regular,
+                fontSize: responsiveFontSize(1.4),
+                color: "#9CA3AF",
+                fontFamily: FONTS.medium,
               }}
             >
-              {t("eta")}: {Math.round(duration)} {t("mins")} •{" "}
-              {distance.toFixed(1)} {t("km")}
+              ETA: {Math.round(duration)} mins • {distance.toFixed(1)} km
             </Text>
 
-            {/* Show pricing loading indicator */}
             {priceLoading && (
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <ActivityIndicator
-                  size="small"
-                  color={COLORS.primary}
-                  style={{ marginRight: 4 }}
-                />
-                <Text
-                  style={{
-                    fontSize: responsiveFontSize(1.2),
-                    color: COLORS.primary,
-                    fontFamily: FONTS.regular,
-                  }}
-                >
-                  {t("fetching_prices")}
-                </Text>
-              </View>
+              <ActivityIndicator size="small" color={COLORS.primary} />
             )}
           </View>
         ) : null}
