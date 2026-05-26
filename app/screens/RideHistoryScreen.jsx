@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as ExpoLocation from "expo-location";
 import { useTranslation } from "react-i18next";
 import { DrawerActions } from "@react-navigation/native";
 import {
@@ -28,14 +29,57 @@ const RideHistoryScreen = ({ navigation }) => {
 
   const fetchHistory = async (page = 1) => {
     try {
+      setLoading(true);
       const response = await customerService.getRideHistory(page, 10);
-      if (response.succeeded) {
+      if (response.succeeded && response.data) {
+        // Reverse geocode addresses if they are missing (null) from the API
+        const processedRides = await Promise.all(
+          response.data.map(async (ride) => {
+            const updatedRide = { ...ride };
+            
+            // If addresses are null, convert coordinates
+            if (!updatedRide.pickupAddress && updatedRide.pickupLat && updatedRide.pickupLon) {
+              try {
+                const geo = await ExpoLocation.reverseGeocodeAsync({
+                  latitude: updatedRide.pickupLat,
+                  longitude: updatedRide.pickupLon,
+                });
+                if (geo && geo.length > 0) {
+                  const first = geo[0];
+                  updatedRide.pickupAddress = [first.street, first.name, first.district, first.city].filter(Boolean).join(", ");
+                }
+              } catch (e) {
+                updatedRide.pickupAddress = "Unknown Location";
+              }
+            }
+
+            if (!updatedRide.dropoffAddress && updatedRide.dropoffLat && updatedRide.dropoffLon) {
+              try {
+                const geo = await ExpoLocation.reverseGeocodeAsync({
+                  latitude: updatedRide.dropoffLat,
+                  longitude: updatedRide.dropoffLon,
+                });
+                if (geo && geo.length > 0) {
+                  const first = geo[0];
+                  updatedRide.dropoffAddress = [first.street, first.name, first.district, first.city].filter(Boolean).join(", ");
+                }
+              } catch (e) {
+                updatedRide.dropoffAddress = "Unknown Location";
+              }
+            }
+
+            return updatedRide;
+          })
+        );
+
         if (page === 1) {
-          setRides(response.data);
+          setRides(processedRides);
         } else {
-          setRides((prev) => [...prev, ...response.data]);
+          setRides((prev) => [...prev, ...processedRides]);
         }
+        
         setHasMore(response.hasNextPage);
+        setPageIndex(page);
       }
     } catch (error) {
       console.error("Error fetching ride history:", error);
@@ -45,18 +89,30 @@ const RideHistoryScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    fetchHistory();
+    fetchHistory(1);
   }, []);
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 0: return "Requested";
+      case 1: return "Accepted";
+      case 2: return "Arrived";
+      case 3: return "Started";
+      case 4: return "Completed";
+      case 5: return "Cancelled";
+      default: return "Unknown";
+    }
+  };
 
   const renderRideItem = ({ item }) => (
     <View style={styles.rideItem}>
       <View style={styles.rideHeader}>
         <View style={styles.vehicleInfo}>
-          <Ionicons name="car-outline" size={24} color={COLORS.primary} />
-          <Text style={styles.vehicleText}>{item.vehicleType || t("ride")}</Text>
+          <Ionicons name={item.vehicleType === 'bike' ? 'bicycle-outline' : 'car-outline'} size={24} color={COLORS.primary} />
+          <Text style={styles.vehicleText}>{item.vehicleType?.toUpperCase() || t("ride")}</Text>
         </View>
         <Text style={styles.ridePrice}>
-          {item.currency} {item.fare}
+          PKR {item.finalCost || item.fare || 0}
         </Text>
       </View>
       
@@ -67,16 +123,25 @@ const RideHistoryScreen = ({ navigation }) => {
           <View style={[styles.dot, { backgroundColor: COLORS.error }]} />
         </View>
         <View style={styles.addressBox}>
-          <Text style={styles.addressText} numberOfLines={1}>{item.pickupAddress}</Text>
-          <Text style={styles.addressText} numberOfLines={1}>{item.destinationAddress}</Text>
+          <Text style={styles.addressText} numberOfLines={1}>{item.pickupAddress || "Fetching address..."}</Text>
+          <Text style={styles.addressText} numberOfLines={1}>{item.dropoffAddress || item.destinationAddress || "Fetching address..."}</Text>
         </View>
       </View>
 
       <View style={styles.rideFooter}>
-        <Text style={styles.dateText}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ""}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: item.status === 'Completed' ? 'rgba(0,255,0,0.1)' : 'rgba(255,0,0,0.1)' }]}>
-          <Text style={[styles.statusText, { color: item.status === 'Completed' ? '#2ecc71' : '#e74c3c' }]}>
-            {item.status}
+        <Text style={styles.dateText}>
+          {item.completedAt ? new Date(item.completedAt).toLocaleDateString() : 
+           item.assignedAt ? new Date(item.assignedAt).toLocaleDateString() : ""}
+        </Text>
+        <View style={[styles.statusBadge, { 
+          backgroundColor: item.status === 4 ? 'rgba(0,255,0,0.1)' : 
+                         item.status === 5 ? 'rgba(255,0,0,0.1)' : 'rgba(0,0,0,0.05)' 
+        }]}>
+          <Text style={[styles.statusText, { 
+            color: item.status === 4 ? '#2ecc71' : 
+                   item.status === 5 ? '#e74c3c' : '#999' 
+          }]}>
+            {getStatusText(item.status)}
           </Text>
         </View>
       </View>

@@ -75,7 +75,14 @@ const ConfirmRide = () => {
     ) {
       setDestination(route.params.destination);
     }
-  }, [route.params, setPickup, setDestination, ctxPickup, ctxDestination]);
+  }, [
+    route.params?.pickup,
+    route.params?.destination,
+    setPickup,
+    setDestination,
+    ctxPickup,
+    ctxDestination,
+  ]);
 
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);

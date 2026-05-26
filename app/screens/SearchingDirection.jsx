@@ -79,6 +79,9 @@ const SearchingDirection = ({ route }) => {
 
   // ── SignalR Event Handlers ───────────────────────────────────────────────
   useEffect(() => {
+    // Ensure hub is connected when screen mounts
+    customerHub.start();
+
     // driver_interested: { rideId, driverInfo: NearbyDriverDto }
     const handleDriverInterested = (payload) => {
       if (String(payload.rideId) !== String(rideId)) return;

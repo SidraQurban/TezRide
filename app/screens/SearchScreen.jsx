@@ -180,12 +180,12 @@ const SearchScreen = () => {
         fetchPredictions(input);
       }, 500);
     },
-    [sessionToken, currentLocation],
+    [sessionToken, currentLocation?.latitude, currentLocation?.longitude],
   );
 
   useEffect(() => {
     const query = activeField === "pickup" ? pickup : destination;
-    if (query) {
+    if (query && query.trim().length > 0) {
       debouncedSearch(query);
     } else {
       setPredictions([]);
