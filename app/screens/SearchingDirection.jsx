@@ -49,7 +49,7 @@ const SearchingDirection = ({ route }) => {
   const { activeRide, setActiveRide, clearActiveRide } = useRide();
 
   const selectedRide = rides.find((r) => r.id === vehicleType);
-  const displayImage = selectedRide?.image || rideImage || require("../../assets/auto.png");
+  const displayImage = selectedRide?.image || rideImage || require("../../assets/rickshaw.png");
 
   const bottomSheetRef = useRef(null);
 

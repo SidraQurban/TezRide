@@ -206,8 +206,10 @@ const RidesSlider = ({
               </View>
 
               {/* Info content */}
-              <View style={{ alignItems: "center", gap: 2 }}>
+              <View style={{ alignItems: "center", gap: 2, width: "100%" }}>
                 <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                   style={{
                     fontSize: responsiveFontSize(1.7),
                     fontFamily: FONTS.bold,
@@ -218,10 +220,13 @@ const RidesSlider = ({
                 </Text>
 
                 <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                   style={{
                     fontSize: responsiveFontSize(1.2),
                     color: "#6B7280",
                     fontFamily: FONTS.medium,
+                    textAlign: "center",
                   }}
                 >
                   {(() => {
@@ -247,17 +252,20 @@ const RidesSlider = ({
                       backgroundColor: "#F3F4F6",
                       borderRadius: 6,
                       height: responsiveHeight(2),
-                      width: responsiveWidth(20),
+                      width: "80%",
                       marginTop: 2,
                     }}
                   />
                 ) : (
                   <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
                     style={{
                       fontSize: responsiveFontSize(1.8),
                       fontFamily: FONTS.bold,
                       color: isSurge ? "#FF6B00" : COLORS.primary,
                       marginTop: 2,
+                      textAlign: "center",
                     }}
                   >
                     {currency} {fare}
@@ -281,7 +289,7 @@ const RidesSlider = ({
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.08,
           shadowRadius: 10,
-          marginBottom: responsiveHeight(2),
+          marginBottom: responsiveHeight(3),
           borderWidth: 1,
           borderColor: "#F3F4F6",
         }}
@@ -297,17 +305,17 @@ const RidesSlider = ({
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <View
               style={{
-                width: 10,
-                height: 10,
-                borderRadius: 5,
+                width: responsiveWidth(2),
+                height:responsiveWidth(2),
+                borderRadius: responsiveWidth(1),
                 backgroundColor: "#FF6B00",
-                marginRight: 10,
+                marginRight: responsiveWidth(2),
               }}
             />
             <Text
               style={{
-                fontFamily: FONTS.bold,
-                fontSize: responsiveFontSize(1.9),
+                fontFamily: FONTS.semiBold,
+                fontSize: responsiveFontSize(1.8),
                 color: "#1F2937",
                 textAlign: isRTL ? "right" : "left",
               }}
@@ -321,7 +329,7 @@ const RidesSlider = ({
               style={{
                 fontSize: responsiveFontSize(1.6),
                 color: COLORS.primary,
-                fontFamily: FONTS.bold,
+                fontFamily: FONTS.semiBold,
               }}
             >
               {genderPreference === "any" 
@@ -335,7 +343,7 @@ const RidesSlider = ({
 
         {/* Pickup Address */}
         <TouchableOpacity 
-          style={{ marginLeft: 20, marginTop: 4 }} 
+          style={{ marginLeft: responsiveWidth(1) }} 
           onPress={onEditPickup}
           activeOpacity={0.7}
         >
@@ -356,31 +364,42 @@ const RidesSlider = ({
         <View
           style={{
             height: 20,
-            width: 1,
+            width: 2,
             backgroundColor: "#E5E7EB",
-            marginLeft: 4.5,
-            marginVertical: 4,
+            marginStart: 1.5,
+            marginVertical: 2,
+            overflow: "hidden",
           }}
-        />
+        >
+          <Animated.View
+            style={{
+              width: 2,
+              height: 12,
+              backgroundColor: COLORS.primary,
+              transform: [{ translateY: lineTranslateY }],
+              opacity: lineOpacity,
+            }}
+          />
+        </View>
 
         {/* Dropoff */}
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
-            marginLeft: -3,
+            marginLeft:responsiveWidth(-1.5)
           }}
         >
           <Ionicons
             name="location-sharp"
-            size={20}
+            size={18}
             color="#FF6B00"
             style={{ marginRight: 6 }}
           />
           <Text
             style={{
-              fontFamily: FONTS.bold,
-              fontSize: responsiveFontSize(1.9),
+              fontFamily: FONTS.semiBold,
+              fontSize: responsiveFontSize(1.8),
               color: "#1F2937",
               textAlign: isRTL ? "right" : "left",
             }}
@@ -391,7 +410,7 @@ const RidesSlider = ({
 
         {/* Destination Address */}
         <TouchableOpacity 
-          style={{ marginLeft: 20, marginTop: 4 }} 
+          style={{ marginLeft: responsiveWidth(1), }} 
           onPress={onEditDestination}
           activeOpacity={0.7}
         >
@@ -409,7 +428,7 @@ const RidesSlider = ({
         </TouchableOpacity>
 
         {/* BOTTOM ROW — ETA summary */}
-        {distance && duration ? (
+        {/* {distance && duration ? (
           <View
             style={{
               marginTop: responsiveHeight(1.5),
@@ -435,7 +454,7 @@ const RidesSlider = ({
               <ActivityIndicator size="small" color={COLORS.primary} />
             )}
           </View>
-        ) : null}
+        ) : null} */}
       </View>
     </View>
   );

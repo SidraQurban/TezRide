@@ -94,9 +94,15 @@ const HomeScreen = ({ navigation, route }) => {
       const { status } = await ExpoLocation.getForegroundPermissionsAsync();
       const isGpsEnabled = await ExpoLocation.hasServicesEnabledAsync();
       if (status === "granted" && isGpsEnabled) {
-        let location = await ExpoLocation.getCurrentPositionAsync({
-          accuracy: ExpoLocation.Accuracy.Balanced,
-        });
+        // Fast first: try last known position
+        let location = await ExpoLocation.getLastKnownPositionAsync({});
+        
+        if (!location) {
+          // Fallback to low accuracy for faster result if no recent location exists
+          location = await ExpoLocation.getCurrentPositionAsync({
+            accuracy: ExpoLocation.Accuracy.Low,
+          });
+        }
         const coords = location.coords;
         const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
         const response = await fetch(url);
@@ -324,29 +330,33 @@ const HomeScreen = ({ navigation, route }) => {
                 />
               ) : (
                 <>
-                  <Ionicons
-                    name="bookmark-outline"
-                    size={20}
-                    color={COLORS.primary}
-                    style={{ position: "absolute", top: 8, right: 8 }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: FONTS.semiBold,
-                      fontSize: responsiveFontSize(1.7),
-                      color: COLORS.black,
-                      marginTop: responsiveHeight(1),
-                    }}
-                    numberOfLines={1}
-                  >
-                    {currentAddressName || t("current_location")}
-                  </Text>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontFamily: FONTS.semiBold,
+                        fontSize: responsiveFontSize(1.7),
+                        color: COLORS.black,
+                        textAlign: isUrdu ? "right" : "left",
+                      }}
+                      numberOfLines={1}
+                    >
+                      {currentAddressName || t("current_location")}
+                    </Text>
+                    <Ionicons
+                      name="bookmark-outline"
+                      size={20}
+                      color={COLORS.primary}
+                      style={{ marginStart: 8 }}
+                    />
+                  </View>
                   <Text
                     style={{
                       fontFamily: FONTS.regular,
                       fontSize: responsiveFontSize(1.3),
                       color: COLORS.gray,
-                      marginTop: 2,
+                      marginTop: 4,
+                      textAlign: isUrdu ? "right" : "left",
                     }}
                     numberOfLines={1}
                   >
@@ -391,29 +401,33 @@ const HomeScreen = ({ navigation, route }) => {
                     shadowRadius: 2,
                   }}
                 >
-                  <Ionicons
-                    name={pref.icon || "location"}
-                    size={20}
-                    color={COLORS.primary}
-                    style={{ position: "absolute", top: 8, right: 8 }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: FONTS.semiBold,
-                      fontSize: responsiveFontSize(1.7),
-                      color: COLORS.black,
-                      marginTop: responsiveHeight(1),
-                    }}
-                    numberOfLines={1}
-                  >
-                    {pref.key}
-                  </Text>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontFamily: FONTS.semiBold,
+                        fontSize: responsiveFontSize(1.7),
+                        color: COLORS.black,
+                        textAlign: isUrdu ? "right" : "left",
+                      }}
+                      numberOfLines={1}
+                    >
+                      {pref.key}
+                    </Text>
+                    <Ionicons
+                      name={pref.icon || "location"}
+                      size={20}
+                      color={COLORS.primary}
+                      style={{ marginStart: 8 }}
+                    />
+                  </View>
                   <Text
                     style={{
                       fontFamily: FONTS.regular,
                       fontSize: responsiveFontSize(1.3),
                       color: COLORS.gray,
-                      marginTop: 2,
+                      marginTop: 4,
+                      textAlign: isUrdu ? "right" : "left",
                     }}
                     numberOfLines={1}
                   >

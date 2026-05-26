@@ -39,6 +39,7 @@ const LoginScreen = () => {
   const [phone, setPhone] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
@@ -272,16 +273,18 @@ const LoginScreen = () => {
           {/* BOTTOM SECTION */}
           <View style={{ alignItems: "center" }}>
             {/* Privacy */}
-            <Text
-              style={{
-                color: "#adb5bd",
-                textDecorationLine: "underline",
-                fontFamily: FONTS.regular,
-                marginBottom: responsiveHeight(2),
-              }}
-            >
-              {t("privacy_policy")}
-            </Text>
+            <TouchableOpacity onPress={() => setPrivacyModalVisible(true)}>
+              <Text
+                style={{
+                  color: "#adb5bd",
+                  textDecorationLine: "underline",
+                  fontFamily: FONTS.regular,
+                  marginBottom: responsiveHeight(2),
+                }}
+              >
+                {t("privacy_policy")}
+              </Text>
+            </TouchableOpacity>
 
             {/* Button */}
             <TouchableOpacity
@@ -399,6 +402,80 @@ const LoginScreen = () => {
               />
             </TouchableOpacity>
           </TouchableOpacity>
+        </Modal>
+
+        {/* PRIVACY POLICY MODAL */}
+        <Modal visible={privacyModalVisible} transparent animationType="fade">
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: responsiveWidth(5),
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: COLORS.white,
+                width: "100%",
+                borderRadius: responsiveWidth(4),
+                padding: responsiveWidth(5),
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(2.2),
+                  fontFamily: FONTS.semiBold,
+                  color: COLORS.black,
+                  marginBottom: responsiveHeight(2),
+                  textAlign: i18n.language === "ur" ? "right" : "left",
+                }}
+              >
+                {t("privacy_policy")}
+              </Text>
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(1.8),
+                  fontFamily: FONTS.regular,
+                  color: COLORS.black,
+                  lineHeight: responsiveHeight(3),
+                  textAlign: i18n.language === "ur" ? "right" : "left",
+                  marginBottom: responsiveHeight(3),
+                }}
+              >
+                {t("privacy_policy_content")}
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => setPrivacyModalVisible(false)}
+                style={{ alignSelf: "flex-end" }}
+              >
+                <LinearGradient
+                  colors={[COLORS.primary, COLORS.secondary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    paddingHorizontal: responsiveWidth(6),
+                    paddingVertical: responsiveHeight(1.2),
+                    borderRadius: responsiveWidth(2),
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: COLORS.white,
+                      fontFamily: FONTS.semiBold,
+                      fontSize: responsiveFontSize(1.8),
+                    }}
+                  >
+                    {t("cancel_btn") || t("cancel") || "Close"}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
         </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>

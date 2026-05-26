@@ -283,7 +283,7 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
                           color: COLORS.black,
                         }}
                       >
-                        {cat.label}
+                        {t(cat.id) || cat.label}
                       </Text>
                     </TouchableOpacity>
                   );

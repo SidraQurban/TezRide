@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import MapViewDirections from "react-native-maps-directions";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import { COLORS } from "../constants";
-import { responsiveFontSize, responsiveHeight } from "react-native-responsive-dimensions";
+import { responsiveFontSize, responsiveHeight, responsiveWidth } from "react-native-responsive-dimensions";
 import * as ExpoLocation from "expo-location";
 import { useRide } from "../context/RideContext";
 
@@ -201,10 +201,10 @@ const MapComponent = memo(({
   }, [destination?.latitude, destination?.longitude]);
 
   const vehicleImage = selectedCategory === "bike"
-    ? require("../../assets/bike-removebg.png")
+    ? require("../../assets/bike.png")
     : selectedCategory === "rickshaw" || selectedCategory === "auto"
-      ? require("../../assets/rickshaw-removebg.png")
-      : require("../../assets/car-removebg.png");
+      ? require("../../assets/rickshaw.png")
+      : require("../../assets/car.png");
 
   return (
     <View style={styles.container}>
@@ -239,7 +239,7 @@ const MapComponent = memo(({
             anchor={{ x: 0.5, y: 1 }}
           >
             <View style={styles.markerWrap}>
-              <View style={[styles.markerBubble, { backgroundColor: COLORS.primary }]}>
+              <View style={[styles.iconCircle, { backgroundColor: COLORS.primary }]}>
                 <Ionicons name="person" size={18} color="#FFF" />
               </View>
               <View style={[styles.markerTip, { borderTopColor: COLORS.primary }]} />
@@ -255,7 +255,7 @@ const MapComponent = memo(({
             anchor={{ x: 0.5, y: 1 }}
           >
             <View style={styles.markerWrap}>
-              <View style={[styles.markerBubble, { backgroundColor: "#FF3B30" }]}>
+              <View style={[styles.iconCircle, { backgroundColor: "#FF3B30" }]}>
                 <Ionicons name="flag" size={18} color="#FFF" />
               </View>
               <View style={[styles.markerTip, { borderTopColor: "#FF3B30" }]} />
@@ -350,9 +350,8 @@ const MapComponent = memo(({
       {isSelectionMode && (
         <View style={styles.crosshairWrap} pointerEvents="none">
           <View style={styles.markerWrap}>
-            <View style={[styles.markerBubble, {
+            <View style={[styles.iconCircle, {
               backgroundColor: selectionType === "pickup" ? COLORS.primary : "#FF3B30",
-              width: 38, height: 38, borderRadius: 19,
             }]}>
               <Ionicons name={selectionType === "pickup" ? "person" : "flag"} size={18} color="#FFF" />
             </View>
@@ -379,15 +378,19 @@ const styles = StyleSheet.create({
 
   // Markers
   markerWrap:   { alignItems: "center" },
-  markerBubble: {
-    width: 40, height: 40, borderRadius: 20,
-    justifyContent: "center", alignItems: "center",
-    borderWidth: 3, borderColor: "#FFF",
-    elevation: 6,
-    shadowColor: "#000", shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3, shadowRadius: 4,
-  },
-  markerTip: {
+  iconCircle: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  justifyContent: "center",
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.25,
+  shadowRadius: 4,
+  elevation: 5,
+},
+ markerTip: {
     width: 0, height: 0,
     borderLeftWidth: 6, borderRightWidth: 6, borderTopWidth: 9,
     borderLeftColor: "transparent", borderRightColor: "transparent",

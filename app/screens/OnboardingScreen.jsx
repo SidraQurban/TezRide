@@ -319,7 +319,7 @@ const OnboardingScreen = () => {
             fontSize: responsiveFontSize(3),
             textAlign: "center",
             fontFamily: FONTS.semiBold,
-            marginTop: responsiveHeight(-1),
+            marginTop: responsiveHeight(-3),
             lineHeight: responsiveHeight(4.5),
           }}
         >

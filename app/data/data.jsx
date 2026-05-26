@@ -116,7 +116,7 @@ export const rideOptions = [
     price: 200,
     nearby: 19,
 
-    img: require("../../assets/auto.png"),
+    img: require("../../assets/rickshaw.png"),
   },
   {
     id: "3",
@@ -173,21 +173,21 @@ export const rides = [
   {
     id: "bike",
     label: "Bike",
-    image: require("../../assets/bike-removebg.png"),
+    image: require("../../assets/bike.png"),
     eta: "8 mins",
     price: 150,
   },
   {
     id: "rickshaw",
     label: "Rickshaw",
-    image: require("../../assets/rickshaw-removebg.png"),
+    image: require("../../assets/rickshaw.png"),
     eta: "6 mins",
     price: 200,
   },
   {
     id: "car",
     label: "Car",
-    image: require("../../assets/car-removebg.png"),
+    image: require("../../assets/car.png"),
     eta: "5 mins",
     price: 280,
   },
