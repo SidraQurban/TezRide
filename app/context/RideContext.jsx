@@ -25,7 +25,7 @@ export const RideProvider = ({ children }) => {
         return prev;
       }
       setRouteCoords([]);
-      setRouteDetails(null);
+      // setRouteDetails(null);
       return newPickup;
     });
   }, []);
@@ -40,7 +40,7 @@ export const RideProvider = ({ children }) => {
         return prev;
       }
       setRouteCoords([]);
-      setRouteDetails(null);
+      // setRouteDetails(null);
       return newDest;
     });
   }, []);

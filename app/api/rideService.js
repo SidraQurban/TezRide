@@ -63,6 +63,14 @@ export const rideService = {
   completeRide: async (rideId, distanceKm) => {
     return apiClient.post(`/api/customer/rides/${rideId}/complete`, { distanceKm });
   },
+
+  /**
+   * Submits a rating for the driver or customer.
+   * POST /api/ratings/submit
+   */
+  submitRating: async (data) => {
+    return apiClient.post('/api/ratings/submit', data);
+  },
 };
 
 export default rideService;

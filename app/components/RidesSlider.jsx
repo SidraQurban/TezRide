@@ -1,5 +1,5 @@
 import { TouchableOpacity, Image, Text, View, Animated, ActivityIndicator } from "react-native";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import {
   responsiveHeight,
@@ -35,7 +35,7 @@ const RidesSlider = ({
   duration,
   priceMap = {},
   priceLoading = false,
-  genderPreference = "any",
+  genderPreference = "male",
   onPreferencePress,
   onEditPickup,
   onEditDestination,
@@ -97,19 +97,41 @@ const RidesSlider = ({
    * 1. If priceMap has an entry for this slug → use live estimatedFare
    * 2. Otherwise fall back to the static price in the rides array
    */
-  const resolvePrice = (service) => {
-    const estimate = priceMap[service.id];
+  const resolvePrice = (serviceId) => {
+    const estimate = priceMap[serviceId];
     if (estimate) {
       return {
         fare: Math.round(estimate.estimatedFare),
         currency: estimate.currency || t("currency"),
         isSurge: estimate.surgeFactor > 1,
         surgeFactor: estimate.surgeFactor,
+        hasLivePrice: true,
       };
     }
-    // Return nulls if not loaded yet so it triggers shimmer or empty state until live prices load
-    return { fare: "...", currency: "PKR", isSurge: false, surgeFactor: 1 };
+    // Return placeholder
+    return { fare: "...", currency: "PKR", isSurge: false, surgeFactor: 1, hasLivePrice: false };
   };
+
+  /**
+   * Dynamically build the list of displayed rides.
+   * We prioritize slugs returned from the pricing API.
+   */
+  const availableRides = useMemo(() => {
+    const slugs = Object.keys(priceMap).sort(); // Alphabetical sort to prevent jumping
+    if (slugs.length > 0) {
+      return slugs.map((slug) => {
+        const staticInfo = rides.find((r) => r.id === slug);
+        return {
+          id: slug,
+          label: staticInfo?.label || (slug.charAt(0).toUpperCase() + slug.slice(1)),
+          image: staticInfo?.image || require("../../assets/car.png"),
+          eta: staticInfo?.eta || "5 mins",
+        };
+      });
+    }
+    // Fallback if priceMap is empty (during initial load)
+    return [...rides].sort((a, b) => a.id.localeCompare(b.id));
+  }, [priceMap]);
 
   return (
     <View style={{ paddingBottom: responsiveHeight(16) }}>
@@ -123,10 +145,9 @@ const RidesSlider = ({
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled={true}
       >
-        {rides.map((service) => {
+        {availableRides.map((service) => {
           const active = selectedService === service.id;
-          const { fare, currency, isSurge, surgeFactor } = resolvePrice(service);
-          const hasLivePrice = Boolean(priceMap[service.id]);
+          const { fare, currency, isSurge, surgeFactor, hasLivePrice } = resolvePrice(service.id);
 
           return (
             <TouchableOpacity
@@ -233,18 +254,15 @@ const RidesSlider = ({
                   }}
                 >
                   {(() => {
-                    // Try to find nearest driver of this type
-                    const driversOfType = waveDrivers.filter(d => d.vehicleType === service.id);
-                    if (driversOfType.length > 0) {
-                      // Just a rough estimate for demo: 2 mins per km distance is common in city
-                      // Usually we would use Google Distance Matrix here, but for reactive UI we can estimate
-                      return `2 ${t("mins")}`; 
-                    }
-                    return duration
-                      ? `${Math.round(duration)} ${t("mins")}`
-                      : t(service.eta?.toLowerCase().replace(" ", "_"));
+                    if (duration) return `${Math.round(duration)} ${t("mins")}`;
+                    
+                    // Fallback to static info if duration not yet calculated
+                    if (service.eta) return t(service.eta.replace(" ", "_").toLowerCase());
+                    
+                    return t("calculating");
                   })()}
-                  {" • "}{distance ? `${distance.toFixed(1)} km` : "---"}
+                  {" • "}
+                  {distance ? `${distance.toFixed(1)} km` : "---"}
                 </Text>
 
                 {/* Price Display */}
@@ -336,9 +354,7 @@ const RidesSlider = ({
                 fontFamily: FONTS.semiBold,
               }}
             >
-              {genderPreference === "any" 
-                ? t("rider_preference", "Rider Preference") 
-                : genderPreference === "female" 
+              {genderPreference === "female" 
                   ? t("female_driver") 
                   : t("male_driver")}
             </Text>

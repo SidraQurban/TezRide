@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Animated, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Animated, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   responsiveFontSize,
@@ -43,28 +43,49 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
         },
       ]}
     >
-      {/* Top Row: Name & Price */}
-      <View style={styles.row}>
-        <Text numberOfLines={1} style={styles.driverName}>
-          {driver.driverName || t("driver")}
-        </Text>
-        <Text style={styles.priceText}>
-          {t("currency")} {driver.price || "---"}
-        </Text>
-      </View>
-
-      {/* Second Row: Rating & ETA */}
-      <View style={[styles.row, { marginTop: 2 }]}>
-        <View style={styles.ratingRow}>
-          <Ionicons name="star" size={14} color="#FFD700" />
-          <Text style={styles.ratingText}>
-            {driver.rating ? driver.rating.toFixed(1) : "5.0"}
-            <Text style={styles.tripsText}> ({driver.tripsCount || 0} {t("trips")})</Text>
-          </Text>
+      <View style={styles.cardContent}>
+        {/* Profile Image */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={driver.profilePicUrl ? { uri: driver.profilePicUrl } : require("../../assets/car.png")}
+            style={styles.profileImg}
+          />
+          <View style={styles.activeDot} />
         </View>
-        <Text style={styles.etaText}>
-          {driver.eta || "---"} {t("mins")}
-        </Text>
+
+        <View style={styles.detailsContainer}>
+          {/* Top Row: Name & Price */}
+          <View style={styles.row}>
+            <Text numberOfLines={1} style={styles.driverName}>
+              {driver.driverName || t("driver")}
+            </Text>
+            <Text style={styles.priceText}>
+              {t("currency")} {driver.price || "---"}
+            </Text>
+          </View>
+
+          {/* Second Row: Rating & Trips & ETA */}
+          <View style={[styles.row, { marginTop: 4 }]}>
+            <View style={styles.statGroup}>
+              <View style={styles.ratingBadge}>
+                <Ionicons name="star" size={12} color="#FFF" />
+                <Text style={styles.ratingBadgeText}>
+                  {driver.rating ? driver.rating.toFixed(1) : "5.0"}
+                </Text>
+              </View>
+              <View style={styles.tripsInfo}>
+                <Text style={styles.tripsValue}>{driver.tripsCount || 0}</Text>
+                <Text style={styles.tripsLabel}>{t("trips")}</Text>
+              </View>
+            </View>
+            <View style={styles.etaContainer}>
+              <Ionicons name="time-outline" size={12} color={COLORS.primary} />
+              <Text style={styles.etaText}>
+                {driver.eta || "3-5"} {t("mins")}
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
 
       {/* Progress Bar (Separator) */}
@@ -131,35 +152,94 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  imageContainer: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  profileImg: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 2,
+    borderColor: '#F3F4F6',
+  },
+  activeDot: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#10B981',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  detailsContainer: {
+    flex: 1,
+  },
   driverName: {
     fontFamily: FONTS.bold,
     fontSize: responsiveFontSize(1.8),
-    color: "#000",
+    color: "#1F2937",
     flex: 1,
   },
   priceText: {
     fontFamily: FONTS.bold,
-    fontSize: responsiveFontSize(1.8),
-    color: "#000",
+    fontSize: responsiveFontSize(2),
+    color: COLORS.primary,
   },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  statGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  ratingText: {
-    fontSize: responsiveFontSize(1.4),
-    fontFamily: FONTS.medium,
-    color: "#6B7280",
-    marginLeft: 4,
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFB000',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    gap: 4,
   },
-  tripsText: {
+  ratingBadgeText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontFamily: FONTS.bold,
+  },
+  tripsInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  tripsValue: {
+    fontSize: 13,
+    fontFamily: FONTS.bold,
+    color: '#4B5563',
+  },
+  tripsLabel: {
+    fontSize: 12,
     fontFamily: FONTS.regular,
-    color: "#9CA3AF",
+    color: '#9CA3AF',
+  },
+  etaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary + '10',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
   },
   etaText: {
     fontFamily: FONTS.medium,
-    fontSize: responsiveFontSize(1.4),
-    color: "#9CA3AF",
+    fontSize: 11,
+    color: COLORS.primary,
   },
   progressContainer: {
     height: 3,

@@ -54,6 +54,8 @@ const ConfirmRide = () => {
     setRouteDetails,
     setPickup,
     setDestination,
+    selectedService,
+    setSelectedService,
     setActiveRide,
   } = useRide();
 
@@ -87,9 +89,8 @@ const ConfirmRide = () => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["55%", "56%"], []);
-  const [selectedService, setSelectedService] = useState("bike");
   const [loading, setLoading] = useState(false);
-  const [genderPreference, setGenderPreference] = useState("any"); // 'any', 'male', 'female'
+  const [genderPreference, setGenderPreference] = useState("male"); // 'male', 'female'
   const [prefModalVisible, setPrefModalVisible] = useState(false);
 
   // ── Live pricing state ────────────────────────────────────────────────────
@@ -98,10 +99,23 @@ const ConfirmRide = () => {
   const [priceMap, setPriceMap] = useState({});
   const [priceLoading, setPriceLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
+  
+  // Ref-based tracker to prevent infinite loops in handleRouteReady
+  const lastStateRef = useRef({
+    distance: 0,
+    duration: 0,
+    slugsJson: "[]",
+    faresJson: "{}",
+    pickupLat: 0,
+    pickupLon: 0,
+    destLat: 0,
+    destLon: 0,
+    lastFetchedAt: 0
+  });
   const [customerStatus, setCustomerStatus] = useState(null); // 0: NotSubmitted, 1: Pending, 2: Approved
   const [vModalVisible, setVModalVisible] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [tempPref, setTempPref] = useState("any");
+  const [tempPref, setTempPref] = useState("male");
   const [gModalVisible, setGModalVisible] = useState(false);
   const [waveDrivers, setWaveDrivers] = useState([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -149,7 +163,7 @@ const ConfirmRide = () => {
       // Poll every 5 seconds for nearby drivers
       intervalId = setInterval(async () => {
         if (isActive && pickup?.latitude && pickup?.longitude) {
-          const drivers = await customerHub.getNearbyDrivers(selectedService, pickup.latitude, pickup.longitude);
+          const drivers = await customerHub.getNearbyDrivers(selectedService, pickup.latitude, pickup.longitude, genderPreference);
           if (drivers && drivers.length >= 0) {
             setWaveDrivers(drivers);
           }
@@ -158,7 +172,7 @@ const ConfirmRide = () => {
       
       // Do an immediate fetch as well
       if (isActive && pickup?.latitude && pickup?.longitude) {
-        const drivers = await customerHub.getNearbyDrivers(selectedService, pickup.latitude, pickup.longitude);
+        const drivers = await customerHub.getNearbyDrivers(selectedService, pickup.latitude, pickup.longitude, genderPreference);
         if (drivers && drivers.length >= 0) {
           setWaveDrivers(drivers);
         }
@@ -180,15 +194,42 @@ const ConfirmRide = () => {
       if (intervalId) clearInterval(intervalId);
       customerHub.off("wave_drivers", onWaveDrivers);
     };
-  }, [pickup, selectedService]);
+  }, [pickup, selectedService, genderPreference]);
 
   // ── Called by MapViewDirections when route is computed ────────────────────
   const handleRouteReady = useCallback(
     async (result) => {
-      // result.distance = km, result.duration = minutes
+      const now = Date.now();
+      
+      // 1. Check if route metrics or coords truly changed
+      const isMetricsSame = 
+        Math.abs(lastStateRef.current.distance - result.distance) < 0.01 &&
+        Math.abs(lastStateRef.current.duration - result.duration) < 0.1;
+      
+      const isPathSame = 
+        lastStateRef.current.pickupLat === pickup?.latitude &&
+        lastStateRef.current.pickupLon === pickup?.longitude &&
+        lastStateRef.current.destLat === destination?.latitude &&
+        lastStateRef.current.destLon === destination?.longitude;
+
+      // Tight loop protection: if everything is same, or if we fetched < 3s ago, block it.
+      const timeSinceLastFetch = now - lastStateRef.current.lastFetchedAt;
+      if (isMetricsSame && isPathSame && (timeSinceLastFetch < 3000 || lastStateRef.current.slugsJson !== "[]")) {
+        return;
+      }
+
+      // Update refs to block concurrent triggers
+      lastStateRef.current.distance = result.distance;
+      lastStateRef.current.duration = result.duration;
+      lastStateRef.current.pickupLat = pickup?.latitude || 0;
+      lastStateRef.current.pickupLon = pickup?.longitude || 0;
+      lastStateRef.current.destLat = destination?.latitude || 0;
+      lastStateRef.current.destLon = destination?.longitude || 0;
+      lastStateRef.current.lastFetchedAt = now;
+
       setRouteDetails(result);
 
-      if (!pickup || !destination) return;
+      if (!pickup?.latitude || !destination?.latitude) return;
 
       setPriceLoading(true);
       try {
@@ -197,28 +238,42 @@ const ConfirmRide = () => {
           pickupLon: pickup.longitude,
           dropoffLat: destination.latitude,
           dropoffLon: destination.longitude,
-          // Pass Google-derived hints for better accuracy
           estimatedDistanceKm: result.distance,
           estimatedDurationMinutes: result.duration,
         });
 
         if (response.succeeded && Array.isArray(response.data)) {
-          // Build a slug → estimate map for O(1) lookups in RidesSlider
-          const map = {};
+          const newMap = {};
           response.data.forEach((item) => {
-            map[item.vehicleTypeSlug] = item;
+            newMap[item.vehicleTypeSlug] = item;
           });
-          setPriceMap(map);
+
+          const sortedSlugs = Object.keys(newMap).sort();
+          const slugsJson = JSON.stringify(sortedSlugs);
+          const faresJson = JSON.stringify(sortedSlugs.map(s => newMap[s].estimatedFare));
+
+          if (slugsJson !== lastStateRef.current.slugsJson || faresJson !== lastStateRef.current.faresJson) {
+            lastStateRef.current.slugsJson = slugsJson;
+            lastStateRef.current.faresJson = faresJson;
+            setPriceMap(newMap);
+          }
         }
       } catch (err) {
-        // Fail silently — cards will still show static fallback prices
         console.warn("[ConfirmRide] Pricing fetch failed:", err?.message);
       } finally {
         setPriceLoading(false);
       }
     },
-    [pickup, destination, setRouteDetails],
+    [pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, setRouteDetails],
   );
+
+  // Auto-select first available vehicle if current one is not in estimates
+  useEffect(() => {
+    const slugs = Object.keys(priceMap).sort();
+    if (slugs.length > 0 && !slugs.includes(selectedService)) {
+      setSelectedService(slugs[0]);
+    }
+  }, [priceMap, selectedService]);
 
   // ── Confirm ride ──────────────────────────────────────────────────────────
   const handleConfirmRide = async () => {
@@ -244,8 +299,8 @@ const ConfirmRide = () => {
         genderPreference: genderPreference,
         minRating: 0,
         estimatedFare: liveEstimate?.estimatedFare || 0,
-        estimatedDistance: liveEstimate?.distance || 0,
-        estimatedDuration: liveEstimate?.estimatedDuration || 0,
+        estimatedDistance: liveEstimate?.estimatedDistanceKm || routeDetails?.distance || 0,
+        estimatedDuration: liveEstimate?.estimatedDurationMinutes || routeDetails?.duration || 0,
       };
 
       const response = await rideService.requestRide(requestData);
@@ -340,7 +395,7 @@ const ConfirmRide = () => {
 
   const checkStatusAndSetPref = async (newPref) => {
     if (newPref !== "female") {
-      setGenderPreference(newPref);
+      setGenderPreference("male");
       setPrefModalVisible(false);
       return;
     }
@@ -542,7 +597,6 @@ const ConfirmRide = () => {
 
             <View style={styles.prefOptions}>
               {[
-                { id: "any", label: "no_preference", icon: "account" },
                 { id: "male", label: "male_driver", icon: "account-tie" },
                 { id: "female", label: "female_driver", icon: "account-tie-woman" },
               ].map((opt) => (

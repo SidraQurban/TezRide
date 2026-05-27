@@ -30,7 +30,7 @@ import { FONTS } from "../constants/theme";
 import MapComponent from "../components/MapComponent";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ArrivingCard from "../components/ArrivingCard";
-import BottomSheet from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
 import BackBtn from "../components/BackBtn";
 import { useTranslation } from "react-i18next";
@@ -41,6 +41,7 @@ import customerHub from "../api/customerHub";
 import DriverInterestCard from "../components/DriverInterestCard";
 import { useRide } from "../context/RideContext";
 import { rides } from "../data/data.jsx";
+import rideService from "../api/rideService";
 
 const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
@@ -55,15 +56,21 @@ const SearchingDirection = ({ route }) => {
   const bottomSheetRef = useRef(null);
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
-  const snapPoints = useMemo(() => ["10%", "30%", "55%"], []);
+  const snapPoints = useMemo(() => ["10%", "40%", "75%"], []);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showNoDriversModal, setShowNoDriversModal] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  const [driverAssignedInfo, setDriverAssignedInfo] = useState(null);
   const [interestedDrivers, setInterestedDrivers] = useState([]);
   const [assignedDriver, setAssignedDriver] = useState(null);
   const [driverLocation, setDriverLocation] = useState(null);
   // searching | driver_selected | assigned | no_drivers | completed | cancelled
   const [rideStatus, setRideStatus] = useState("searching");
   const [searchWave, setSearchWave] = useState(null);
+  const [waveDrivers, setWaveDrivers] = useState([]);
 
   // Stable refs for use inside event callbacks without stale closures
   const rideStatusRef = useRef(rideStatus);
@@ -85,18 +92,23 @@ const SearchingDirection = ({ route }) => {
 
     // driver_interested: { rideId, driverInfo: NearbyDriverDto }
     const handleDriverInterested = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       setInterestedDrivers((prev) => {
+        const driverInfo = payload.driverInfo || payload.DriverInfo;
+        if (!driverInfo) return prev;
+        
         // Deduplicate by driverId
+        const incomingId = String(driverInfo.driverId || driverInfo.DriverId);
         const alreadyPresent = prev.find(
-          (d) => String(d.driverId) === String(payload.driverInfo.driverId)
+          (d) => String(d.driverId || d.DriverId) === incomingId
         );
         if (alreadyPresent) return prev;
         // Attach price from nav params to the driver card
-        return [...prev, { ...payload.driverInfo, price }];
+        return [...prev, { ...driverInfo, price }];
       });
     };
 
@@ -104,20 +116,24 @@ const SearchingDirection = ({ route }) => {
     // NOTE: The server only sends rideId + driverId — no nested driverInfo.
     // We look up the full driver object from the interestedDrivers list.
     const handleRideAssigned = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
 
-      const confirmedDriverId = String(payload.driverId);
+      const confirmedDriverId = String(payload.driverId || payload.DriverId);
       
       // Look up the driver in this order: 
-      // 1. Explicit payload data
-      // 2. Currently visible cards
-      // 3. What we just selected (assignedDriver state)
+      // 1. Explicit nested payload data (legacy/fallback)
+      // 2. The payload itself if it contains driver fields (flat format)
+      // 3. Currently visible cards
+      // 4. What we just selected (assignedDriver state)
       const driverData =
         payload.driverInfo ||
+        payload.DriverInfo ||
+        (payload.DriverName || payload.driverName ? payload : null) ||
         interestedDriversRef.current.find(
-          (d) => String(d.driverId) === confirmedDriverId
+          (d) => String(d.driverId || d.DriverId) === confirmedDriverId
         ) ||
-        assignedDriver; 
+        assignedDriverRef.current; 
 
       setRideStatus("assigned");
       // Merge to ensure we don't lose existing fields (like price or local distance)
@@ -142,6 +158,7 @@ const SearchingDirection = ({ route }) => {
       // Persist to global context
       setActiveRide({ 
         status: "assigned", 
+        driverId: confirmedDriverId,
         assignedDriver: { ...assignedDriverRef.current, ...driverData } 
       });
 
@@ -151,13 +168,15 @@ const SearchingDirection = ({ route }) => {
 
     // ride_status_updated: { rideId, status }
     const handleRideStatusUpdated = (payload) => {
-      if (String(payload.rideId) !== String(rideId)) return;
+      const pRideId = payload.rideId || payload.RideId;
+      if (String(pRideId) !== String(rideId)) return;
       
+      const pStatus = payload.status ?? payload.Status;
       // 2 = DriverArrived, 3 = InTransit
-      if (payload.status === 2) {
+      if (pStatus === 2) {
         setRideStatus("driver_arrived");
         setActiveRide({ status: "driver_arrived" });
-      } else if (payload.status === 3) {
+      } else if (pStatus === 3) {
         setRideStatus("in_transit");
         setActiveRide({ status: "in_transit" });
       }
@@ -165,14 +184,19 @@ const SearchingDirection = ({ route }) => {
 
     // driver_location_changed: { driverId, lat, lon }
     const handleDriverLocationChanged = (payload) => {
+      const pDriverId = payload.driverId || payload.DriverId;
       const activeDriver = assignedDriverRef.current;
-      if (!activeDriver || String(payload.driverId) !== String(activeDriver.driverId)) {
+      if (!activeDriver || String(pDriverId) !== String(activeDriver.driverId || activeDriver.DriverId)) {
         return;
       }
-      setDriverLocation({
-        latitude: parseFloat(payload.lat),
-        longitude: parseFloat(payload.lon),
-      });
+      const lat = payload.lat ?? payload.Lat;
+      const lon = payload.lon ?? payload.Lon;
+      if (lat && lon) {
+        setDriverLocation({
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lon),
+        });
+      }
     };
 
     // ride_completed: { rideId, finalFare, currency }
@@ -182,16 +206,21 @@ const SearchingDirection = ({ route }) => {
 
       const fare = payload.finalFare ?? payload.FinalFare ?? 0;
       const curr = payload.currency ?? payload.Currency ?? "PKR";
+      const dist = payload.distanceKm ?? payload.DistanceKm ?? 0;
+      const dur = payload.durationMinutes ?? payload.DurationMinutes ?? 0;
 
       setRideStatus("completed");
       setActiveRide({
         status: "completed",
         finalFare: fare,
         currency: curr,
+        distanceKm: dist,
+        durationMinutes: dur
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      bottomSheetRef.current?.snapToIndex(1); // Show summary
+      setShowCompletionModal(true);
+      bottomSheetRef.current?.close();
     };
 
     // no_drivers_found: { rideId }
@@ -209,21 +238,26 @@ const SearchingDirection = ({ route }) => {
       }
       setRideStatus("no_drivers");
       setActiveRide({ status: "no_drivers" });
-      Alert.alert(t("search_failed"), t("no_drivers_found_desc"), [
-        { text: t("retry"), onPress: () => navigation.goBack() },
-        { text: t("cancel"), onPress: () => confirmCancelRide() },
-      ]);
+      setShowNoDriversModal(true);
+      bottomSheetRef.current?.close();
     };
 
     // search_progress: { rideId, currentWave, maxWaves, minRing, maxRing }
     const handleSearchProgress = (payload) => {
       const pRideId = payload.rideId || payload.RideId;
       if (String(pRideId) !== String(rideId)) return;
-      
+
       setSearchWave({
         currentWave: payload.currentWave ?? payload.CurrentWave,
         maxWaves: payload.maxWaves ?? payload.MaxWaves,
       });
+    };
+
+    // wave_drivers: { drivers: NearbyDriverDto[] }
+    const handleWaveDrivers = (payload) => {
+      if (payload && payload.drivers) {
+        setWaveDrivers(payload.drivers);
+      }
     };
 
     // SelectDriverFailed: { rideId, reason }
@@ -274,6 +308,7 @@ const SearchingDirection = ({ route }) => {
     customerHub.on("ride_completed", handleRideCompleted);
     customerHub.on("no_drivers_found", handleNoDriversFound);
     customerHub.on("search_progress", handleSearchProgress);
+    customerHub.on("wave_drivers", handleWaveDrivers);
     customerHub.on("DriverSelected", handleDriverSelected);
     customerHub.on("SelectDriverFailed", handleSelectDriverFailed);
     customerHub.on("RideCancelled", handleRideCancelled);
@@ -286,6 +321,7 @@ const SearchingDirection = ({ route }) => {
       customerHub.off("ride_completed", handleRideCompleted);
       customerHub.off("no_drivers_found", handleNoDriversFound);
       customerHub.off("search_progress", handleSearchProgress);
+      customerHub.off("wave_drivers", handleWaveDrivers);
       customerHub.off("DriverSelected", handleDriverSelected);
       customerHub.off("SelectDriverFailed", handleSelectDriverFailed);
       customerHub.off("RideCancelled", handleRideCancelled);
@@ -303,9 +339,11 @@ const SearchingDirection = ({ route }) => {
 
     // Capture the driver info before we clear the list to ensure 
     // it remains visible in the slider during the "driver_selected" state.
-    const selected = interestedDrivers.find(d => String(d.driverId) === String(driverId));
+    const selected = interestedDrivers.find(d => String(d.driverId || d.DriverId) === String(driverId));
+    
     if (selected) {
         setAssignedDriver(selected);
+        setRideStatus("driver_selected"); // Set immediately for UI responsiveness
         setActiveRide({ status: "driver_selected", assignedDriver: selected });
         
         // Immediately expand the bottom sheet to show the driver details (ArrivingCard)
@@ -315,9 +353,10 @@ const SearchingDirection = ({ route }) => {
     selectionSentRef.current = true; // lock immediately to prevent race conditions
     try {
       await customerHub.selectDriver(rideId, String(driverId));
-      // UI clears in handleDriverSelected (DriverSelected ACK from server)
+      // Final confirmation UI clears in handleDriverSelected (DriverSelected ACK from server)
     } catch (error) {
       selectionSentRef.current = false; // allow retry on network error
+      setRideStatus("searching"); // rollback UI on error
       Alert.alert(t("error"), error.message || t("something_went_wrong"));
     }
   };
@@ -387,6 +426,8 @@ const SearchingDirection = ({ route }) => {
             destination={destination}
             driverLocation={driverLocation}
             rideStatus={rideStatus}
+            waveDrivers={waveDrivers.filter(d => String(d.driverId) !== String(assignedDriver?.driverId))}
+            selectedCategory={vehicleType}
             useGlobalState={true}
             showMarkers={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
             showRoute={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
@@ -522,75 +563,7 @@ const SearchingDirection = ({ route }) => {
             backgroundColor: "#E0E0E0",
           }}
         >
-          {rideStatus === "completed" ? (
-            <View style={{ flex: 1, padding: 24, alignItems: "center" }}>
-              <View style={{ 
-                width: 80, 
-                height: 80, 
-                borderRadius: 40, 
-                backgroundColor: '#F0FDF4', 
-                justifyContent: 'center', 
-                alignItems: 'center',
-                marginBottom: 16
-              }}>
-                <Ionicons name="checkmark-circle" size={50} color="#10B981" />
-              </View>
-              
-              <Text style={{ fontFamily: FONTS.bold, fontSize: 24, color: COLORS.text }}>
-                {t("ride_completed_title", { defaultValue: "Trip Completed!" })}
-              </Text>
-              
-              <View style={{ 
-                width: '100%', 
-                backgroundColor: '#F8F9FA', 
-                borderRadius: 16, 
-                padding: 20, 
-                marginVertical: 20,
-                borderWidth: 1,
-                borderColor: '#E9ECEF'
-              }}>
-                <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D', textAlign: 'center', marginBottom: 8 }}>
-                  {t("total_fare_paid", { defaultValue: "TOTAL FARE PAID" })}
-                </Text>
-                <Text style={{ fontFamily: FONTS.bold, fontSize: 32, color: COLORS.primary, textAlign: 'center' }}>
-                  {activeRide?.finalFare ? `${activeRide.currency || "PKR"} ${activeRide.finalFare}` : "PKR 0"}
-                </Text>
-                <View style={{ height: 1, backgroundColor: '#DEE2E6', marginVertical: 15 }} />
-                <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: '#6C757D', textAlign: 'center' }}>
-                  {t("ride_summary_footer", { defaultValue: "Thank you for riding with TezRide" })}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={async () => {
-                  clearActiveRide();
-                  await customerHub.stop();
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: "MainDrawer" }],
-                  });
-                }}
-                style={{
-                  width: '100%',
-                  height: 56,
-                  borderRadius: 16,
-                  backgroundColor: COLORS.primary,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  elevation: 4,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                }}
-              >
-                <Text style={{ fontFamily: FONTS.bold, fontSize: 16, color: '#FFF' }}>
-                  {t("back_to_home", { defaultValue: "Back to Home" })}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" ? (
+           {rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" ? (
             <ArrivingCard
               driver={assignedDriver}
               pickup={pickup}
@@ -746,6 +719,221 @@ const SearchingDirection = ({ route }) => {
             </View>
           </View>
         </Modal>
+      
+      {/* Ride Completion Modal */}
+      <Modal
+        visible={showCompletionModal}
+        animationType="slide"
+        transparent={false}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+          <ScrollView contentContainerStyle={{ padding: 24, alignItems: 'center' }} showsVerticalScrollIndicator={false}>
+            <View style={{ 
+              width: 100, 
+              height: 100, 
+              borderRadius: 50, 
+              backgroundColor: '#F0FDF4', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              marginTop: 40,
+              marginBottom: 20
+            }}>
+              <Ionicons name="checkmark-circle" size={64} color="#10B981" />
+            </View>
+            
+            <Text style={{ fontFamily: FONTS.bold, fontSize: 28, color: COLORS.text, textAlign: 'center' }}>
+              {t("ride_completed_title", { defaultValue: "Trip Completed!" })}
+            </Text>
+            
+            <View style={{ 
+              width: '100%', 
+              backgroundColor: '#F8F9FA', 
+              borderRadius: 20, 
+              padding: 20, 
+              marginVertical: 30,
+              borderWidth: 1,
+              borderColor: '#E9ECEF'
+            }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ fontFamily: FONTS.bold, fontSize: 22, color: COLORS.text }}>{activeRide?.distanceKm || 0} km</Text>
+                  <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D' }}>Distance</Text>
+                </View>
+                <View style={{ width: 1, backgroundColor: '#DEE2E6', height: '80%', alignSelf: 'center' }} />
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{ fontFamily: FONTS.bold, fontSize: 22, color: COLORS.text }}>{activeRide?.durationMinutes || 0} min</Text>
+                  <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D' }}>Time Taken</Text>
+                </View>
+              </View>
+
+              <View style={{ height: 1, backgroundColor: '#DEE2E6', marginBottom: 20 }} />
+
+              <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D', textAlign: 'center', marginBottom: 8 }}>
+                {t("total_fare_paid", { defaultValue: "TOTAL FARE PAID" })}
+              </Text>
+              <Text style={{ fontFamily: FONTS.bold, fontSize: 36, color: COLORS.primary, textAlign: 'center' }}>
+                {activeRide?.finalFare ? `${activeRide.currency || "PKR"} ${activeRide.finalFare}` : "PKR 0"}
+              </Text>
+            </View>
+
+            {/* Rating Section */}
+            <View style={{ width: '100%', alignItems: 'center', marginBottom: 40 }}>
+              <Text style={{ fontFamily: FONTS.bold, fontSize: 18, color: COLORS.text, marginBottom: 15 }}>
+                 How was your Captain?
+              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                  {[1, 2, 3, 4, 5].map((s) => (
+                      <TouchableOpacity 
+                        key={s} 
+                        onPress={() => {
+                          setRating(s);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                      >
+                          <Ionicons 
+                              name={s <= rating ? "star" : "star-outline"} 
+                              size={48} 
+                              color={s <= rating ? "#F59E0B" : "#D1D5DB"} 
+                              style={{ marginHorizontal: 8 }}
+                          />
+                      </TouchableOpacity>
+                  ))}
+              </View>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              disabled={isSubmittingRating}
+              onPress={async () => {
+                setIsSubmittingRating(true);
+                try {
+                  const targetDriverId = activeRide?.driverId;
+                  if (targetDriverId) {
+                      await rideService.submitRating({
+                          rideId: rideId,
+                          targetUserId: targetDriverId,
+                          rating: rating,
+                          comment: "Great captain!"
+                      });
+                  }
+
+                  setShowCompletionModal(false);
+                  clearActiveRide();
+                  await customerHub.stop();
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: "MainDrawer" }],
+                  });
+                } catch (err) {
+                  console.warn("Rating submission failed", err);
+                  setShowCompletionModal(false);
+                  clearActiveRide();
+                  await customerHub.stop();
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: "MainDrawer" }],
+                  });
+                } finally {
+                  setIsSubmittingRating(false);
+                }
+              }}
+              style={{
+                width: '100%',
+                height: 60,
+                borderRadius: 18,
+                backgroundColor: COLORS.primary,
+                justifyContent: 'center',
+                alignItems: 'center',
+                shadowColor: COLORS.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 10,
+                elevation: 8,
+              }}
+            >
+              {isSubmittingRating ? (
+                  <ActivityIndicator color="#FFF" />
+              ) : (
+                  <Text style={{ fontFamily: FONTS.bold, fontSize: 18, color: '#FFF' }}>
+                      {t("submit_and_finish", { defaultValue: "Submit & Finish" })}
+                  </Text>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* No Drivers Found Modal */}
+      <Modal
+        visible={showNoDriversModal}
+        animationType="slide"
+        transparent={false}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+          <View style={{ flex: 1, padding: 24, alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ 
+              width: 120, 
+              height: 120, 
+              borderRadius: 60, 
+              backgroundColor: '#FFF1F2', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              marginBottom: 30
+            }}>
+              <Ionicons name="search" size={60} color="#E11D48" />
+            </View>
+            
+            <Text style={{ fontFamily: FONTS.bold, fontSize: 26, color: COLORS.text, textAlign: 'center', marginBottom: 15 }}>
+              {t("no_rider_found_title", { defaultValue: "No Riders Found" })}
+            </Text>
+            
+            <Text style={{ fontFamily: FONTS.medium, fontSize: 16, color: '#64748B', textAlign: 'center', marginBottom: 40, lineHeight: 24 }}>
+              {t("no_rider_found_desc", { defaultValue: "We couldn't find any available riders in your area at the moment. Please try again in a few minutes or adjust your ride type." })}
+            </Text>
+            
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                setShowNoDriversModal(false);
+                navigation.goBack();
+              }}
+              style={{
+                width: '100%',
+                height: 60,
+                borderRadius: 18,
+                backgroundColor: COLORS.primary,
+                justifyContent: 'center',
+                alignItems: 'center',
+                shadowColor: COLORS.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 10,
+                elevation: 8,
+              }}
+            >
+              <Text style={{ fontFamily: FONTS.bold, fontSize: 18, color: '#FFF' }}>
+                {t("go_back", { defaultValue: "Go Back" })}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() => {
+                setShowNoDriversModal(false);
+                confirmCancelRide();
+              }}
+              style={{
+                marginTop: 20,
+                padding: 10
+              }}
+            >
+              <Text style={{ fontFamily: FONTS.semibold, fontSize: 16, color: '#64748B' }}>
+                {t("cancel_request", { defaultValue: "Cancel Request" })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </Modal>
       </View>
     </SafeAreaView>
   );

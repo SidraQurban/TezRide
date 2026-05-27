@@ -29,12 +29,17 @@ const SearchScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const isUrdu = i18n.language?.startsWith("ur");
-  const { setPickup: setCtxPickup, setDestination: setCtxDestination } = useRide();
+  const { 
+    pickup: ctxPickup, 
+    destination: ctxDestination, 
+    setPickup: setCtxPickup, 
+    setDestination: setCtxDestination 
+  } = useRide();
 
-  const [pickup, setPickup] = useState("");
-  const [destination, setDestination] = useState("");
-  const [pickupData, setPickupData] = useState(null);
-  const [destinationData, setDestinationData] = useState(null);
+  const [pickup, setPickup] = useState(ctxPickup?.name || ctxPickup?.address || "");
+  const [destination, setDestination] = useState(ctxDestination?.name || ctxDestination?.address || "");
+  const [pickupData, setPickupData] = useState(ctxPickup);
+  const [destinationData, setDestinationData] = useState(ctxDestination);
   const [activeField, setActiveField] = useState(route.params?.activeField || "pickup");
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -118,7 +123,8 @@ const SearchScreen = () => {
         };
         
         // Only auto-fill if the user hasn't started typing yet
-        if (!pickup) {
+        // Only auto-fill if the user hasn't started typing yet AND context is empty
+        if (!pickup && !ctxPickup) {
           setPickup(locationData.name);
           setPickupData(locationData);
           // If we have pickup, focus destination automatically

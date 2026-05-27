@@ -184,12 +184,12 @@ class CustomerHub {
   /**
    * Fetches the nearby idle drivers before booking.
    */
-  async getNearbyDrivers(vehicleType, lat, lon) {
+  async getNearbyDrivers(vehicleType, lat, lon, gender) {
     if (!this.isConnected()) {
       return [];
     }
     try {
-      return await this.connection.invoke('GetNearbyDrivers', vehicleType, lat, lon);
+      return await this.connection.invoke('GetNearbyDrivers', vehicleType, lat, lon, gender || 'male');
     } catch (e) {
       console.warn('[CustomerHub] getNearbyDrivers failed:', e);
       return [];
