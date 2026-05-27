@@ -314,7 +314,9 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
                   {loading ? (
                     <ActivityIndicator color={COLORS.white} />
                   ) : (
-                    <Ionicons name="checkmark" size={28} color={COLORS.white} />
+                    <Text style={{ color: COLORS.white, fontFamily: FONTS.bold, fontSize: responsiveFontSize(2) }}>
+                       {t("save") || "Save"}
+                    </Text>
                   )}
                 </LinearGradient>
               </TouchableOpacity>

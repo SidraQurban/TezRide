@@ -7,6 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   I18nManager,
+  Keyboard,
+  ScrollView,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -101,6 +103,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     if (isCodeComplete && !loading && !verificationInProgress) {
+      Keyboard.dismiss();
       handleContinue();
     }
   }, [isCodeComplete]);
@@ -171,291 +174,303 @@ const VerifyCodeScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        {/* Sleek Language Toggle UI (Right Corner) */}
-        <View
-          style={{
-            width: "100%",
-            alignItems: "flex-end",
-            paddingHorizontal: responsiveWidth(5),
-            paddingTop: responsiveHeight(1),
-          }}
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <TouchableOpacity
-            onPress={toggleLanguage}
-            activeOpacity={0.7}
+          {/* Sleek Language Toggle UI (Right Corner) */}
+          <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              backgroundColor: "#F3F4F6",
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-              borderRadius: 20,
-              paddingVertical: 6,
-              paddingHorizontal: 14,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 3,
-              elevation: 2,
+              width: "100%",
+              alignItems: "flex-end",
+              paddingHorizontal: responsiveWidth(5),
+              paddingTop: responsiveHeight(1),
             }}
           >
-            <Ionicons
-              name="globe-outline"
-              size={14}
-              color={COLORS.primary}
-              style={i18n.language === "ur" ? { marginLeft: 6 } : { marginRight: 6 }}
-            />
-            <Text
+            <TouchableOpacity
+              onPress={toggleLanguage}
+              activeOpacity={0.7}
               style={{
-                fontSize: responsiveFontSize(1.6),
-                color: COLORS.primary,
-                fontFamily: FONTS.medium,
-                marginTop: 2,
-              }}
-            >
-              {i18n.language === "en" ? "اردو" : "EN"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View
-          style={{
-            flex: 1,
-            paddingHorizontal: SIZES.base,
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingVertical: responsiveHeight(3),
-          }}
-        >
-          {/* TOP CONTENT */}
-          <View style={{ alignItems: "center", width: "100%" }}>
-            {/* Instruction Text */}
-            <View
-              style={{
-                marginTop: responsiveHeight(3),
+                flexDirection: "row",
                 alignItems: "center",
+                backgroundColor: "#F3F4F6",
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                borderRadius: 20,
+                paddingVertical: 6,
+                paddingHorizontal: 14,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 3,
+                elevation: 2,
               }}
             >
+              <Ionicons
+                name="globe-outline"
+                size={14}
+                color={COLORS.primary}
+                style={i18n.language === "ur" ? { marginLeft: 6 } : { marginRight: 6 }}
+              />
               <Text
                 style={{
-                  fontSize: responsiveFontSize(2),
-                  textAlign: "center",
-                  fontFamily: FONTS.regular,
-                }}
-              >
-                {t("verify_desc_1")}
-              </Text>
-              <Text
-                style={{
-                  fontSize: responsiveFontSize(2),
-                  textAlign: "center",
-                  fontFamily: FONTS.regular,
-                }}
-              >
-                {t("verify_desc_2")}
-              </Text>
-              <Text
-                style={{
-                  fontSize: responsiveFontSize(2),
+                  fontSize: responsiveFontSize(1.6),
                   color: COLORS.primary,
-                  fontFamily: FONTS.semiBold,
-                  marginTop: responsiveHeight(1),
+                  fontFamily: FONTS.medium,
+                  marginTop: 2,
                 }}
               >
-                {"\u200E"}{phoneNumber}
+                {i18n.language === "en" ? "اردو" : "EN"}
               </Text>
-            </View>
+            </TouchableOpacity>
+          </View>
 
-            {/* Timer with SVG Circular Progress */}
-            <View
-              style={{
-                marginTop: responsiveHeight(5),
-                alignItems: "center",
-                justifyContent: "center",
-                width: circleSize,
-                height: circleSize,
-              }}
-            >
-              {/* SVG Progress Circle */}
-              <Svg
-                width={circleSize}
-                height={circleSize}
-                style={{
-                  position: "absolute",
-                  transform: [{ rotate: "-90deg" }],
-                }}
-              >
-                <Circle
-                  cx={circleSize / 2}
-                  cy={circleSize / 2}
-                  r={radius}
-                  stroke="#E5E7EB"
-                  strokeWidth={strokeWidth}
-                  fill="none"
-                />
-                <AnimatedCircle
-                  cx={circleSize / 2}
-                  cy={circleSize / 2}
-                  r={radius}
-                  stroke={COLORS.secondary}
-                  strokeWidth={strokeWidth}
-                  fill="transparent"
-                  strokeDasharray={circumference}
-                  animatedProps={animatedCircleProps}
-                  strokeLinecap="round"
-                />
-              </Svg>
-
-              {/* Timer Text inside */}
+          <View
+            style={{
+              flex: 1,
+              paddingHorizontal: SIZES.base,
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingVertical: responsiveHeight(2), // slightly reduced from 3
+            }}
+          >
+            {/* TOP CONTENT */}
+            <View style={{ alignItems: "center", width: "100%" }}>
+              {/* Instruction Text */}
               <View
                 style={{
-                  width: circleSize - strokeWidth * 2,
-                  height: circleSize - strokeWidth * 2,
-                  borderRadius: (circleSize - strokeWidth * 2) / 2,
-                  backgroundColor: COLORS.white,
-                  justifyContent: "center",
+                  marginTop: responsiveHeight(2), // slightly reduced from 3
                   alignItems: "center",
-                  zIndex: 2,
                 }}
               >
                 <Text
                   style={{
-                    fontSize: responsiveFontSize(4),
-                    fontFamily: FONTS.semiBold,
-                    color: COLORS.black,
+                    fontSize: responsiveFontSize(2),
+                    textAlign: "center",
+                    fontFamily: FONTS.regular,
                   }}
                 >
-                  {timer}
+                  {t("verify_desc_1")}
                 </Text>
+                <Text
+                  style={{
+                    fontSize: responsiveFontSize(2),
+                    textAlign: "center",
+                    fontFamily: FONTS.regular,
+                  }}
+                >
+                  {t("verify_desc_2")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: responsiveFontSize(2),
+                    color: COLORS.primary,
+                    fontFamily: FONTS.semiBold,
+                    marginTop: responsiveHeight(1),
+                  }}
+                >
+                  {"\u200E"}
+                  {phoneNumber}
+                </Text>
+              </View>
+
+              {/* Timer with SVG Circular Progress */}
+              <View
+                style={{
+                  marginTop: responsiveHeight(3), // slightly reduced from 5
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: circleSize,
+                  height: circleSize,
+                }}
+              >
+                {/* SVG Progress Circle */}
+                <Svg
+                  width={circleSize}
+                  height={circleSize}
+                  style={{
+                    position: "absolute",
+                    transform: [{ rotate: "-90deg" }],
+                  }}
+                >
+                  <Circle
+                    cx={circleSize / 2}
+                    cy={circleSize / 2}
+                    r={radius}
+                    stroke="#E5E7EB"
+                    strokeWidth={strokeWidth}
+                    fill="none"
+                  />
+                  <AnimatedCircle
+                    cx={circleSize / 2}
+                    cy={circleSize / 2}
+                    r={radius}
+                    stroke={COLORS.secondary}
+                    strokeWidth={strokeWidth}
+                    fill="transparent"
+                    strokeDasharray={circumference}
+                    animatedProps={animatedCircleProps}
+                    strokeLinecap="round"
+                  />
+                </Svg>
+
+                {/* Timer Text inside */}
+                <View
+                  style={{
+                    width: circleSize - strokeWidth * 2,
+                    height: circleSize - strokeWidth * 2,
+                    borderRadius: (circleSize - strokeWidth * 2) / 2,
+                    backgroundColor: COLORS.white,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 2,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: responsiveFontSize(4),
+                      fontFamily: FONTS.semiBold,
+                      color: COLORS.black,
+                    }}
+                  >
+                    {timer}
+                  </Text>
+                </View>
+              </View>
+
+              {/* OTP Inputs */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  marginTop: responsiveHeight(3), // reduced from 5
+                  justifyContent: "space-between",
+                  width: responsiveWidth(80),
+                  marginBottom: responsiveHeight(2),
+                }}
+              >
+                {code.map((digit, index) => (
+                  <TextInput
+                    key={index}
+                    ref={(ref) => (inputs.current[index] = ref)}
+                    style={{
+                      width: responsiveWidth(11),
+                      height: responsiveHeight(5.5),
+                      borderRadius: responsiveWidth(2.5),
+                      borderWidth: 1.5,
+                      borderColor: isCodeComplete ? COLORS.primary : "#ccc",
+                      textAlign: "center",
+                      fontSize: responsiveFontSize(2.5),
+                      lineHeight: responsiveFontSize(2.5),
+                      padding: 0,
+                      color: isCodeComplete ? COLORS.primary : COLORS.black,
+                      fontFamily: FONTS.regular,
+                      includeFontPadding: false,
+                    }}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    value={digit}
+                    onChangeText={(text) => handleChange(text, index)}
+                    onKeyPress={({ nativeEvent }) =>
+                      nativeEvent.key === "Backspace" && handleBackspace(digit, index)
+                    }
+                  />
+                ))}
+              </View>
+
+              {/* Resend Section */}
+              <View
+                style={{
+                  marginTop: responsiveHeight(1), // reduced from 2
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: FONTS.regular,
+                    fontSize: responsiveFontSize(1.8),
+                    color: "#6B7280",
+                  }}
+                >
+                  {t("didnt_receive_code")}{" "}
+                </Text>
+                <TouchableOpacity
+                  disabled={timer > 0 || resendLoading}
+                  onPress={handleResend}
+                  activeOpacity={0.7}
+                >
+                  {resendLoading ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={COLORS.primary}
+                      style={{ marginLeft: 5 }}
+                    />
+                  ) : (
+                    <Text
+                      style={{
+                        fontFamily: FONTS.semiBold,
+                        fontSize: responsiveFontSize(1.8),
+                        color: timer > 0 ? "#9CA3AF" : COLORS.primary,
+                        textDecorationLine: timer > 0 ? "none" : "underline",
+                      }}
+                    >
+                      {t("resend_code")}
+                      {timer > 0 ? ` (${timer}s)` : ""}
+                    </Text>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
 
-            {/* OTP Inputs */}
+            {/* BOTTOM BUTTON */}
             <View
               style={{
-                flexDirection: "row",
-                marginTop: responsiveHeight(5),
-                justifyContent: "space-between",
-                width: responsiveWidth(80),
-                marginBottom: responsiveHeight(2),
-              }}
-            >
-              {code.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={(ref) => (inputs.current[index] = ref)}
-                  style={{
-                    width: responsiveWidth(11),
-                    height: responsiveHeight(5.5),
-                    borderRadius: responsiveWidth(2.5),
-                    borderWidth: 1.5,
-                    borderColor: isCodeComplete ? COLORS.primary : "#ccc",
-                    textAlign: "center",
-                    fontSize: responsiveFontSize(2.5),
-                    lineHeight: responsiveFontSize(2.5),
-                    padding: 0,
-                    color: isCodeComplete ? COLORS.primary : COLORS.black,
-                    fontFamily: FONTS.regular,
-                    includeFontPadding: false,
-                  }}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  value={digit}
-                  onChangeText={(text) => handleChange(text, index)}
-                  onKeyPress={({ nativeEvent }) =>
-                    nativeEvent.key === "Backspace" &&
-                    handleBackspace(digit, index)
-                  }
-                />
-              ))}
-            </View>
-
-            {/* Resend Section */}
-            <View
-              style={{
-                marginTop: responsiveHeight(2),
-                flexDirection: "row",
                 alignItems: "center",
+                width: "100%",
+                marginTop: responsiveHeight(3),
               }}
             >
-              <Text
+              <TouchableOpacity
+                onPress={handleContinue}
+                disabled={!isCodeComplete}
                 style={{
-                  fontFamily: FONTS.regular,
-                  fontSize: responsiveFontSize(1.8),
-                  color: "#6B7280",
+                  opacity: isCodeComplete ? 1 : 0.4,
                 }}
               >
-                {t("didnt_receive_code")}{" "}
-              </Text>
-              <TouchableOpacity
-                disabled={timer > 0 || resendLoading}
-                onPress={handleResend}
-                activeOpacity={0.7}
-              >
-                {resendLoading ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={COLORS.primary}
-                    style={{ marginLeft: 5 }}
-                  />
-                ) : (
+                <LinearGradient
+                  colors={[COLORS.primary, COLORS.secondary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    width: responsiveWidth(85),
+                    height: responsiveHeight(7), // ✅ consistent with login
+                    borderRadius: responsiveWidth(10),
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
                   <Text
                     style={{
+                      color: COLORS.white,
+                      fontSize: responsiveFontSize(2.2),
                       fontFamily: FONTS.semiBold,
-                      fontSize: responsiveFontSize(1.8),
-                      color: timer > 0 ? "#9CA3AF" : COLORS.primary,
-                      textDecorationLine: timer > 0 ? "none" : "underline",
                     }}
                   >
-                    {t("resend_code")}
-                    {timer > 0 ? ` (${timer}s)` : ""}
+                    {loading ? (
+                      <ActivityIndicator color={COLORS.white} />
+                    ) : (
+                      t("continue_btn")
+                    )}
                   </Text>
-                )}
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* BOTTOM BUTTON */}
-          <View style={{ alignItems: "center", width: "100%" }}>
-            <TouchableOpacity
-              onPress={handleContinue}
-              disabled={!isCodeComplete}
-              style={{
-                opacity: isCodeComplete ? 1 : 0.4,
-              }}
-            >
-              <LinearGradient
-                colors={[COLORS.primary, COLORS.secondary]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  width: responsiveWidth(85),
-                  height: responsiveHeight(7), // ✅ consistent with login
-                  borderRadius: responsiveWidth(10),
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    color: COLORS.white,
-                    fontSize: responsiveFontSize(2.2),
-                    fontFamily: FONTS.semiBold,
-                  }}
-                >
-                  {loading ? (
-                    <ActivityIndicator color={COLORS.white} />
-                  ) : (
-                    t("continue_btn")
-                  )}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

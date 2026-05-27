@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: responsiveHeight(4),
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: responsiveHeight(2),
+    paddingBottom: responsiveHeight(5),
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, Animated, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Animated, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   responsiveFontSize,
@@ -16,7 +16,6 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
   const [slideAnim] = useState(new Animated.Value(responsiveWidth(100)));
 
   useEffect(() => {
-    // Slide in from right
     Animated.spring(slideAnim, {
       toValue: 0,
       useNativeDriver: true,
@@ -24,7 +23,6 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
       friction: 7,
     }).start();
 
-    // Progress bar animation (fills from 0 to 1)
     Animated.timing(progress, {
       toValue: 1,
       duration: duration,
@@ -45,35 +43,31 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
         },
       ]}
     >
-      {/* Top Info Section */}
-      <View style={styles.topInfo}>
-        <View style={styles.infoLeft}>
-          <Text numberOfLines={1} style={styles.driverName}>
-            {driver.driverName || t("driver")}
-          </Text>
-          <View style={styles.ratingRow}>
-            <Ionicons name="star" size={16} color="#FF9500" />
-            <Text style={styles.ratingText}>
-              {driver.rating ? driver.rating.toFixed(1) : "5.0"}
-              <Text style={styles.tripsText}>
-                {" "}
-                ({driver.tripsCount || 0} {t("trips")})
-              </Text>
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.infoRight}>
-          <Text style={styles.priceText}>
-            {t("rs")}. {driver.price || "---"}
-          </Text>
-          <Text style={styles.etaText}>
-            {driver.eta || "---"} {t("mins")}
-          </Text>
-        </View>
+      {/* Top Row: Name & Price */}
+      <View style={styles.row}>
+        <Text numberOfLines={1} style={styles.driverName}>
+          {driver.driverName || t("driver")}
+        </Text>
+        <Text style={styles.priceText}>
+          {t("currency")} {driver.price || "---"}
+        </Text>
       </View>
 
-      {/* Progress Divider (The Orange Line) */}
+      {/* Second Row: Rating & ETA */}
+      <View style={[styles.row, { marginTop: 2 }]}>
+        <View style={styles.ratingRow}>
+          <Ionicons name="star" size={14} color="#FFD700" />
+          <Text style={styles.ratingText}>
+            {driver.rating ? driver.rating.toFixed(1) : "5.0"}
+            <Text style={styles.tripsText}> ({driver.tripsCount || 0} {t("trips")})</Text>
+          </Text>
+        </View>
+        <Text style={styles.etaText}>
+          {driver.eta || "---"} {t("mins")}
+        </Text>
+      </View>
+
+      {/* Progress Bar (Separator) */}
       <View style={styles.progressContainer}>
         <Animated.View
           style={[
@@ -95,7 +89,7 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
           style={styles.declineBtn}
           activeOpacity={0.7}
         >
-          <Ionicons name="close" size={28} color="#991B1B" />
+          <Ionicons name="close" size={22} color="#991B1B" />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -109,7 +103,7 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
             end={{ x: 1, y: 0 }}
             style={styles.acceptBtnGradient}
           >
-            <Ionicons name="checkmark" size={28} color="#FFF" />
+            <Ionicons name="checkmark" size={22} color="#FFF" />
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -119,91 +113,85 @@ const DriverInterestCard = ({ driver, onAccept, onDecline, duration = 15000 }) =
 
 const styles = StyleSheet.create({
   card: {
-    alignSelf: "stretch",
-    width: "100%",
     backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: responsiveHeight(1.5),
-    elevation: 4,
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 8,
+    elevation: 3,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowRadius: 2,
     borderWidth: 1,
-    borderColor: "#F0F0F0",
+    borderColor: "#E5E7EB",
+    width: '100%',
   },
-  topInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  infoLeft: {
-    flex: 1,
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   driverName: {
-    fontFamily: FONTS.semiBold,
-    fontSize: responsiveFontSize(2),
-    color: "#1F2937",
-    marginBottom: 4,
+    fontFamily: FONTS.bold,
+    fontSize: responsiveFontSize(1.8),
+    color: "#000",
+    flex: 1,
+  },
+  priceText: {
+    fontFamily: FONTS.bold,
+    fontSize: responsiveFontSize(1.8),
+    color: "#000",
   },
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
   },
   ratingText: {
-    fontSize: responsiveFontSize(1.6),
-    fontFamily: FONTS.semiBold,
-    color: "#4B5563",
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: FONTS.medium,
+    color: "#6B7280",
     marginLeft: 4,
   },
   tripsText: {
     fontFamily: FONTS.regular,
     color: "#9CA3AF",
   },
-  infoRight: {
-    alignItems: "flex-end",
-  },
-  priceText: {
-    fontFamily: FONTS.bold,
-    fontSize: responsiveFontSize(2),
-    color: "#111827",
-    marginBottom: 4,
-  },
   etaText: {
     fontFamily: FONTS.medium,
-    fontSize: responsiveFontSize(1.6),
-    color: "#6B7280",
+    fontSize: responsiveFontSize(1.4),
+    color: "#9CA3AF",
   },
   progressContainer: {
-    height: 4,
+    height: 3,
     backgroundColor: "#F3F4F6",
-    borderRadius: 2,
-    marginVertical: 12,
-    overflow: "hidden",
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 8,
+    borderRadius: 1.5,
+    overflow: 'hidden'
   },
   progressBar: {
     height: "100%",
-    backgroundColor: "#FF9500", // Orange progress line
+    backgroundColor: "#FFB000", // Orange from the image
   },
   buttonRow: {
-    flexDirection: "row",
-    gap: 12,
+    flexDirection: 'row',
+    gap: 10,
   },
   declineBtn: {
     flex: 1,
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#FECACA",
+    height: 40,
+    borderRadius: 8,
     backgroundColor: "#FFF",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#991B1B",
   },
   acceptBtnContainer: {
-    flex: 1,
-    height: 52,
-    borderRadius: 12,
+    flex: 1.2,
+    height: 40,
+    borderRadius: 8,
     overflow: "hidden",
   },
   acceptBtnGradient: {

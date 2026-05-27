@@ -348,6 +348,8 @@ const SearchingDirection = ({ route }) => {
     }
   }, [navigation, rideId, clearActiveRide]);
 
+
+
   // ── Pulse Animation ──────────────────────────────────────────────────────
   useEffect(() => {
     Animated.loop(
@@ -374,39 +376,8 @@ const SearchingDirection = ({ route }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View style={{ flex: 1, paddingBottom: responsiveHeight(2) }}>
-        {/* TOP ROUTE BANNER */}
-        <View style={styles.topBannerContainer}>
-          <View style={styles.routeBanner}>
-            {/* Route Dots */}
-            <View style={styles.dotsContainer}>
-              <View style={[styles.dot, { backgroundColor: "#10B981" }]} />
-              <View style={styles.dottedLine} />
-              <View style={[styles.dot, { backgroundColor: "#8B5CF6" }]} />
-            </View>
-
-            {/* Addresses */}
-            <View style={styles.addressContainer}>
-              <Text numberOfLines={1} style={styles.addressText}>
-                {pickup?.name || pickup?.address || "Current Location"}
-              </Text>
-              <Text numberOfLines={1} style={styles.addressText}>
-                {destination?.name || destination?.address || "Destination"}
-              </Text>
-            </View>
-
-            {/* Edit Icon */}
-            <TouchableOpacity style={styles.editIcon}>
-              <Ionicons name="pencil" size={16} color="#9CA3AF" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Close Button */}
-          <TouchableOpacity
-            onPress={handleCancelRide}
-            style={styles.closeBannerBtn}
-          >
-            <Ionicons name="close" size={24} color="#EF4444" />
-          </TouchableOpacity>
+        <View style={{ left: responsiveWidth(1.5) }}>
+          <BackBtn />
         </View>
 
         {/* MAP + OVERLAY */}
@@ -507,58 +478,21 @@ const SearchingDirection = ({ route }) => {
             </View>
           )}
 
-          {/* DRIVER INTEREST POPUPS - Premium Glassmorphic Overlay */}
+          {/* DRIVER INTEREST POPUPS - Direct Display (No Background) */}
           {interestedDrivers.length > 0 && (
-            <BlurView
-              intensity={95}
-              tint="light"
+            <View
               style={{
                 position: 'absolute',
-                top: responsiveHeight(12),
-                left: 16,
-                right: 16,
+                top: responsiveHeight(10),
+                left: 12,
+                right: 12,
                 zIndex: 1000,
-                elevation: 12,
-                maxHeight: responsiveHeight(44),
-                borderRadius: 24,
-                padding: 20,
-                borderWidth: 1.5,
-                borderColor: 'rgba(255, 255, 255, 0.7)',
-                overflow: 'hidden',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.15,
-                shadowRadius: 8,
+                maxHeight: responsiveHeight(70),
               }}
             >
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'rgba(255, 92, 0, 0.08)',
-                paddingVertical: 10,
-                paddingHorizontal: 16,
-                borderRadius: 99,
-                alignSelf: 'center',
-                marginBottom: 16,
-                borderWidth: 1,
-                borderColor: 'rgba(255, 92, 0, 0.15)'
-              }}>
-                <Ionicons name="radar-outline" size={20} color="#FF5C00" style={{ marginRight: 8 }} />
-                <Text style={{
-                  fontFamily: FONTS.bold,
-                  fontSize: responsiveFontSize(2.0),
-                  color: '#FF5C00',
-                  textAlign: 'center',
-                  letterSpacing: 0.8,
-                  textTransform: 'uppercase'
-                }}>
-                  {t("incoming_offers_title") || "INCOMING DRIVER OFFERS"}
-                </Text>
-              </View>
               <ScrollView 
                 showsVerticalScrollIndicator={false} 
-                contentContainerStyle={{ gap: 12, paddingBottom: 4 }}
+                contentContainerStyle={{ gap: 8, paddingBottom: 20 }}
               >
                 {interestedDrivers.map((driver) => (
                   <DriverInterestCard
@@ -569,7 +503,7 @@ const SearchingDirection = ({ route }) => {
                   />
                 ))}
               </ScrollView>
-            </BlurView>
+            </View>
           )}
         </View>
 
@@ -655,6 +589,16 @@ const SearchingDirection = ({ route }) => {
                   {t("back_to_home", { defaultValue: "Back to Home" })}
                 </Text>
               </TouchableOpacity>
+              
+              {/* Dummy Simulation Button (Testing) */}
+              <TouchableOpacity
+                onPress={simulateDriver}
+                style={{ marginTop: 15 }}
+              >
+                <Text style={{ color: COLORS.primary, fontFamily: FONTS.medium }}>
+                  Simulate Driver
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" ? (
             <ArrivingCard
@@ -696,7 +640,20 @@ const SearchingDirection = ({ route }) => {
                 >
                   {t("finding_drivers")}
                 </Text>
-                <ActivityIndicator size="small" color={COLORS.primary} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <TouchableOpacity 
+                    onPress={simulateDriver} 
+                    style={{ 
+                      paddingVertical: 4, 
+                      paddingHorizontal: 8, 
+                      backgroundColor: '#F3F4F6', 
+                      borderRadius: 8 
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, color: COLORS.primary, fontFamily: FONTS.bold }}>SIMULATE</Text>
+                  </TouchableOpacity>
+                  <ActivityIndicator size="small" color={COLORS.primary} />
+                </View>
               </View>
 
               <Text
@@ -815,79 +772,6 @@ const SearchingDirection = ({ route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  topBannerContainer: {
-    position: "absolute",
-    top: responsiveHeight(7),
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    zIndex: 1001,
-  },
-  routeBanner: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(240, 253, 244, 0.95)",
-    borderRadius: 20,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#DCFCE7",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  dotsContainer: {
-    alignItems: "center",
-    marginRight: 10,
-    height: 40,
-    justifyContent: "space-between",
-    paddingVertical: 4,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  dottedLine: {
-    width: 1,
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderStyle: "dashed",
-    marginVertical: 2,
-  },
-  addressContainer: {
-    flex: 1,
-    gap: 4,
-  },
-  addressText: {
-    fontSize: responsiveFontSize(1.4),
-    fontFamily: FONTS.medium,
-    color: "#374151",
-  },
-  editIcon: {
-    padding: 4,
-  },
-  closeBannerBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#FFF",
-    marginLeft: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#EF4444",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-});
+const styles = StyleSheet.create({});
 
 export default SearchingDirection;

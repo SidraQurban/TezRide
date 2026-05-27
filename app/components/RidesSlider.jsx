@@ -138,7 +138,8 @@ const RidesSlider = ({
                 width: responsiveWidth(34),
                 borderRadius: 22,
                 marginRight: responsiveWidth(4),
-                padding: responsiveHeight(1.5),
+                paddingVertical: responsiveHeight(1.2),
+                paddingHorizontal: responsiveWidth(2),
                 justifyContent: "space-between",
                 backgroundColor: active ? "#FFF0DD" : COLORS.white, // Light primary background for active
                 borderWidth: 2,
@@ -210,6 +211,7 @@ const RidesSlider = ({
                 <Text
                   numberOfLines={1}
                   adjustsFontSizeToFit
+                  minimumFontScale={0.7}
                   style={{
                     fontSize: responsiveFontSize(1.7),
                     fontFamily: FONTS.bold,
@@ -222,6 +224,7 @@ const RidesSlider = ({
                 <Text
                   numberOfLines={1}
                   adjustsFontSizeToFit
+                  minimumFontScale={0.7}
                   style={{
                     fontSize: responsiveFontSize(1.2),
                     color: "#6B7280",
@@ -260,6 +263,7 @@ const RidesSlider = ({
                   <Text
                     numberOfLines={1}
                     adjustsFontSizeToFit
+                    minimumFontScale={0.7}
                     style={{
                       fontSize: responsiveFontSize(1.8),
                       fontFamily: FONTS.bold,
