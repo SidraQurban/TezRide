@@ -589,16 +589,6 @@ const SearchingDirection = ({ route }) => {
                   {t("back_to_home", { defaultValue: "Back to Home" })}
                 </Text>
               </TouchableOpacity>
-              
-              {/* Dummy Simulation Button (Testing) */}
-              <TouchableOpacity
-                onPress={simulateDriver}
-                style={{ marginTop: 15 }}
-              >
-                <Text style={{ color: COLORS.primary, fontFamily: FONTS.medium }}>
-                  Simulate Driver
-                </Text>
-              </TouchableOpacity>
             </View>
           ) : rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" ? (
             <ArrivingCard
@@ -641,17 +631,6 @@ const SearchingDirection = ({ route }) => {
                   {t("finding_drivers")}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <TouchableOpacity 
-                    onPress={simulateDriver} 
-                    style={{ 
-                      paddingVertical: 4, 
-                      paddingHorizontal: 8, 
-                      backgroundColor: '#F3F4F6', 
-                      borderRadius: 8 
-                    }}
-                  >
-                    <Text style={{ fontSize: 10, color: COLORS.primary, fontFamily: FONTS.bold }}>SIMULATE</Text>
-                  </TouchableOpacity>
                   <ActivityIndicator size="small" color={COLORS.primary} />
                 </View>
               </View>
