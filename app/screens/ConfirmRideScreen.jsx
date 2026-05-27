@@ -719,7 +719,7 @@ const ConfirmRide = () => {
           style={styles.modalOverlay}
           onPress={() => setGModalVisible(false)}
         >
-          <TouchableOpacity activeOpacity={1} style={[styles.modalContent, { paddingBottom: 30 }]}>
+          <TouchableOpacity activeOpacity={1} style={[styles.modalContent, { paddingBottom: 15 }]}>
             <View style={styles.modalIndicator} />
             <Ionicons name="shield-checkmark" size={60} color={COLORS.primary} style={{ alignSelf: "center", marginBottom: 15 }} />
             <Text style={styles.modalTitle}>{t("verification_guide_title")}</Text>
@@ -729,7 +729,7 @@ const ConfirmRide = () => {
               color: "#4B5563",
               lineHeight: 24,
               fontFamily: FONTS.regular,
-              marginBottom: 30,
+              marginBottom: 15,
               paddingHorizontal: 10
             }}>
               {t("verification_guide_desc")}
