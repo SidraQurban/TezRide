@@ -29,6 +29,22 @@ const customerService = {
       throw error;
     }
   },
+
+  /**
+   * Get customer wallet transactions
+   * GET /api/customer/rides/transactions
+   * Params: PageIndex, PageSize
+   */
+  getTransactions: async (pageIndex = 1, pageSize = 20) => {
+    try {
+      const response = await apiClient.get("/api/customer/rides/transactions", {
+        params: { PageIndex: pageIndex, PageSize: pageSize },
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default customerService;

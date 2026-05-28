@@ -208,6 +208,7 @@ const SearchingDirection = ({ route }) => {
       const curr = payload.currency ?? payload.Currency ?? "PKR";
       const dist = payload.distanceKm ?? payload.DistanceKm ?? 0;
       const dur = payload.durationMinutes ?? payload.DurationMinutes ?? 0;
+      const payFromWallet = payload.payFromWallet ?? payload.PayFromWallet ?? false;
 
       setRideStatus("completed");
       setActiveRide({
@@ -215,7 +216,8 @@ const SearchingDirection = ({ route }) => {
         finalFare: fare,
         currency: curr,
         distanceKm: dist,
-        durationMinutes: dur
+        durationMinutes: dur,
+        payFromWallet: payFromWallet
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -769,7 +771,9 @@ const SearchingDirection = ({ route }) => {
               <View style={{ height: 1, backgroundColor: '#DEE2E6', marginBottom: 20 }} />
 
               <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D', textAlign: 'center', marginBottom: 8 }}>
-                {t("total_fare_paid", { defaultValue: "TOTAL FARE PAID" })}
+                {activeRide?.payFromWallet 
+                   ? t("paid_via_wallet", { defaultValue: "PAID VIA WALLET" }) 
+                   : t("total_fare_paid", { defaultValue: "TOTAL FARE PAID (CASH)" })}
               </Text>
               <Text style={{ fontFamily: FONTS.bold, fontSize: 36, color: COLORS.primary, textAlign: 'center' }}>
                 {activeRide?.finalFare ? `${activeRide.currency || "PKR"} ${activeRide.finalFare}` : "PKR 0"}

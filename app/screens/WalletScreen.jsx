@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,14 +22,61 @@ import customerService from "../api/customerService";
 import { LinearGradient } from "expo-linear-gradient";
 import AppHeader from "../components/AppHeader";
 
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+const TRANSACTION_META = {
+  1: { label: "Top Up",        icon: "add-circle",      color: "#10B981" },
+  2: { label: "Ride Payment",  icon: "car-sport",       color: "#EF4444" },
+  3: { label: "Refund",        icon: "arrow-undo",      color: "#10B981" },
+  4: { label: "Commission",    icon: "cash",            color: "#F59E0B" },
+  5: { label: "Withdrawal",    icon: "arrow-down",      color: "#EF4444" },
+  6: { label: "Transfer",      icon: "swap-horizontal", color: "#6366F1" },
+  7: { label: "Reservation",   icon: "lock-closed",     color: "#F59E0B" },
+};
+
+const getTransactionMeta = (type) =>
+  TRANSACTION_META[type] || { label: "Transaction", icon: "receipt", color: "#6B7280" };
+
+const isCredit = (type) => [1, 3].includes(type); // Topup, Refund
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHr = Math.floor(diffMs / 3600000);
+
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHr < 24) return `${diffHr}h ago`;
+
+  return d.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+  });
+};
+
+// ── Component ──────────────────────────────────────────────────────────────
+
 const WalletScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language?.startsWith("ur");
+
   const [loading, setLoading] = useState(true);
   const [balanceData, setBalanceData] = useState({ balance: 0, currency: "PKR" });
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchBalance = async () => {
+  const [transactions, setTransactions] = useState([]);
+  const [txLoading, setTxLoading] = useState(true);
+  const [txPage, setTxPage] = useState(1);
+  const [txHasMore, setTxHasMore] = useState(true);
+  const [txLoadingMore, setTxLoadingMore] = useState(false);
+
+  // ── Fetch balance ──────────────────────────────────────────────────
+
+  const fetchBalance = useCallback(async () => {
     try {
       const response = await customerService.getBalance();
       if (response.succeeded) {
@@ -38,18 +86,93 @@ const WalletScreen = ({ navigation }) => {
       console.error("Error fetching balance:", error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
-  };
+  }, []);
+
+  // ── Fetch transactions ─────────────────────────────────────────────
+
+  const fetchTransactions = useCallback(async (page = 1, append = false) => {
+    try {
+      if (page === 1) setTxLoading(true);
+      else setTxLoadingMore(true);
+
+      const response = await customerService.getTransactions(page, 15);
+
+      // The backend returns a PagedResponse with .data (array) and .totalCount
+      const items = response?.data || [];
+      const totalCount = response?.totalCount ?? response?.total ?? 0;
+
+      if (append) {
+        setTransactions((prev) => [...prev, ...items]);
+      } else {
+        setTransactions(items);
+      }
+
+      setTxPage(page);
+      setTxHasMore(page * 15 < totalCount);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+      setTxLoading(false);
+      setTxLoadingMore(false);
+    }
+  }, []);
+
+  // ── Initial load ───────────────────────────────────────────────────
 
   useEffect(() => {
     fetchBalance();
+    fetchTransactions(1);
   }, []);
 
-  const onRefresh = () => {
+  // ── Pull to refresh ────────────────────────────────────────────────
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    fetchBalance();
+    await Promise.all([fetchBalance(), fetchTransactions(1)]);
+    setRefreshing(false);
+  }, [fetchBalance, fetchTransactions]);
+
+  // ── Load more ──────────────────────────────────────────────────────
+
+  const onLoadMore = useCallback(() => {
+    if (!txLoadingMore && txHasMore) {
+      fetchTransactions(txPage + 1, true);
+    }
+  }, [txLoadingMore, txHasMore, txPage, fetchTransactions]);
+
+  // ── Render single transaction ──────────────────────────────────────
+
+  const renderTransaction = (item) => {
+    const meta = getTransactionMeta(item.type);
+    const credit = isCredit(item.type);
+    const amountColor = credit ? "#10B981" : "#EF4444";
+    const sign = credit ? "+" : "-";
+
+    return (
+      <View key={item.id} style={styles.txRow}>
+        <View style={[styles.txIconBox, { backgroundColor: meta.color + "15" }]}>
+          <Ionicons name={meta.icon} size={20} color={meta.color} />
+        </View>
+
+        <View style={styles.txDetails}>
+          <Text style={styles.txLabel} numberOfLines={1}>{meta.label}</Text>
+          <Text style={styles.txDesc} numberOfLines={1}>
+            {item.description || meta.label}
+          </Text>
+        </View>
+
+        <View style={styles.txRight}>
+          <Text style={[styles.txAmount, { color: amountColor }]}>
+            {sign} {item.currency || "PKR"} {Math.abs(item.amount).toLocaleString()}
+          </Text>
+          <Text style={styles.txDate}>{formatDate(item.createdAt)}</Text>
+        </View>
+      </View>
+    );
   };
+
+  // ── Render ─────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,7 +180,9 @@ const WalletScreen = ({ navigation }) => {
 
       {/* Page title */}
       <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("wallet", "Wallet")}</Text>
+        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>
+          {t("wallet", "Wallet")}
+        </Text>
       </View>
 
       <ScrollView
@@ -74,12 +199,16 @@ const WalletScreen = ({ navigation }) => {
           style={[styles.balanceCard, { flexDirection: isRTL ? "row-reverse" : "row" }]}
         >
           <View style={{ alignItems: isRTL ? "flex-end" : "flex-start" }}>
-            <Text style={[styles.balanceLabel, { textAlign: isRTL ? "right" : "left" }]}>{t("total_balance", "Total Balance")}</Text>
+            <Text style={[styles.balanceLabel, { textAlign: isRTL ? "right" : "left" }]}>
+              {t("total_balance", "Total Balance")}
+            </Text>
             {loading && !refreshing ? (
               <ActivityIndicator color="#fff" style={{ marginTop: 10 }} />
             ) : (
               <Text style={[styles.balanceAmount, { textAlign: isRTL ? "right" : "left" }]}>
-                {isRTL ? `${balanceData.balance.toLocaleString()} ${balanceData.currency}` : `${balanceData.currency} ${balanceData.balance.toLocaleString()}`}
+                {isRTL
+                  ? `${balanceData.balance.toLocaleString()} ${balanceData.currency}`
+                  : `${balanceData.currency} ${balanceData.balance.toLocaleString()}`}
               </Text>
             )}
           </View>
@@ -88,7 +217,7 @@ const WalletScreen = ({ navigation }) => {
 
         {/* Quick Actions */}
         <View style={styles.actionsBox}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => {/* Handle Top up */}}
           >
@@ -98,9 +227,9 @@ const WalletScreen = ({ navigation }) => {
             <Text style={styles.actionText}>{t("top_up", "Top Up")}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => {/* Handle Transactions */}}
+            onPress={() => {/* Scroll to transactions */}}
           >
             <View style={styles.actionIconBox}>
               <Ionicons name="list-outline" size={24} color={COLORS.primary} />
@@ -109,16 +238,45 @@ const WalletScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Recent Transactions Placeholder */}
+        {/* ── Transactions Section ──────────────────────────────────── */}
         <View style={[styles.sectionHeader, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("recent_activity", "Recent Activity")}</Text>
-        </View>
-        
-        <View style={styles.emptyActivity}>
-          <Ionicons name="receipt-outline" size={40} color="#ccc" />
-          <Text style={[styles.emptyText, { textAlign: "center" }]}>{t("no_recent_activity", "No recent activity")}</Text>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left" }]}>
+            {t("recent_activity", "Recent Activity")}
+          </Text>
         </View>
 
+        {txLoading ? (
+          <View style={styles.emptyActivity}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
+        ) : transactions.length === 0 ? (
+          <View style={styles.emptyActivity}>
+            <Ionicons name="receipt-outline" size={40} color="#ccc" />
+            <Text style={[styles.emptyText, { textAlign: "center" }]}>
+              {t("no_recent_activity", "No recent activity")}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.txList}>
+            {transactions.map(renderTransaction)}
+
+            {txHasMore && (
+              <TouchableOpacity
+                style={styles.loadMoreBtn}
+                onPress={onLoadMore}
+                disabled={txLoadingMore}
+              >
+                {txLoadingMore ? (
+                  <ActivityIndicator size="small" color={COLORS.primary} />
+                ) : (
+                  <Text style={styles.loadMoreText}>
+                    {t("load_more", "Load More")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -141,7 +299,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     color: COLORS.black,
   },
-
   scrollContent: {
     paddingHorizontal: responsiveWidth(5),
     paddingBottom: responsiveHeight(5),
@@ -214,6 +371,65 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: "#999",
     fontFamily: FONTS.regular,
+  },
+
+  /* ── Transaction Items ──────────────────────────────────────── */
+  txList: {
+    gap: 2,
+  },
+  txRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F5F5F5",
+  },
+  txIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  txDetails: {
+    flex: 1,
+    marginRight: 8,
+  },
+  txLabel: {
+    fontSize: responsiveFontSize(1.7),
+    fontFamily: FONTS.semiBold,
+    color: "#1F2937",
+  },
+  txDesc: {
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: FONTS.regular,
+    color: "#9CA3AF",
+    marginTop: 2,
+  },
+  txRight: {
+    alignItems: "flex-end",
+  },
+  txAmount: {
+    fontSize: responsiveFontSize(1.7),
+    fontFamily: FONTS.bold,
+  },
+  txDate: {
+    fontSize: responsiveFontSize(1.2),
+    fontFamily: FONTS.regular,
+    color: "#9CA3AF",
+    marginTop: 2,
+  },
+  loadMoreBtn: {
+    alignItems: "center",
+    paddingVertical: 16,
+    marginTop: 8,
+  },
+  loadMoreText: {
+    fontSize: responsiveFontSize(1.6),
+    fontFamily: FONTS.semiBold,
+    color: COLORS.primary,
   },
 });
 
