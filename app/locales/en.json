@@ -40,7 +40,7 @@
   "usa": "USA",
   "uk": "UK",
   "verify_desc_1": "Please enter the 6-digit code sent",
-  "verify_desc_2": "to you on WhatsApp on",
+  "verify_desc_2": "to you on",
   "continue_btn": "Continue",
   "booking": "Booking",
   "contact_us": "Contact Us",
@@ -277,5 +277,6 @@
   "verification_guide_title": "Why Verify?",
   "verification_guide_desc": "To ensure a safe and comfortable environment for our female community, we require identity verification. This process helps us maintain a trustworthy community by confirming the identity of all users requesting women-only ride preferences.",
   "insufficient_balance_msg": "Insufficient wallet balance. Please top up your wallet.",
-  "could_not_create_ride": "Could not create ride. Please try again."
+  "could_not_create_ride": "Could not create ride. Please try again.",
+  "wait_for_otp": "Please wait before requesting another OTP"
 }

@@ -8,7 +8,12 @@ import {
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
 
+import { useTranslation } from "react-i18next";
+
 const PickupDropoff = ({ pickup, setPickup, dropoff, setDropoff }) => {
+  const { i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
+
   return (
     <View
       style={{
@@ -21,7 +26,7 @@ const PickupDropoff = ({ pickup, setPickup, dropoff, setDropoff }) => {
       }}
     >
       {/* Pickup */}
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
         <View
           style={{
             width: responsiveHeight(1.2),
@@ -47,8 +52,11 @@ const PickupDropoff = ({ pickup, setPickup, dropoff, setDropoff }) => {
           onChangeText={setPickup}
           style={{
             flex: 1,
-            marginLeft: responsiveWidth(2.3),
+            marginLeft: isUrdu ? 0 : responsiveWidth(2.3),
+            marginRight: isUrdu ? responsiveWidth(2.3) : 0,
             fontSize: responsiveFontSize(1.8),
+            textAlign: "left",
+            writingDirection: "ltr",
           }}
         />
       </View>
@@ -56,7 +64,7 @@ const PickupDropoff = ({ pickup, setPickup, dropoff, setDropoff }) => {
       {/* Separator */}
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isUrdu ? "row-reverse" : "row",
           alignItems: "center",
           marginVertical: responsiveHeight(1),
         }}
@@ -74,7 +82,7 @@ const PickupDropoff = ({ pickup, setPickup, dropoff, setDropoff }) => {
       </View>
 
       {/* Dropoff */}
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
         <View
           style={{
             width: responsiveHeight(1.2),
@@ -100,8 +108,11 @@ const PickupDropoff = ({ pickup, setPickup, dropoff, setDropoff }) => {
           onChangeText={setDropoff}
           style={{
             flex: 1,
-            marginLeft: responsiveWidth(2.3),
+            marginLeft: isUrdu ? 0 : responsiveWidth(2.3),
+            marginRight: isUrdu ? responsiveWidth(2.3) : 0,
             fontSize: responsiveFontSize(1.8),
+            textAlign: "left",
+            writingDirection: "ltr",
           }}
         />
         <View

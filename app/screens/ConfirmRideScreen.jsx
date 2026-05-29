@@ -958,10 +958,12 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.9),
     fontFamily: FONTS.medium,
     color: "#374151",
+    width: responsiveWidth(50),
   },
   prefLabelActive: {
     color: "#111827",
     fontFamily: FONTS.semiBold,
+  
   },
   confirmBtn: {
     height: 54,
@@ -987,6 +989,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.6),
     color: "#374151",
     marginBottom: 5,
+    textAlign: "left",
   },
   textInput: {
     backgroundColor: "#F9FAFB",
@@ -997,6 +1000,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontFamily: FONTS.regular,
     fontSize: responsiveFontSize(1.8),
+    textAlign: "left",
+    writingDirection: "ltr",
   },
   imageSelectors: {
     flexDirection: "row",

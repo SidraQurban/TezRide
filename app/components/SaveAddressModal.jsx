@@ -32,7 +32,7 @@ const CATEGORIES = [
 ];
 
 const SaveAddressModal = ({ visible, onClose, address }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState("home");
   const [houseNo, setHouseNo] = useState("");
   const [street, setStreet] = useState("");
@@ -140,7 +140,7 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
               {/* Address Input Section */}
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: i18n.language?.startsWith("ur") ? "row-reverse" : "row",
                   alignItems: "center",
                   marginBottom: responsiveHeight(3),
                   backgroundColor: '#F8F9FA',
@@ -166,6 +166,8 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
                     minHeight: 50,
                     paddingTop: 8,
                     paddingBottom: 8,
+                    textAlign: "left",
+                    writingDirection: "ltr",
                   }}
                 />
                 {address && editableAddress !== address && (
@@ -201,6 +203,8 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
                     fontFamily: FONTS.regular,
                     fontSize: responsiveFontSize(1.5),
                     color: COLORS.black,
+                    textAlign: "left",
+                    writingDirection: "ltr",
                   }}
                   placeholderTextColor="#999"
                 />
@@ -218,6 +222,8 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
                     fontFamily: FONTS.regular,
                     fontSize: responsiveFontSize(1.5),
                     color: COLORS.black,
+                    textAlign: "left",
+                    writingDirection: "ltr",
                   }}
                   placeholderTextColor="#999"
                 />
@@ -239,6 +245,8 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
                   fontFamily: FONTS.regular,
                   fontSize: responsiveFontSize(1.5),
                   color: COLORS.black,
+                  textAlign: "left",
+                  writingDirection: "ltr",
                 }}
                 placeholderTextColor="#999"
               />

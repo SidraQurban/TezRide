@@ -26,6 +26,7 @@ import { I18nManager } from "react-native";
 
 import authService from "../api/authService";
 import { ActivityIndicator, Alert } from "react-native";
+import ModernAlert from "../components/ModernAlert";
 
 const countries = [
   { code: "+92", flag: "🇵🇰", name: "Pakistan" },
@@ -36,12 +37,19 @@ const countries = [
 
 const LoginScreen = () => {
   const { t, i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
   const [phone, setPhone] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [modalVisible, setModalVisible] = useState(false);
   const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: "",
+    message: "",
+  });
 
   const toggleLanguage = () => {
     const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
@@ -75,10 +83,22 @@ const LoginScreen = () => {
           phoneNumber: fullPhoneNumber,
         });
       } else {
-        Alert.alert(t("error"), response.message || t("otp_send_failed"));
+        const message = response.message && response.message.toLowerCase().includes("please wait") 
+          ? t("wait_for_otp") 
+          : response.message || t("otp_send_failed");
+        
+        setAlertConfig({
+          visible: true,
+          title: t("error"),
+          message: message,
+        });
       }
     } catch (error) {
-      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+      setAlertConfig({
+        visible: true,
+        title: t("error"),
+        message: (error.message && error.message.toLowerCase().includes("please wait")) ? t("wait_for_otp") : (error.message || t("something_went_wrong")),
+      });
     } finally {
       setLoading(false);
     }
@@ -189,7 +209,7 @@ const LoginScreen = () => {
             {/* Phone Input */}
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: isUrdu ? "row-reverse" : "row",
                 alignItems: "center",
                 marginTop: responsiveHeight(4),
                 borderWidth: 1.5,
@@ -203,7 +223,7 @@ const LoginScreen = () => {
             >
               {/* Country Picker */}
               <TouchableOpacity onPress={() => setModalVisible(true)}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
                   <Text
                     style={{
                       fontSize: responsiveFontSize(2.5),
@@ -216,7 +236,7 @@ const LoginScreen = () => {
                     name="caret-down"
                     size={responsiveFontSize(2.2)}
                     color={COLORS.primary}
-                    style={{ marginLeft: responsiveWidth(2.5) }}
+                    style={{ marginLeft: isUrdu ? 0 : 10, marginRight: isUrdu ? 10 : 0 }}
                   />
                 </View>
               </TouchableOpacity>
@@ -252,12 +272,14 @@ const LoginScreen = () => {
                   flex: 1,
                   fontSize: responsiveFontSize(2),
                   color: isPhoneComplete ? COLORS.primary : COLORS.black,
-                  marginLeft: responsiveWidth(1),
+                  marginLeft: isUrdu ? 0 : responsiveWidth(1),
+                  marginRight: isUrdu ? responsiveWidth(1) : 0,
                   fontFamily: FONTS.semiBold,
                   includeFontPadding: false,
                   textAlignVertical: "center",
                   paddingVertical: 0,
-                  textAlign: i18n.language === "ur" ? "right" : "left",
+                  textAlign: "left",
+                  writingDirection: "ltr",
                   lineHeight: responsiveFontSize(4),
                 }}
                 placeholder={t("phone_placeholder")}
@@ -478,6 +500,14 @@ const LoginScreen = () => {
           </View>
         </Modal>
       </KeyboardAvoidingView>
+      <ModernAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        isUrdu={isUrdu}
+        okText={t("ok_btn") || "OK"}
+        onOk={() => setAlertConfig({ ...alertConfig, visible: false })}
+      />
     </SafeAreaView>
   );
 };

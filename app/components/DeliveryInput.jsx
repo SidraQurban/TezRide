@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { COLORS, FONTS } from "../constants/theme";
 import { responsiveFontSize } from "react-native-responsive-dimensions";
+import { useTranslation } from "react-i18next";
 
 const DeliveryInput = ({
   pickup,
@@ -11,10 +12,13 @@ const DeliveryInput = ({
   setDestination,
   onSwapLocations,
 }) => {
+  const { i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
+
   return (
     <View
       style={{
-        flexDirection: "row",
+        flexDirection: isUrdu ? "row-reverse" : "row",
         alignItems: "center",
         backgroundColor: "#fff",
         borderRadius: 16,
@@ -32,11 +36,11 @@ const DeliveryInput = ({
       {/* Left Inputs */}
       <View style={{ flex: 1 }}>
         {/* Pickup */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
           <Ionicons name="location" size={18} color={COLORS.primary} />
-          <View style={{ marginLeft: 8, flex: 1 }}>
+          <View style={{ marginLeft: 8, flex: 1, alignItems: "flex-start" }}>
             <Text
-              style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
+              style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular, textAlign: "left" }}
             >
               Pickup
             </Text>
@@ -52,6 +56,8 @@ const DeliveryInput = ({
                 fontFamily: FONTS.medium,
                 paddingVertical: 2,
                 color: COLORS.black,
+                textAlign: "left",
+                writingDirection: "ltr",
               }}
             />
           </View>
@@ -68,11 +74,11 @@ const DeliveryInput = ({
         />
 
         {/* Destination */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
           <Ionicons name="location" size={18} color="#999" />
-          <View style={{ marginLeft: 8, flex: 1 }}>
+          <View style={{ marginLeft: 8, flex: 1, alignItems: "flex-start" }}>
             <Text
-              style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular }}
+              style={{ fontSize: 12, color: "#888", fontFamily: FONTS.regular, textAlign: "left" }}
             >
               Drop-off
             </Text>
@@ -88,6 +94,8 @@ const DeliveryInput = ({
                 fontFamily: FONTS.medium,
                 paddingVertical: 2,
                 color: COLORS.black,
+                textAlign: "left",
+                writingDirection: "ltr",
               }}
             />
           </View>

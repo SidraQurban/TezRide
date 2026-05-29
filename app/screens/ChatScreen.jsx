@@ -102,7 +102,7 @@ const ChatScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { rideId, driverName, profilePicUrl, phoneNumber } = route.params;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -343,13 +343,13 @@ const ChatScreen = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <View style={styles.inputBarOuter}>
-          <View style={styles.inputBar}>
+          <View style={[styles.inputBar, { flexDirection: i18n.language?.startsWith("ur") ? "row-reverse" : "row" }]}>
             <TouchableOpacity style={styles.attachBtn} activeOpacity={0.6}>
               <Ionicons name="add-circle-outline" size={26} color="#999" />
             </TouchableOpacity>
 
             <TextInput
-              style={styles.input}
+              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
               placeholder={t('type_message') || 'Type a message...'}
               placeholderTextColor="#B0B0B0"
               value={inputText}

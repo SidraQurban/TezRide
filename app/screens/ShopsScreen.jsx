@@ -62,7 +62,8 @@ const ShopsScreen = () => {
               includeFontPadding: false,
               textAlignVertical: "center",
               paddingVertical: 0,
-              textAlign: isUrdu ? "right" : "left",
+              textAlign: "left",
+              writingDirection: "ltr",
             }}
           />
         </View>

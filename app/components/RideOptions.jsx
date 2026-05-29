@@ -22,7 +22,8 @@ import { useTranslation } from "react-i18next";
 
 const RideOptions = () => {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
   const [selectedCar, setSelectedCar] = useState(null);
   const [promoCode, setPromoCode] = useState("");
 
@@ -34,7 +35,7 @@ const RideOptions = () => {
     <TouchableOpacity
       onPress={() => setSelectedCar(item.id)}
       style={{
-        flexDirection: "row",
+        flexDirection: isUrdu ? "row-reverse" : "row",
         alignItems: "center",
         justifyContent: "space-between",
         backgroundColor: "#fff",
@@ -46,7 +47,7 @@ const RideOptions = () => {
       }}
     >
       {/* LEFT: Ride Image & Info */}
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
         <View
           style={{
             width: responsiveWidth(13),
@@ -68,23 +69,24 @@ const RideOptions = () => {
           />
         </View>
 
-        <View style={{ marginLeft: responsiveWidth(4) }}>
+        <View style={{ marginLeft: isUrdu ? 0 : responsiveWidth(4), marginRight: isUrdu ? responsiveWidth(4) : 0 }}>
           <Text
             style={{
               fontFamily: FONTS.semiBold,
               fontSize: responsiveFontSize(2),
+              textAlign: "left",
             }}
           >
             {t(item.type.toLowerCase().replace(" ", "_"))}
           </Text>
-          <Text style={{ color: "gray", fontSize: responsiveFontSize(1.5) }}>
+          <Text style={{ color: "gray", fontSize: responsiveFontSize(1.5), textAlign: "left" }}>
             {item.nearby} {t("nearby")}
           </Text>
         </View>
       </View>
 
       {/* RIGHT: Price & Selection */}
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
         <Text
           style={{
             fontFamily: FONTS.semiBold,
@@ -101,7 +103,8 @@ const RideOptions = () => {
             borderRadius: responsiveWidth(2.5),
             borderWidth: 2,
             borderColor: selectedCar === item.id ? COLORS.secondary : "#ccc",
-            marginLeft: responsiveWidth(2),
+            marginLeft: isUrdu ? 0 : responsiveWidth(2),
+            marginRight: isUrdu ? responsiveWidth(2) : 0,
             justifyContent: "center",
             alignItems: "center",
           }}
@@ -134,7 +137,7 @@ const RideOptions = () => {
       {/* PROMO CODE */}
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: isUrdu ? "row-reverse" : "row",
           alignItems: "center",
           marginHorizontal: responsiveWidth(4),
           marginTop: responsiveHeight(7),
@@ -152,6 +155,8 @@ const RideOptions = () => {
             borderRadius: responsiveWidth(3),
             borderWidth: 1,
             borderColor: COLORS.num,
+            textAlign: "left",
+            writingDirection: "ltr",
           }}
         />
         <TouchableOpacity

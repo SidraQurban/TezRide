@@ -26,7 +26,7 @@ const SearchInput = ({
   return (
     <View
       style={{
-        flexDirection: "row",
+        flexDirection: isUrdu ? "row-reverse" : "row",
         alignItems: "center",
         backgroundColor: "#fff",
         borderRadius: 16,
@@ -45,7 +45,7 @@ const SearchInput = ({
       {/*  Inputs Section - Occupies the rest of the space, pushes to the Right in RTL */}
       <View style={{ flex: 1 }}>
         {/* Pickup */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
           {/* Icon - Appears on the FAR RIGHT in Urdu RTL */}
           <Ionicons name="location" size={18} color={COLORS.primary} />
 
@@ -54,7 +54,7 @@ const SearchInput = ({
             style={{
               flex: 1,
               marginHorizontal: 12,
-              alignItems: isUrdu ? "flex-start" : "flex-start",
+              alignItems: "flex-start",
             }}
           >
             <Text
@@ -62,14 +62,14 @@ const SearchInput = ({
                 fontSize: 12,
                 color: "#888",
                 fontFamily: FONTS.regular,
-                textAlign: isUrdu ? "right" : "left",
-                writingDirection: isUrdu ? "rtl" : "ltr",
+                textAlign: "left",
+                writingDirection: "ltr",
               }}
             >
               {t("from_location")}
             </Text>
 
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
               <TextInput
                 ref={pickupRef}
                 placeholder={t("enter_pickup")}
@@ -84,8 +84,8 @@ const SearchInput = ({
                   fontFamily: FONTS.medium,
                   paddingVertical: 2,
                   color: COLORS.black,
-                  textAlign: isUrdu ? "right" : "left",
-                  writingDirection: isUrdu ? "rtl" : "ltr",
+                  textAlign: "left",
+                  writingDirection: "ltr",
                   flex: 1,
                 }}
               />
@@ -111,13 +111,13 @@ const SearchInput = ({
             height: 1,
             backgroundColor: "#eee",
             marginVertical: 8,
-            marginLeft: isUrdu ? 26 : 26,
-            marginRight: isUrdu ? 0 : 0,
+            marginLeft: isUrdu ? 0 : 26,
+            marginRight: isUrdu ? 26 : 0,
           }}
         />
 
         {/* Destination */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
           {/* Icon - Appears on the FAR RIGHT in Urdu RTL */}
           <Ionicons name="location" size={18} color="#999" />
 
@@ -126,7 +126,7 @@ const SearchInput = ({
             style={{
               flex: 1,
               marginHorizontal: 12,
-              alignItems: isUrdu ? "flex-start" : "flex-start",
+              alignItems: "flex-start",
             }}
           >
             <Text
@@ -134,14 +134,14 @@ const SearchInput = ({
                 fontSize: 12,
                 color: "#888",
                 fontFamily: FONTS.regular,
-                textAlign: isUrdu ? "right" : "left",
-                writingDirection: isUrdu ? "rtl" : "ltr",
+                textAlign: "left",
+                writingDirection: "ltr",
               }}
             >
               {t("to_location")}
             </Text>
 
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
               <TextInput
                 ref={destinationRef}
                 placeholder={t("enter_destination")}
@@ -156,8 +156,8 @@ const SearchInput = ({
                   fontFamily: FONTS.medium,
                   paddingVertical: 2,
                   color: COLORS.black,
-                  textAlign: isUrdu ? "right" : "left",
-                  writingDirection: isUrdu ? "rtl" : "ltr",
+                  textAlign: "left",
+                  writingDirection: "ltr",
                   flex: 1,
                 }}
               />
@@ -184,8 +184,8 @@ const SearchInput = ({
           backgroundColor: "#F3F3F3",
           alignItems: "center",
           justifyContent: "center",
-          marginLeft: isUrdu ? 10 : 15,
-          marginRight: isUrdu ? 0 : 0,
+          marginLeft: 15,
+          marginRight: 0,
           zIndex: 30,
         }}
       >

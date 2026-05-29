@@ -73,21 +73,19 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
             borderColor: COLORS.primary,
             borderRadius: responsiveHeight(2),
             padding: responsiveHeight(1.5),
-            flexDirection: "row",
+            flexDirection: isUrdu ? "row-reverse" : "row",
             alignItems: "center",
             marginBottom: responsiveHeight(1.7),
           }}
         >
-          {isUrdu && (
-            <Ionicons
-              name="locate"
-              size={22}
-              color={COLORS.primary}
-              style={{ marginRight: 10 }}
-            />
-          )}
+          <Ionicons
+            name="locate"
+            size={22}
+            color={COLORS.primary}
+            style={{ marginHorizontal: 10 }}
+          />
 
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, alignItems: "flex-start" }}>
             <Text
               style={{
                 marginBottom: responsiveHeight(0.8),
@@ -100,15 +98,15 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
               {t("current_location")}
             </Text>
 
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
               <TextInput
                 style={{
                   color: COLORS.black,
                   fontSize: responsiveFontSize(1.6),
                   fontFamily: FONTS.regular,
                   padding: 0,
-                  textAlign: isUrdu ? "right" : "left",
-                  writingDirection: isUrdu ? "rtl" : "ltr",
+                  textAlign: "left",
+                  writingDirection: "ltr",
                   flex: 1,
                 }}
                 value={pickupAddress}
@@ -125,15 +123,6 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
               )}
             </View>
           </View>
-
-          {!isUrdu && (
-            <Ionicons
-              name="locate"
-              size={22}
-              color={COLORS.primary}
-              style={{ marginLeft: 10 }}
-            />
-          )}
         </View>
 
         {/* Home */}
@@ -149,12 +138,12 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
               fontFamily: FONTS.semiBold,
               fontSize: responsiveFontSize(1.7),
               color: COLORS.black,
-              textAlign: isUrdu ? "right" : "left",
+              textAlign: "left",
             }}
           >
             {t("home")}
           </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", width: "100%" }}>
+          <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center", width: "100%" }}>
             <TextInput
               style={{
                 color: COLORS.black,
@@ -162,8 +151,8 @@ const DeliverybottomPanel = ({ pickupAddress, homeAddress, onTextChange }) => {
                 fontFamily: FONTS.regular,
                 padding: 0,
                 flex: 1,
-                textAlign: isUrdu ? "right" : "left",
-                writingDirection: isUrdu ? "rtl" : "ltr",
+                textAlign: "left",
+                writingDirection: "ltr",
               }}
               value={homeAddress}
               onChangeText={(text) => onTextChange(text, "home")}

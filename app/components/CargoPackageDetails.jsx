@@ -151,6 +151,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     fontSize: responsiveFontSize(1.8),
     color: COLORS.black,
+    textAlign: "left",
+    writingDirection: "ltr",
   },
   unitText: {
     color: "gray",
@@ -171,6 +173,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9F9F9",
     marginBottom: responsiveHeight(1),
     color: COLORS.black,
+    textAlign: "left",
+    writingDirection: "ltr",
   },
 });
 

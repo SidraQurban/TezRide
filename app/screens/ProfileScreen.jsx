@@ -299,9 +299,9 @@ const ProfileScreen = ({ navigation }) => {
         {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("first_name", "First Name")}</Text>
+            <Text style={[styles.label, { textAlign: "left" }]}>{t("first_name", "First Name")}</Text>
             <TextInput
-              style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
+              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
               value={profile.firstName}
               onChangeText={(t) => setProfile((p) => ({ ...p, firstName: t }))}
               placeholder={t("first_name")}
@@ -310,9 +310,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("last_name", "Last Name")}</Text>
+            <Text style={[styles.label, { textAlign: "left" }]}>{t("last_name", "Last Name")}</Text>
             <TextInput
-              style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
+              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
               value={profile.lastName}
               onChangeText={(t) => setProfile((p) => ({ ...p, lastName: t }))}
               placeholder={t("last_name")}

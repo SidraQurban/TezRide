@@ -34,12 +34,20 @@ import Animated, {
 } from "react-native-reanimated";
 
 import authService from "../api/authService";
+import ModernAlert from "../components/ModernAlert";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const VerifyCodeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
+  const isUrdu = i18n.language?.startsWith("ur");
   const { phoneNumber, autoFillOTP } = route.params || {};
+
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: "",
+    message: "",
+  });
 
   const toggleLanguage = () => {
     const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
@@ -131,10 +139,18 @@ const VerifyCodeScreen = ({ navigation, route }) => {
           ],
         });
       } else {
-        Alert.alert(t("error"), response.message || t("otp_verification_failed"));
+        setAlertConfig({
+          visible: true,
+          title: t("error"),
+          message: response.message || t("otp_verification_failed"),
+        });
       }
     } catch (error) {
-      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+      setAlertConfig({
+        visible: true,
+        title: t("error"),
+        message: error.message || t("something_went_wrong"),
+      });
     } finally {
       setLoading(false);
       setVerificationInProgress(false);
@@ -151,10 +167,22 @@ const VerifyCodeScreen = ({ navigation, route }) => {
         setTimer(60); // Reset timer
         // Alert.alert(t("success"), t("otp_sent_successfully"));
       } else {
-        Alert.alert(t("error"), response.message || t("otp_send_failed"));
+        const message = response.message && response.message.toLowerCase().includes("please wait") 
+          ? t("wait_for_otp") 
+          : response.message || t("otp_send_failed");
+        
+        setAlertConfig({
+          visible: true,
+          title: t("error"),
+          message: message,
+        });
       }
     } catch (error) {
-      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+      setAlertConfig({
+        visible: true,
+        title: t("error"),
+        message: (error.message && error.message.toLowerCase().includes("please wait")) ? t("wait_for_otp") : (error.message || t("something_went_wrong")),
+      });
     } finally {
       setResendLoading(false);
     }
@@ -250,7 +278,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                 <Text
                   style={{
                     fontSize: responsiveFontSize(2),
-                    textAlign: "center",
+                    textAlign: "left",
                     fontFamily: FONTS.regular,
                   }}
                 >
@@ -259,7 +287,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                 <Text
                   style={{
                     fontSize: responsiveFontSize(2),
-                    textAlign: "center",
+                    textAlign: "left",
                     fontFamily: FONTS.regular,
                   }}
                 >
@@ -271,6 +299,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                     color: COLORS.primary,
                     fontFamily: FONTS.semiBold,
                     marginTop: responsiveHeight(1),
+                    textAlign: "left",
                   }}
                 >
                   {"\u200E"}
@@ -345,7 +374,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
               {/* OTP Inputs */}
               <View
                 style={{
-                  flexDirection: "row",
+                  flexDirection: isUrdu ? "row-reverse" : "row",
                   marginTop: responsiveHeight(3), // reduced from 5
                   justifyContent: "space-between",
                   width: responsiveWidth(80),
@@ -363,6 +392,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                       borderWidth: 1.5,
                       borderColor: isCodeComplete ? COLORS.primary : "#ccc",
                       textAlign: "center",
+                      writingDirection: "ltr",
                       fontSize: responsiveFontSize(2.5),
                       lineHeight: responsiveFontSize(2.5),
                       padding: 0,
@@ -385,7 +415,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
               <View
                 style={{
                   marginTop: responsiveHeight(1), // reduced from 2
-                  flexDirection: "row",
+                  flexDirection: isUrdu ? "row-reverse" : "row",
                   alignItems: "center",
                 }}
               >
@@ -472,6 +502,14 @@ const VerifyCodeScreen = ({ navigation, route }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <ModernAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        isUrdu={isUrdu}
+        okText={t("ok_btn") || "OK"}
+        onOk={() => setAlertConfig({ ...alertConfig, visible: false })}
+      />
     </SafeAreaView>
   );
 };

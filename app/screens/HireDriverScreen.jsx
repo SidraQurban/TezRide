@@ -33,7 +33,7 @@ import * as ExpoLocation from "expo-location";
 
 const HireDriverScreen = () => {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [pickup, setPickup] = useState("");
   const [pickupData, setPickupData] = useState(null);
   const [time, setTime] = useState("morning");
@@ -224,6 +224,8 @@ const HireDriverScreen = () => {
   const duration = calculateDuration(startTime, endTime);
   const totalPrice = duration * driverRate;
 
+  const isUrdu = i18n.language?.startsWith("ur");
+
   return (
     <SafeAreaView
       style={{
@@ -257,7 +259,7 @@ const HireDriverScreen = () => {
                 borderColor: COLORS.primary,
               }}
             >
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
                 <Ionicons name="location-outline" size={20} color={COLORS.icon} />
                 <TextInput
                   placeholder={t("enter_pickup")}
@@ -272,6 +274,8 @@ const HireDriverScreen = () => {
                     color: COLORS.black,
                     lineHeight: responsiveFontSize(3.5),
                     includeFontPadding: false,
+                    textAlign: "left",
+                    writingDirection: "ltr",
                   }}
                   placeholderTextColor="#999"
                 />
