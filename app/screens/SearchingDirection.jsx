@@ -870,73 +870,109 @@ const SearchingDirection = ({ route }) => {
       {/* No Drivers Found Modal */}
       <Modal
         visible={showNoDriversModal}
-        animationType="slide"
-        transparent={false}
+        animationType="fade"
+        transparent={true}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
-          <View style={{ flex: 1, padding: 24, alignItems: 'center', justifyContent: 'center' }}>
+        <BlurView intensity={20} style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 }}>
             <View style={{ 
-              width: 120, 
-              height: 120, 
-              borderRadius: 60, 
-              backgroundColor: '#FFF1F2', 
-              justifyContent: 'center', 
+              backgroundColor: '#FFF', 
+              borderRadius: 30, 
+              padding: 30, 
               alignItems: 'center',
-              marginBottom: 30
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.2,
+              shadowRadius: 20,
+              elevation: 15
             }}>
-              <Ionicons name="search" size={60} color="#E11D48" />
-            </View>
-            
-            <Text style={{ fontFamily: FONTS.bold, fontSize: 26, color: COLORS.text, textAlign: 'center', marginBottom: 15 }}>
-              {t("no_rider_found_title", { defaultValue: "No Riders Found" })}
-            </Text>
-            
-            <Text style={{ fontFamily: FONTS.medium, fontSize: 16, color: '#64748B', textAlign: 'center', marginBottom: 40, lineHeight: 24 }}>
-              {t("no_rider_found_desc", { defaultValue: "We couldn't find any available riders in your area at the moment. Please try again in a few minutes or adjust your ride type." })}
-            </Text>
-            
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                setShowNoDriversModal(false);
-                navigation.goBack();
-              }}
-              style={{
-                width: '100%',
-                height: 60,
-                borderRadius: 18,
-                backgroundColor: COLORS.primary,
-                justifyContent: 'center',
-                alignItems: 'center',
-                shadowColor: COLORS.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 10,
-                elevation: 8,
-              }}
-            >
-              <Text style={{ fontFamily: FONTS.bold, fontSize: 18, color: '#FFF' }}>
-                {t("go_back", { defaultValue: "Go Back" })}
+              <View style={{ marginBottom: 25 }}>
+                <LinearGradient
+                  colors={[COLORS.active, '#FFF7ED']}
+                  style={{ 
+                    width: 100, 
+                    height: 100, 
+                    borderRadius: 50, 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    shadowColor: COLORS.primary,
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 10,
+                    elevation: 5,
+                    borderWidth: 1,
+                    borderColor: COLORS.active
+                  }}
+                >
+                  <View style={{
+                    width: 70,
+                    height: 70,
+                    borderRadius: 35,
+                    backgroundColor: '#FFF',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 5,
+                  }}>
+                    <Ionicons name="search-outline" size={38} color={COLORS.primary} />
+                  </View>
+                </LinearGradient>
+              </View>
+              
+              <Text style={{ fontFamily: FONTS.bold, fontSize: 24, color: COLORS.text, textAlign: 'center', marginBottom: 12 }}>
+                {t("no_rider_found_title", { defaultValue: "No Riders Found" })}
               </Text>
-            </TouchableOpacity>
+              
+              <Text style={{ fontFamily: FONTS.regular, fontSize: 15, color: '#64748B', textAlign: 'center', marginBottom: 30, lineHeight: 22 }}>
+                {t("no_rider_found_desc", { defaultValue: "We couldn't find any available riders in your area at the moment. Please try again in a few minutes." })}
+              </Text>
+              
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setShowNoDriversModal(false);
+                  navigation.goBack();
+                }}
+                style={{ width: '100%', marginBottom: 12 }}
+              >
+                <LinearGradient
+                  colors={[COLORS.primary, COLORS.secondary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    height: 56,
+                    borderRadius: 16,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ fontFamily: FONTS.bold, fontSize: 17, color: '#FFF' }}>
+                    {t("go_back", { defaultValue: "Go Back" })}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              activeOpacity={0.6}
-              onPress={() => {
-                setShowNoDriversModal(false);
-                confirmCancelRide();
-              }}
-              style={{
-                marginTop: 20,
-                padding: 10
-              }}
-            >
-              <Text style={{ fontFamily: FONTS.semibold, fontSize: 16, color: '#64748B' }}>
-                {t("cancel_request", { defaultValue: "Cancel Request" })}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.6}
+                onPress={() => {
+                  setShowNoDriversModal(false);
+                  confirmCancelRide();
+                }}
+                style={{
+                  paddingVertical: 12,
+                  width: '100%',
+                  alignItems: 'center'
+                }}
+              >
+                <Text style={{ fontFamily: FONTS.semiBold, fontSize: 16, color: '#94A3B8' }}>
+                  {t("cancel_request", { defaultValue: "Cancel Request" })}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </SafeAreaView>
+        </BlurView>
       </Modal>
       </View>
     </SafeAreaView>

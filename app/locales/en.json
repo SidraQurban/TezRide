@@ -286,5 +286,9 @@
   "gallery": "Gallery",
   "tap_to_change": "Tap photo to change",
   "profile_pic_updated_success": "Profile picture updated!",
-  "profile_updated_success": "Profile updated successfully!"
+  "profile_updated_success": "Profile updated successfully!",
+  "no_rider_found_title": "No Riders Found",
+  "no_rider_found_desc": "We couldn't find any available riders in your area at the moment. Please try again in a few minutes.",
+  "go_back": "Go Back",
+  "cancel_request": "Cancel Request"
 }
