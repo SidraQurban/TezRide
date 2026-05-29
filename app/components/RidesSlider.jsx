@@ -352,6 +352,8 @@ const RidesSlider = ({
                 fontSize: responsiveFontSize(1.6),
                 color: COLORS.primary,
                 fontFamily: FONTS.semiBold,
+                width: responsiveWidth(20),
+                textAlign: "right",
               }}
             >
               {genderPreference === "female" 

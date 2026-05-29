@@ -9,7 +9,9 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Animated,
 } from "react-native";
+import { useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -51,6 +53,26 @@ const ProfileScreen = ({ navigation }) => {
     dateOfBirth: "",
     profilePictureUrl: "",
   });
+
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 10,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 10,
+    }).start();
+  };
 
   const fetchProfile = async () => {
     try {
@@ -404,24 +426,29 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         {/* Save Button */}
-        <TouchableOpacity 
-          style={styles.updateButton} 
-          onPress={handleUpdate}
-          disabled={updating}
-        >
-          <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.gradientBtn}
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+          <TouchableOpacity 
+            activeOpacity={0.9}
+            style={styles.updateButton} 
+            onPress={handleUpdate}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            disabled={updating}
           >
-            {updating ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>{t("save", "Save")}</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={[COLORS.primary, COLORS.secondary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientBtn}
+            >
+              {updating ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.btnText}>{t("save", "Save")}</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
 
       </ScrollView>
 
