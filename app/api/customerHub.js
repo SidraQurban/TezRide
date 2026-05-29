@@ -208,6 +208,21 @@ class CustomerHub {
     return this.connection.invoke('CancelRide', rideId);
   }
 
+  /**
+   * Explicitly updates/submits high-quality address names to the server.
+   * @param {string} rideId 
+   * @param {string} pickupAddress 
+   * @param {string} dropoffAddress 
+   */
+  async submitRideAddresses(rideId, pickupAddress, dropoffAddress) {
+    if (!this.isConnected()) return;
+    try {
+      await this.connection.invoke('SubmitRideAddresses', rideId, pickupAddress, dropoffAddress);
+    } catch (e) {
+      console.warn('[CustomerHub] submitRideAddresses failed:', e);
+    }
+  }
+
   /** Returns true when the hub is actively connected. */
   isConnected() {
     return (

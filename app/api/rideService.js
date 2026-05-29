@@ -24,6 +24,8 @@ export const rideService = {
       vehicleType: data.vehicleType,
       pickup: data.pickup,   // { lat, lon }
       dropoff: data.dropoff, // { lat, lon }
+      pickupAddress: data.pickupAddress,
+      dropoffAddress: data.dropoffAddress,
       genderPreference: data.genderPreference || 'any',
       minRating: data.minRating ?? 0,
       offeredFare: data.estimatedFare || 0,

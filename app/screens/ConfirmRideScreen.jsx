@@ -292,9 +292,31 @@ const ConfirmRide = () => {
       await customerHub.start();
 
       const liveEstimate = priceMap[selectedService];
+        const getAddr = (loc, fallback) => {
+          if (!loc) return fallback;
+          return (loc.address || loc.formatted_address || loc.name || loc.description || fallback).trim();
+        };
+
+        const pickupAddr = getAddr(pickup, "Pickup Location");
+        const dropoffAddr = getAddr(destination, "Dropoff Location");
+
       const requestData = {
-        pickup: { lat: pickup.latitude, lon: pickup.longitude },
-        dropoff: { lat: destination.latitude, lon: destination.longitude },
+        pickup: {
+          lat: pickup.latitude,
+          lon: pickup.longitude,
+          address: pickupAddr,
+          name: pickup.name || pickupAddr,
+          formatted_address: pickup.address || pickup.formatted_address || pickupAddr,
+        },
+        dropoff: {
+          lat: destination.latitude,
+          lon: destination.longitude,
+          address: dropoffAddr,
+          name: destination.name || dropoffAddr,
+          formatted_address: destination.address || destination.formatted_address || dropoffAddr,
+        },
+        pickupAddress: pickupAddr,
+        dropoffAddress: dropoffAddr,
         vehicleType: selectedService,
         genderPreference: genderPreference,
         minRating: 0,
@@ -308,6 +330,13 @@ const ConfirmRide = () => {
       if (response.succeeded) {
         const rideId = response.data.rideId;
         const status = response.data.status;
+
+        // Force-sync addresses via WebSocket to ensure backend captures them
+        try {
+          customerHub.submitRideAddresses(rideId, pickupAddr, dropoffAddr);
+        } catch (e) {
+          console.warn("[WS Address Sync Failed]:", e);
+        }
 
         if (!rideId || rideId === "00000000-0000-0000-0000-000000000000") {
           Alert.alert(t("error"), t("could_not_create_ride") || "Could not create ride. Please try again.");

@@ -23,10 +23,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./app/locales/i18n";
 import i18n from "./app/locales/i18n";
 import * as SplashScreen from "expo-splash-screen";
-import AnimatedSplashScreen from "./app/components/AnimatedSplashScreen";
 
 // Keep the native splash screen visible until our custom screen is ready
-SplashScreen.preventAutoHideAsync().catch(() => {});
+SplashScreen.preventAutoHideAsync().catch(() => { });
 
 export default function App() {
   const [fontsLoaded] = useFonts({

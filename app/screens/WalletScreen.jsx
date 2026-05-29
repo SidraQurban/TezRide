@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   FlatList,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,6 +34,15 @@ const TRANSACTION_META = {
   6: { label: "Transfer",      icon: "swap-horizontal", color: "#6366F1" },
   7: { label: "Reservation",   icon: "lock-closed",     color: "#F59E0B" },
 };
+
+const TRANSACTION_STATUS = {
+  1: { label: "Pending",   color: "#F59E0B" },
+  2: { label: "Completed", color: "#10B981" },
+  3: { label: "Failed",    color: "#EF4444" },
+};
+
+const getTransactionStatus = (status) =>
+  TRANSACTION_STATUS[status] || { label: "Unknown", color: "#6B7280" };
 
 const getTransactionMeta = (type) =>
   TRANSACTION_META[type] || { label: "Transaction", icon: "receipt", color: "#6B7280" };
@@ -74,6 +84,9 @@ const WalletScreen = ({ navigation }) => {
   const [txHasMore, setTxHasMore] = useState(true);
   const [txLoadingMore, setTxLoadingMore] = useState(false);
 
+  const [selectedTx, setSelectedTx] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
   // ── Fetch balance ──────────────────────────────────────────────────
 
   const fetchBalance = useCallback(async () => {
@@ -100,7 +113,8 @@ const WalletScreen = ({ navigation }) => {
 
       // The backend returns a PagedResponse with .data (array) and .totalCount
       const items = response?.data || [];
-      const totalCount = response?.totalCount ?? response?.total ?? 0;
+      // Use response properties directly from the provided format
+      const hasNext = response?.hasNextPage ?? false;
 
       if (append) {
         setTransactions((prev) => [...prev, ...items]);
@@ -109,7 +123,7 @@ const WalletScreen = ({ navigation }) => {
       }
 
       setTxPage(page);
-      setTxHasMore(page * 15 < totalCount);
+      setTxHasMore(hasNext);
     } catch (error) {
       console.error("Error fetching transactions:", error);
     } finally {
@@ -150,7 +164,14 @@ const WalletScreen = ({ navigation }) => {
     const sign = credit ? "+" : "-";
 
     return (
-      <View key={item.id} style={styles.txRow}>
+      <TouchableOpacity 
+        key={item.id} 
+        style={styles.txRow}
+        onPress={() => {
+          setSelectedTx(item);
+          setModalVisible(true);
+        }}
+      >
         <View style={[styles.txIconBox, { backgroundColor: meta.color + "15" }]}>
           <Ionicons name={meta.icon} size={20} color={meta.color} />
         </View>
@@ -168,7 +189,7 @@ const WalletScreen = ({ navigation }) => {
           </Text>
           <Text style={styles.txDate}>{formatDate(item.createdAt)}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -278,9 +299,90 @@ const WalletScreen = ({ navigation }) => {
           </View>
         )}
       </ScrollView>
+
+      {/* ── Transaction Detail Modal ───────────────────────────────── */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t("transaction_details", "Transaction Details")}</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={24} color={COLORS.black} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedTx && (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.modalBody}>
+                  {/* Amount highlight */}
+                  <View style={styles.modalAmountBox}>
+                    <Text style={[styles.modalAmountValue, { color: isCredit(selectedTx.type) ? "#10B981" : "#EF4444" }]}>
+                      {isCredit(selectedTx.type) ? "+" : "-"} {selectedTx.currency} {Math.abs(selectedTx.amount).toLocaleString()}
+                    </Text>
+                    <View style={[styles.statusBadge, { backgroundColor: getTransactionStatus(selectedTx.status).color + "20" }]}>
+                      <Text style={[styles.statusBadgeText, { color: getTransactionStatus(selectedTx.status).color }]}>
+                        {getTransactionStatus(selectedTx.status).label}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.detailList}>
+                    <DetailItem 
+                      label={t("type", "Type")} 
+                      value={getTransactionMeta(selectedTx.type).label} 
+                      icon={getTransactionMeta(selectedTx.type).icon}
+                    />
+                    <DetailItem 
+                      label={t("description", "Description")} 
+                      value={selectedTx.description || "N/A"} 
+                      isDescription={true}
+                    />
+                    <DetailItem 
+                      label={t("reference_id", "Reference ID")} 
+                      value={selectedTx.referenceId} 
+                      isCopyable={true}
+                    />
+                    <DetailItem 
+                      label={t("date", "Date")} 
+                      value={new Date(selectedTx.createdAt).toLocaleString()} 
+                    />
+                    {selectedTx.completedAt && (
+                      <DetailItem 
+                        label={t("completed_at", "Completed At")} 
+                        value={new Date(selectedTx.completedAt).toLocaleString()} 
+                      />
+                    )}
+                    <DetailItem 
+                      label={t("transaction_id", "Transaction ID")} 
+                      value={selectedTx.id} 
+                    />
+                  </View>
+                </View>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
+
+const DetailItem = ({ label, value, icon, isDescription, isCopyable }) => (
+  <View style={styles.detailItem}>
+    <Text style={styles.detailLabel}>{label}</Text>
+    <View style={styles.detailValueRow}>
+      {icon && <Ionicons name={icon} size={16} color="#6B7280" style={{ marginRight: 6 }} />}
+      <Text style={[styles.detailValue, isDescription && { fontSize: 14, color: "#4B5563" }]}>
+        {value}
+      </Text>
+    </View>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -430,6 +532,82 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.6),
     fontFamily: FONTS.semiBold,
     color: COLORS.primary,
+  },
+
+  /* ── Modal Styles ─────────────────────────────────────────── */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    minHeight: responsiveHeight(50),
+    maxHeight: responsiveHeight(85),
+    paddingBottom: 30,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 25,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  modalTitle: {
+    fontSize: responsiveFontSize(2),
+    fontFamily: FONTS.bold,
+    color: COLORS.black,
+  },
+  modalBody: {
+    paddingHorizontal: 25,
+    paddingTop: 20,
+  },
+  modalAmountBox: {
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 20,
+    paddingVertical: 25,
+    marginBottom: 25,
+  },
+  modalAmountValue: {
+    fontSize: responsiveFontSize(3.5),
+    fontFamily: FONTS.bold,
+    marginBottom: 10,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  statusBadgeText: {
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: FONTS.bold,
+    textTransform: "capitalize",
+  },
+  detailList: {
+    gap: 20,
+  },
+  detailItem: {
+    gap: 4,
+  },
+  detailLabel: {
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: FONTS.medium,
+    color: "#9CA3AF",
+  },
+  detailValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  detailValue: {
+    fontSize: responsiveFontSize(1.6),
+    fontFamily: FONTS.semiBold,
+    color: "#1F2937",
+    flexShrink: 1,
   },
 });
 
