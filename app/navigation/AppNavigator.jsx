@@ -23,6 +23,7 @@ import WalletScreen from "../screens/WalletScreen";
 import RideHistoryScreen from "../screens/RideHistoryScreen";
 import Settings from "../screens/Settings";
 import ContactUsScreen from "../screens/ContactUsScreen";
+import ChatScreen from "../screens/ChatScreen";
 
 import authService from "../api/authService";
 import { COLORS } from "../constants";
@@ -96,6 +97,7 @@ const AppNavigator = () => {
         <Stack.Screen name="RideHistory" component={RideHistoryScreen} />
         <Stack.Screen name="Settings" component={Settings} />
         <Stack.Screen name="ContactUs" component={ContactUsScreen} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

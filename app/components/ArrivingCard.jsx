@@ -229,6 +229,11 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus }) => {
 
         {/* CHAT */}
         <TouchableOpacity
+          onPress={() => navigation.navigate("Chat", { 
+            rideId: driver?.rideId || driver?.RideId, 
+            driverName: driver?.driverName || driver?.DriverName,
+            profilePicUrl: driver?.profilePicUrl || driver?.ProfilePicUrl
+          })}
           style={{
             width: responsiveWidth(16),
             height: responsiveWidth(16),
