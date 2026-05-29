@@ -17,30 +17,49 @@ import {
 
 const { width } = Dimensions.get("window");
 
-const ModernAlert = ({ visible, title, message, onOk, okText = "OK", isUrdu = false }) => {
+const ModernAlert = ({ 
+  visible, 
+  title, 
+  message, 
+  onOk, 
+  okText = "OK", 
+  onCancel,
+  cancelText = "Cancel",
+  isUrdu = false 
+}) => {
   return (
     <Modal
       transparent
       visible={visible}
       animationType="fade"
-      onRequestClose={onOk}
+      onRequestClose={onCancel || onOk}
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Header with Title */}
-          <View style={[styles.header, { flexDirection: "row", justifyContent: isUrdu ? "flex-end" : "flex-start" }]}>
-            <Text style={[styles.title, { textAlign: isUrdu ? "right" : "left" }]}>{title}</Text>
+          <View style={styles.header}>
+            <Text style={[styles.title, { textAlign: "left" }]}>{title}</Text>
           </View>
 
           {/* Message Area */}
           <View style={styles.content}>
-            <Text style={[styles.message, { textAlign: isUrdu ? "right" : "left" }]}>
+            <Text style={[styles.message, { textAlign: "left" }]}>
                {message}
             </Text>
           </View>
 
-          {/* Footer with OK Button */}
-          <View style={[styles.footer, { flexDirection: "row", justifyContent: isUrdu ? "flex-start" : "flex-end" }]}>
+          {/* Footer with Buttons */}
+          <View style={[styles.footer, { 
+            flexDirection: "row", 
+            justifyContent: onCancel ? "space-between" : "flex-end",
+            gap: 10
+          }]}>
+            {onCancel && (
+              <TouchableOpacity onPress={onCancel} style={styles.cancelBtn}>
+                <Text style={styles.cancelBtnText}>{cancelText}</Text>
+              </TouchableOpacity>
+            )}
+            
             <TouchableOpacity onPress={onOk} activeOpacity={0.8}>
               <LinearGradient
                 colors={[COLORS.primary, COLORS.secondary]}
@@ -107,6 +126,17 @@ const styles = StyleSheet.create({
   okButtonText: {
     color: "#fff",
     fontFamily: FONTS.semiBold,
+    fontSize: responsiveFontSize(1.8),
+  },
+  cancelBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    justifyContent: "center",
+  },
+  cancelBtnText: {
+    color: "#6B7280",
+    fontFamily: FONTS.medium,
     fontSize: responsiveFontSize(1.8),
   },
 });

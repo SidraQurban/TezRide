@@ -18,6 +18,7 @@ import { I18nManager } from "react-native";
 import { FONTS } from "../constants/theme";
 import authService from "../api/authService";
 import storage from "../utils/storage";
+import ModernAlert from "./ModernAlert";
 
 const drawerItems = [
   { label: "Home", icon: "home-outline", route: "Home" },
@@ -36,6 +37,7 @@ const CustomDrawer = (props) => {
   const [userName, setUserName] = useState("");
   const [profilePic, setProfilePic] = useState("");
   const [userPhone, setUserPhone] = useState("");
+  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
   const drawerStatus = useDrawerStatus();
 
@@ -75,26 +77,16 @@ const CustomDrawer = (props) => {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      t("logout"),
-      t("logout_confirmation"),
-      [
-        { text: t("cancel"), style: "cancel" },
-        {
-          text: t("yes"),
-          onPress: async () => {
-            await authService.logout();
-            // The drawer's navigation is scoped inside DrawerNavigator.
-            // We must use getParent() to reach the root NativeStack and
-            // reset it to "login", preventing the user from navigating back.
-            navigation.getParent()?.reset({
-              index: 0,
-              routes: [{ name: "login" }],
-            });
-          },
-        },
-      ]
-    );
+    setShowLogoutAlert(true);
+  };
+
+  const confirmLogout = async () => {
+    setShowLogoutAlert(false);
+    await authService.logout();
+    navigation.getParent()?.reset({
+      index: 0,
+      routes: [{ name: "login" }],
+    });
   };
 
   return (
@@ -359,6 +351,17 @@ const CustomDrawer = (props) => {
           </View>
         </View>
       </View>
+      
+      <ModernAlert
+        visible={showLogoutAlert}
+        title={t("logout")}
+        message={t("logout_confirmation")}
+        okText={t("yes")}
+        cancelText={t("cancel")}
+        onOk={confirmLogout}
+        onCancel={() => setShowLogoutAlert(false)}
+        isUrdu={isRTL}
+      />
     </SafeAreaView>
   );
 };
