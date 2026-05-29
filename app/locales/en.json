@@ -278,5 +278,13 @@
   "verification_guide_desc": "To ensure a safe and comfortable environment for our female community, we require identity verification. This process helps us maintain a trustworthy community by confirming the identity of all users requesting women-only ride preferences.",
   "insufficient_balance_msg": "Insufficient wallet balance. Please top up your wallet.",
   "could_not_create_ride": "Could not create ride. Please try again.",
-  "wait_for_otp": "Please wait before requesting another OTP"
+  "wait_for_otp": "Please wait before requesting another OTP",
+  "data_security_msg": "Your data is encrypted and protected following the highest security standards.",
+  "update_profile_picture": "Update Profile Picture",
+  "choose_source": "Choose a source",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "tap_to_change": "Tap photo to change",
+  "profile_pic_updated_success": "Profile picture updated!",
+  "profile_updated_success": "Profile updated successfully!"
 }

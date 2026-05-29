@@ -28,8 +28,8 @@ const ModernAlert = ({ visible, title, message, onOk, okText = "OK", isUrdu = fa
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Header with Title */}
-          <View style={[styles.header, { flexDirection: "row", justifyContent: "flex-start" }]}>
-            <Text style={styles.title}>{title}</Text>
+          <View style={[styles.header, { flexDirection: "row", justifyContent: isUrdu ? "flex-end" : "flex-start" }]}>
+            <Text style={[styles.title, { textAlign: isUrdu ? "right" : "left" }]}>{title}</Text>
           </View>
 
           {/* Message Area */}
@@ -40,7 +40,7 @@ const ModernAlert = ({ visible, title, message, onOk, okText = "OK", isUrdu = fa
           </View>
 
           {/* Footer with OK Button */}
-          <View style={[styles.footer, { flexDirection: "row", justifyContent: "flex-end" }]}>
+          <View style={[styles.footer, { flexDirection: "row", justifyContent: isUrdu ? "flex-start" : "flex-end" }]}>
             <TouchableOpacity onPress={onOk} activeOpacity={0.8}>
               <LinearGradient
                 colors={[COLORS.primary, COLORS.secondary]}

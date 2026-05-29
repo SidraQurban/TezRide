@@ -26,6 +26,8 @@ import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
 import AppHeader from "../components/AppHeader";
+import ImageSourceModal from "../components/ImageSourceModal";
+import ModernAlert from "../components/ModernAlert";
 
 const ProfileScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
@@ -34,6 +36,12 @@ const ProfileScreen = ({ navigation }) => {
   const [updating, setUpdating] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: "",
+    message: "",
+  });
   const [profile, setProfile] = useState({
     id: "",
     firstName: "",
@@ -48,7 +56,7 @@ const ProfileScreen = ({ navigation }) => {
     try {
       const userId = await storage.getItem("userId");
       if (!userId) {
-        Alert.alert(t("error"), "User ID not found. Please log in again.");
+        showAlert(t("error"), "User ID not found. Please log in again.");
         return;
       }
       const response = await authService.getUserProfile(userId);
@@ -73,7 +81,7 @@ const ProfileScreen = ({ navigation }) => {
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
-      Alert.alert(t("error"), t("something_went_wrong"));
+      showAlert(t("error"), t("something_went_wrong"));
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,7 @@ const ProfileScreen = ({ navigation }) => {
     // Request permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
+      showAlert(
         t("error"),
         "Camera roll access is required to update your profile picture."
       );
@@ -129,18 +137,18 @@ const ProfileScreen = ({ navigation }) => {
       if (response.succeeded) {
         // Keep the local URI displayed; server holds the base64 version
         await storage.setItem("profilePictureUrl", asset.uri);
-        Alert.alert(t("success"), "Profile picture updated!");
+        showAlert(t("success"), t("profile_pic_updated_success", "Profile picture updated!"));
       } else {
         // Revert on failure
         setProfile((prev) => ({
           ...prev,
           profilePictureUrl: profile.profilePictureUrl,
         }));
-        Alert.alert(t("error"), response.message || t("something_went_wrong"));
+        showAlert(t("error"), response.message || t("something_went_wrong"));
       }
     } catch (err) {
       console.error("Image upload error:", err);
-      Alert.alert(t("error"), t("something_went_wrong"));
+      showAlert(t("error"), t("something_went_wrong"));
     } finally {
       setUploadingImage(false);
     }
@@ -150,7 +158,7 @@ const ProfileScreen = ({ navigation }) => {
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(t("error"), "Camera access is required to take a photo.");
+      showAlert(t("error"), "Camera access is required to take a photo.");
       return;
     }
 
@@ -181,14 +189,14 @@ const ProfileScreen = ({ navigation }) => {
 
       const response = await authService.updateProfile(updateData);
       if (!response.succeeded) {
-        Alert.alert(t("error"), response.message || t("something_went_wrong"));
+        showAlert(t("error"), response.message || t("something_went_wrong"));
       } else {
         await storage.setItem("profilePictureUrl", asset.uri);
-        Alert.alert(t("success"), "Profile picture updated!");
+        showAlert(t("success"), t("profile_pic_updated_success", "Profile picture updated!"));
       }
     } catch (err) {
       console.error("Camera upload error:", err);
-      Alert.alert(t("error"), t("something_went_wrong"));
+      showAlert(t("error"), t("something_went_wrong"));
     } finally {
       setUploadingImage(false);
     }
@@ -196,22 +204,13 @@ const ProfileScreen = ({ navigation }) => {
 
   // ─── Show bottom sheet options for image source ──────────────────────────
   const handleAvatarPress = () => {
-    Alert.alert(
-      "Update Profile Picture",
-      "Choose a source",
-      [
-        { text: "📷  Camera", onPress: handleTakePhoto },
-        { text: "🖼  Gallery", onPress: handlePickImage },
-        { text: "Cancel", style: "cancel" },
-      ],
-      { cancelable: true }
-    );
+    setShowImageModal(true);
   };
 
   // ─── Profile Update ───────────────────────────────────────────────────────
   const handleUpdate = async () => {
     if (!profile.firstName.trim() || !profile.lastName.trim()) {
-      Alert.alert(t("error"), "First and Last name are required.");
+      showAlert(t("error"), "First and Last name are required.");
       return;
     }
 
@@ -228,20 +227,28 @@ const ProfileScreen = ({ navigation }) => {
 
       const response = await authService.updateProfile(updateData);
       if (response.succeeded) {
-        Alert.alert(t("success"), "Profile updated successfully!");
+        showAlert(t("success"), t("profile_updated_success", "Profile updated successfully!"));
         const fullName = `${profile.firstName} ${profile.lastName}`.trim();
         await storage.setItem("customerName", fullName);
         if (profile.profilePictureUrl)
           await storage.setItem("profilePictureUrl", profile.profilePictureUrl);
       } else {
-        Alert.alert(t("error"), response.message || t("something_went_wrong"));
+        showAlert(t("error"), response.message || t("something_went_wrong"));
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      Alert.alert(t("error"), t("something_went_wrong"));
+      showAlert(t("error"), t("something_went_wrong"));
     } finally {
       setUpdating(false);
     }
+  };
+
+  const showAlert = (title, message) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+    });
   };
 
   if (loading) {
@@ -293,15 +300,15 @@ const ProfileScreen = ({ navigation }) => {
               ? `+92 ${profile.phoneNumber.substring(2)}` 
               : profile.phoneNumber}
           </Text>
-          <Text style={styles.tapHint}>Tap photo to change</Text>
+          <Text style={styles.tapHint}>{t("tap_to_change", "Tap photo to change")}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { textAlign: "left" }]}>{t("first_name", "First Name")}</Text>
+            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("first_name", "First Name")}</Text>
             <TextInput
-              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
+              style={[styles.input, { textAlign: isRTL ? "right" : "left", writingDirection: isRTL ? "rtl" : "ltr" }]}
               value={profile.firstName}
               onChangeText={(t) => setProfile((p) => ({ ...p, firstName: t }))}
               placeholder={t("first_name")}
@@ -310,9 +317,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { textAlign: "left" }]}>{t("last_name", "Last Name")}</Text>
+            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("last_name", "Last Name")}</Text>
             <TextInput
-              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
+              style={[styles.input, { textAlign: isRTL ? "right" : "left", writingDirection: isRTL ? "rtl" : "ltr" }]}
               value={profile.lastName}
               onChangeText={(t) => setProfile((p) => ({ ...p, lastName: t }))}
               placeholder={t("last_name")}
@@ -392,8 +399,7 @@ const ProfileScreen = ({ navigation }) => {
             color="#15803d"
           />
           <Text style={[styles.infoText, { textAlign: isRTL ? "right" : "left" }]}>
-            Your data is encrypted and protected following the highest security
-            standards.
+            {t("data_security_msg", "Your data is encrypted and protected following the highest security standards.")}
           </Text>
         </View>
 
@@ -418,6 +424,24 @@ const ProfileScreen = ({ navigation }) => {
         </TouchableOpacity>
 
       </ScrollView>
+
+      <ImageSourceModal
+        visible={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        onCamera={handleTakePhoto}
+        onGallery={handlePickImage}
+        t={t}
+        isRTL={isRTL}
+      />
+
+      <ModernAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onOk={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+        okText={t("ok_btn", "OK")}
+        isUrdu={isRTL}
+      />
     </SafeAreaView>
   );
 };
