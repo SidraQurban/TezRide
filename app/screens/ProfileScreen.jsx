@@ -29,11 +29,10 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
 import AppHeader from "../components/AppHeader";
 import ImageSourceModal from "../components/ImageSourceModal";
-import ModernAlert from "../components/ModernAlert";
+import ProfileAlert from "../components/ProfileAlert";
 
 const ProfileScreen = ({ navigation }) => {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.language?.startsWith("ur");
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -286,8 +285,8 @@ const ProfileScreen = ({ navigation }) => {
       <AppHeader isRtlIcon={true} />
 
       {/* Page title row */}
-      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("profile", "Profile")}</Text>
+      <View style={styles.pageTitleRow}>
+        <Text style={styles.pageTitle}>{t("profile", "Profile")}</Text>
       </View>
 
       <ScrollView
@@ -328,9 +327,9 @@ const ProfileScreen = ({ navigation }) => {
         {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("first_name", "First Name")}</Text>
+            <Text style={[styles.label, { textAlign: "left" }]}>{t("first_name", "First Name")}</Text>
             <TextInput
-              style={[styles.input, { textAlign: isRTL ? "right" : "left", writingDirection: isRTL ? "rtl" : "ltr" }]}
+              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
               value={profile.firstName}
               onChangeText={(t) => setProfile((p) => ({ ...p, firstName: t }))}
               placeholder={t("first_name")}
@@ -339,9 +338,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("last_name", "Last Name")}</Text>
+            <Text style={[styles.label, { textAlign: "left" }]}>{t("last_name", "Last Name")}</Text>
             <TextInput
-              style={[styles.input, { textAlign: isRTL ? "right" : "left", writingDirection: isRTL ? "rtl" : "ltr" }]}
+              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
               value={profile.lastName}
               onChangeText={(t) => setProfile((p) => ({ ...p, lastName: t }))}
               placeholder={t("last_name")}
@@ -350,8 +349,8 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("gender", "Gender")}</Text>
-            <View style={[styles.genderRow, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+            <Text style={[styles.label, { textAlign: "left" }]}>{t("gender", "Gender")}</Text>
+            <View style={styles.genderRow}>
               {["Male", "Female"].map((g) => (
                 <TouchableOpacity
                   key={g}
@@ -366,7 +365,7 @@ const ProfileScreen = ({ navigation }) => {
                     name={g === "Male" ? "male" : "female"}
                     size={16}
                     color={profile.gender === g ? COLORS.primary : "#aaa"}
-                    style={{ [isRTL ? "marginLeft" : "marginRight"]: 6 }}
+                    style={{ marginRight: 6 }}
                   />
                   <Text
                     style={[
@@ -382,9 +381,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}>{t("dob", "Date of Birth")}</Text>
+            <Text style={[styles.label, { textAlign: "left" }]}>{t("dob", "Date of Birth")}</Text>
             <TouchableOpacity
-              style={[styles.input, { justifyContent: "center", alignItems: isRTL ? "flex-end" : "flex-start" }]}
+              style={[styles.input, { justifyContent: "center", alignItems: "flex-start" }]}
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={{ color: profile.dateOfBirth ? COLORS.black : "#bbb", fontSize: 16 }}>
@@ -414,13 +413,13 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         {/* Security note */}
-        <View style={[styles.infoBox, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+        <View style={styles.infoBox}>
           <Ionicons
             name="shield-checkmark-outline"
             size={20}
             color="#15803d"
           />
-          <Text style={[styles.infoText, { textAlign: isRTL ? "right" : "left" }]}>
+          <Text style={styles.infoText}>
             {t("data_security_msg", "Your data is encrypted and protected following the highest security standards.")}
           </Text>
         </View>
@@ -458,16 +457,15 @@ const ProfileScreen = ({ navigation }) => {
         onCamera={handleTakePhoto}
         onGallery={handlePickImage}
         t={t}
-        isRTL={isRTL}
       />
 
-      <ModernAlert
+      <ProfileAlert
         visible={alertConfig.visible}
         title={alertConfig.title}
         message={alertConfig.message}
         onOk={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
         okText={t("ok_btn", "OK")}
-        isUrdu={isRTL}
+        isUrdu={false}
       />
     </SafeAreaView>
   );
