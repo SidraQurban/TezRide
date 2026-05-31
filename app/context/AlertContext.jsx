@@ -22,6 +22,7 @@ export const AlertProvider = ({ children }) => {
         onCancel: null,
         okText: 'OK',
         cancelText: 'Cancel',
+        icon: null,
     });
 
     const [toastConfig, setToastConfig] = useState({
@@ -40,6 +41,7 @@ export const AlertProvider = ({ children }) => {
             onCancel: config.onCancel || null,
             okText: config.okText || 'OK',
             cancelText: config.cancelText || 'Cancel',
+            icon: config.icon || null,
         });
     }, []);
 
@@ -76,6 +78,7 @@ export const AlertProvider = ({ children }) => {
                     hideAlert();
                 } : null}
                 cancelText={alertConfig.cancelText}
+                icon={alertConfig.icon}
             />
             <ModernToast
                 visible={toastConfig.visible}

@@ -14,6 +14,7 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from "react-native-responsive-dimensions";
+import { useTranslation } from "react-i18next";
 import { CheckCircle2, AlertCircle, XCircle, Info } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
@@ -23,11 +24,17 @@ const ModernAlert = ({
   title, 
   message, 
   onOk, 
-  okText = "OK", 
+  okText, 
   onCancel,
-  cancelText = "Cancel",
-  type = "info" // success, error, warning, info
+  cancelText,
+  type = "info", // success, error, warning, info
+  icon = null
 }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ur";
+  
+  const finalOkText = okText || t("ok_btn", "OK");
+  const finalCancelText = cancelText || t("cancel_btn", "Cancel");
   
   const getIcon = () => {
     const size = 60;
@@ -50,15 +57,15 @@ const ModernAlert = ({
         <View style={styles.container}>
           {/* Icon Area */}
           <View style={styles.iconWrapper}>
-            <View style={[styles.iconCircle, { backgroundColor: type === 'success' ? '#10B98110' : type === 'error' ? '#EF444410' : type === 'warning' ? '#F59E0B10' : COLORS.primary + '10' }]}>
-               {getIcon()}
+            <View style={[styles.iconCircle, { backgroundColor: type === 'success' ? '#10B98115' : type === 'error' ? '#EF444415' : type === 'warning' ? '#F59E0B15' : COLORS.primary + '15' }]}>
+               {icon ? icon : getIcon()}
             </View>
           </View>
 
           {/* Text Content */}
           <View style={styles.content}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.message}>{message}</Text>
+            <Text style={[styles.title, { textAlign: isRTL ? "right" : "center" }]}>{title}</Text>
+            <Text style={[styles.message, { textAlign: isRTL ? "right" : "center" }]}>{message}</Text>
           </View>
 
           {/* Action Buttons */}
@@ -69,7 +76,7 @@ const ModernAlert = ({
                 style={styles.cancelBtn}
                 activeOpacity={0.6}
               >
-                <Text style={styles.cancelBtnText}>{cancelText}</Text>
+                <Text style={styles.cancelBtnText}>{finalCancelText}</Text>
               </TouchableOpacity>
             )}
             
@@ -79,12 +86,12 @@ const ModernAlert = ({
               style={{ flex: 1 }}
             >
               <LinearGradient
-                colors={type === 'error' ? ['#EF4444', '#DC2626'] : type === 'warning' ? ['#F59E0B', '#D97706'] : [COLORS.primary, COLORS.secondary]}
+                colors={type === 'warning' ? ['#F59E0B', '#D97706'] : [COLORS.primary, COLORS.secondary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.okButton}
               >
-                <Text style={styles.okButtonText}>{okText}</Text>
+                <Text style={styles.okButtonText}>{finalOkText}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

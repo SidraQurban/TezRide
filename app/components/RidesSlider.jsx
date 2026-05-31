@@ -1,6 +1,6 @@
-import { TouchableOpacity, Image, Text, View, Animated, ActivityIndicator } from "react-native";
-import React, { useEffect, useRef, useMemo } from "react";
-import { Ionicons } from "@expo/vector-icons";
+import { TouchableOpacity, Image, Text, View, Animated, ActivityIndicator, StyleSheet, Modal } from "react-native";
+import React, { useEffect, useRef, useMemo, useState } from "react";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   responsiveHeight,
   responsiveWidth,
@@ -39,7 +39,8 @@ const RidesSlider = ({
   onPreferencePress,
   onEditPickup,
   onEditDestination,
-  waveDrivers = [],
+  onPaymentPress,
+  activePayment,
 }) => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
@@ -405,33 +406,60 @@ const RidesSlider = ({
           />
         </View>
 
-        {/* Dropoff */}
+        {/* Dropoff Row with Payment Dropdown */}
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
-            marginLeft:responsiveWidth(-1.5)
+            justifyContent: "space-between",
+            marginLeft: responsiveWidth(-1.5)
           }}
         >
-          <Ionicons
-            name="location-sharp"
-            size={18}
-            color="#FF6B00"
-            style={{ marginRight: 6 }}
-          />
-          <Text
-            style={{
-              fontFamily: FONTS.semiBold,
-              fontSize: responsiveFontSize(1.8),
-              color: "#1F2937",
-              textAlign: isRTL ? "right" : "left",
-            }}
-          >
-            {t("destination_address")}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <Ionicons
+              name="location-sharp"
+              size={18}
+              color="#FF6B00"
+              style={{ marginRight: 6 }}
+            />
+            <Text
+              style={{
+                fontFamily: FONTS.semiBold,
+                fontSize: responsiveFontSize(1.8),
+                color: "#1F2937",
+                textAlign: isRTL ? "right" : "left",
+              }}
+            >
+              {t("destination_address")}
+            </Text>
+          </View>
+
+          {/* Payment Dropdown - Integrated into row */}
+          {activePayment && (
+            <TouchableOpacity 
+              onPress={onPaymentPress}
+              activeOpacity={0.7}
+              style={{ 
+                flexDirection: "row", 
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(1.4),
+                  color: COLORS.primary,
+                  fontFamily: FONTS.semiBold,
+                }}
+              >
+                {t(activePayment.label) !== activePayment.label
+                  ? t(activePayment.label)
+                  : activePayment.fallbackLabel}
+              </Text>
+              <Ionicons name="chevron-down" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Destination Address */}
         <TouchableOpacity 
           style={{ marginLeft: responsiveWidth(1), }} 
           onPress={onEditDestination}
@@ -450,35 +478,6 @@ const RidesSlider = ({
             {destination?.address || t("select_destination")}
           </Text>
         </TouchableOpacity>
-
-        {/* BOTTOM ROW — ETA summary */}
-        {/* {distance && duration ? (
-          <View
-            style={{
-              marginTop: responsiveHeight(1.5),
-              paddingTop: responsiveHeight(1.5),
-              borderTopWidth: 1,
-              borderTopColor: "#F3F4F6",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: responsiveFontSize(1.4),
-                color: "#9CA3AF",
-                fontFamily: FONTS.medium,
-              }}
-            >
-              ETA: {Math.round(duration)} mins • {distance.toFixed(1)} km
-            </Text>
-
-            {priceLoading && (
-              <ActivityIndicator size="small" color={COLORS.primary} />
-            )}
-          </View>
-        ) : null} */}
       </View>
     </View>
   );

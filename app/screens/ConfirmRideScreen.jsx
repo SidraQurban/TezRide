@@ -88,9 +88,10 @@ const ConfirmRide = () => {
     ctxDestination,
   ]);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ur";
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["55%", "56%"], []);
+  const snapPoints = useMemo(() => ["54%", "56%"], []);
   const [loading, setLoading] = useState(false);
   const [genderPreference, setGenderPreference] = useState("male"); // 'male', 'female'
   const [prefModalVisible, setPrefModalVisible] = useState(false);
@@ -121,6 +122,8 @@ const ConfirmRide = () => {
   const [gModalVisible, setGModalVisible] = useState(false);
   const [waveDrivers, setWaveDrivers] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [walletAlertVisible, setWalletAlertVisible] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectionType, setSelectionType] = useState("pickup");
 
@@ -135,6 +138,40 @@ const ConfirmRide = () => {
     backImage: null,
     requiresWomenOnlyRides: true,
   });
+
+  const PAYMENT_METHODS = [
+    {
+      id: "Cash",
+      label: "cash",
+      fallbackLabel: "Cash",
+      icon: "cash-outline",
+      desc: "pay_with_cash",
+      descFallback: "Pay after your ride",
+    },
+    {
+      id: "Digital Payment",
+      label: "digital_payment",
+      fallbackLabel: "Digital Payment",
+      icon: "card-outline",
+      desc: "pay_digitally",
+      descFallback: "EasyPaisa, JazzCash, Card",
+    },
+    {
+      id: "Wallet",
+      label: "wallet",
+      fallbackLabel: "Wallet",
+      icon: "wallet-outline",
+      desc: "pay_from_wallet",
+      descFallback: "Use your app balance",
+    },
+  ];
+
+  const handlePaymentSelect = (method) => {
+    setPaymentMethod(method);
+    setPaymentModalVisible(false);
+  };
+
+  const activePayment = PAYMENT_METHODS.find(m => m.id === paymentMethod) || PAYMENT_METHODS[0];
 
   // Pre-fill form from storage if available
   useEffect(() => {
@@ -350,7 +387,8 @@ const ConfirmRide = () => {
           showAlert({
             title: t("error"),
             message: t("could_not_create_ride") || "Could not create ride. Please try again.",
-            type: 'error'
+            type: 'error',
+            icon: <Ionicons name="alert-circle-outline" size={60} color={COLORS.primary} />
           });
           return;
         }
@@ -377,17 +415,24 @@ const ConfirmRide = () => {
             : selectedRide?.price,
         });
       } else {
+        const msg = response.message || "";
         showAlert({
           title: t("error"),
-          message: response.message || t("ride_request_failed"),
-          type: 'error'
+          message: msg.includes("Insufficient wallet balance") 
+            ? t("insufficient_balance_msg") 
+            : (msg || t("ride_request_failed")),
+          type: 'error',
+          icon: paymentMethod === 'Wallet' 
+            ? <Ionicons name="wallet-outline" size={60} color={COLORS.primary} />
+            : <Ionicons name="alert-circle-outline" size={60} color={COLORS.primary} />
         });
       }
     } catch (error) {
       showAlert({
         title: t("error"),
         message: error.message || t("something_went_wrong"),
-        type: 'error'
+        type: 'error',
+        icon: <Ionicons name="alert-circle-outline" size={60} color={COLORS.primary} />
       });
     } finally {
       setLoading(false);
@@ -470,14 +515,16 @@ const ConfirmRide = () => {
           });
         } else {
           // status 0 or NotSubmitted
-          Alert.alert(
-            t("verification_required_title"),
-            t("verification_required_msg"),
-            [
-              { text: t("cancel_btn"), style: "cancel" },
-              { text: t("continue_btn"), onPress: () => setVModalVisible(true) },
-            ]
-          );
+          showAlert({
+            title: t("verification_required_title"),
+            message: t("verification_required_msg"),
+            type: 'info',
+            okText: t("continue_btn"),
+            cancelText: t("cancel_btn"),
+            onOk: () => setVModalVisible(true),
+            onCancel: () => {},
+            icon: <Ionicons name="shield-checkmark-outline" size={60} color={COLORS.primary} />
+          });
         }
       }
     } catch (error) {
@@ -624,48 +671,6 @@ const ConfirmRide = () => {
           zIndex: 50,
         }}
       >
-        {/* PAYMENT METHOD SELECTION */}
-        {!isSelectionMode && (
-          <View style={{
-            backgroundColor: "#FFF",
-            borderRadius: 25,
-            padding: 5,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            elevation: 10,
-            shadowColor: "#000",
-            shadowOpacity: 0.15,
-            shadowRadius: 10,
-            marginBottom: responsiveHeight(2),
-            borderWidth: 1,
-            borderColor: "#F3F4F6",
-          }}>
-            {["Cash", "Digital Payment", "Wallet"].map((method) => (
-              <TouchableOpacity
-                key={method}
-                onPress={() => setPaymentMethod(method)}
-                activeOpacity={0.7}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 20,
-                  backgroundColor: paymentMethod === method ? COLORS.primary : "transparent",
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Text style={{
-                  color: paymentMethod === method ? COLORS.white : "#6B7280",
-                  fontFamily: paymentMethod === method ? FONTS.bold : FONTS.medium,
-                  fontSize: responsiveFontSize(1.4),
-                }}>
-                  {t(method.toLowerCase().replace(" ", "_"))}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
         <TouchableOpacity
           onPress={isSelectionMode ? handleLocationConfirm : handleConfirmRide}
           disabled={loading}
@@ -805,13 +810,21 @@ const ConfirmRide = () => {
                       key={g}
                       style={[
                         styles.prefItem,
-                        { flex: 1, justifyContent: "center", paddingVertical: 10 },
+                        { flex: 1, justifyContent: "center", paddingVertical: 12, height: 50 },
                         vForm.gender === g && styles.prefItemActive,
                       ]}
                       onPress={() => setVForm((prev) => ({ ...prev, gender: g }))}
                     >
-                      <Text style={[styles.prefLabel, vForm.gender === g && styles.prefLabelActive]}>
-                        {g}
+                      <Text style={[
+                        { 
+                          fontSize: responsiveFontSize(1.6), 
+                          fontFamily: FONTS.medium, 
+                          color: "#374151", 
+                          textAlign: "center" 
+                        }, 
+                        vForm.gender === g && styles.prefLabelActive
+                      ]}>
+                        {g === "Male" ? t("male") : g === "Female" ? t("female") : t("other")}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -877,7 +890,9 @@ const ConfirmRide = () => {
         </View>
       </Modal>
 
-      {/* VERIFICATION GUIDE MODAL */}
+
+
+      {/* VERIFICATION GUIDE MODAL (Why we ask) */}
       <Modal visible={gModalVisible} transparent animationType="fade">
         <TouchableOpacity
           activeOpacity={1}
@@ -906,10 +921,136 @@ const ConfirmRide = () => {
                 end={{ x: 1, y: 0 }}
                 style={styles.confirmBtn}
               >
-                <Text style={styles.confirmBtnText}>{t("ok_btn", "Got it!")}</Text>
+                <Text style={styles.confirmBtnText}>{t("ok_btn")}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* WALLET PAYMENT ALERT MODAL */}
+      <Modal
+        transparent
+        visible={walletAlertVisible}
+        animationType="fade"
+        onRequestClose={() => setWalletAlertVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.alertOverlay} 
+          activeOpacity={1} 
+          onPress={() => setWalletAlertVisible(false)}
+        >
+          <View style={styles.alertContainer}>
+            <View style={styles.alertHeader}>
+              <View style={{ 
+                width: 70, 
+                height: 70, 
+                borderRadius: 35, 
+                backgroundColor: COLORS.primary + '10', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                alignSelf: 'center',
+                marginBottom: 15
+              }}>
+                <Ionicons name="wallet-outline" size={40} color={COLORS.primary} />
+              </View>
+              <Text style={[styles.alertTitle, { textAlign: isRTL ? "right" : "left", alignSelf: 'center' }]}>
+                {t("wallet_payment", "Wallet Payment")}
+              </Text>
+            </View>
+            <View style={styles.alertContent}>
+              <Text style={[styles.alertMessage, { textAlign: isRTL ? "right" : "left" }]}>
+                {t("wallet_alert_msg", "You have selected Wallet as your payment method. Please ensure you have sufficient balance for the ride.")}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => setWalletAlertVisible(false)} 
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[COLORS.primary, COLORS.secondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.alertOkButton}
+              >
+                <Text style={styles.alertOkButtonText}>{t("ok_btn", "OK")}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+      <Modal 
+        visible={paymentModalVisible} 
+        transparent 
+        animationType="slide"
+        onRequestClose={() => setPaymentModalVisible(false)}
+      >
+        <TouchableOpacity 
+          activeOpacity={1} 
+          style={styles.paymentModalOverlay}
+          onPress={() => setPaymentModalVisible(false)}
+        >
+          <View style={styles.paymentModalContent}>
+            <View style={styles.modalIndicator} />
+            
+            <Text style={styles.paymentModalTitle}>
+              {t("payment_methods", "Select Payment Method")}
+            </Text>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {PAYMENT_METHODS.map((method) => {
+                const isActive = paymentMethod === method.id;
+                return (
+                  <TouchableOpacity
+                    key={method.id}
+                    onPress={() => handlePaymentSelect(method.id)}
+                    activeOpacity={0.7}
+                    style={[
+                      styles.paymentMethodItem,
+                      isActive && styles.paymentMethodItemActive
+                    ]}
+                  >
+                      <View
+                        style={[
+                          styles.paymentMethodIconBox,
+                          isActive && styles.paymentMethodIconBoxActive
+                        ]}
+                      >
+                        <Ionicons 
+                          name={method.icon} 
+                          size={24} 
+                          color={isActive ? COLORS.primary : "#6B7280"} 
+                        />
+                      </View>
+
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.paymentMethodLabel,
+                          isActive && styles.paymentMethodLabelActive
+                        ]}
+                      >
+                        {t(method.label) !== method.label
+                          ? t(method.label)
+                          : method.fallbackLabel}
+                      </Text>
+                      <Text style={styles.paymentMethodDesc}>
+                        {t(method.desc) !== method.desc
+                          ? t(method.desc)
+                          : method.descFallback}
+                      </Text>
+                    </View>
+
+                    <Ionicons 
+                      name={isActive ? "checkmark-circle" : "ellipse-outline"} 
+                      size={24} 
+                      color={isActive ? COLORS.primary : "#D1D5DB"} 
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
         </TouchableOpacity>
       </Modal>
 
@@ -948,6 +1089,8 @@ const ConfirmRide = () => {
           waveDrivers={waveDrivers}
           onPickupPress={() => startSelection("pickup")}
           onDestinationPress={() => startSelection("destination")}
+          onPaymentPress={() => setPaymentModalVisible(true)}
+          activePayment={activePayment}
         />
       </BottomSheet>
     </SafeAreaView>
@@ -1117,6 +1260,121 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     marginTop: 10,
+  },
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  alertContainer: {
+    width: responsiveWidth(85),
+    backgroundColor: "#fff",
+    borderRadius: 22,
+    padding: 25,
+    elevation: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  alertHeader: {
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    paddingBottom: 12,
+  },
+  alertTitle: {
+    fontFamily: FONTS.bold,
+    fontSize: responsiveFontSize(2.2),
+    color: COLORS.primary,
+  },
+  alertContent: {
+    marginBottom: 25,
+  },
+  alertMessage: {
+    fontFamily: FONTS.regular,
+    fontSize: responsiveFontSize(1.8),
+    color: "#4B5563",
+    lineHeight: 24,
+  },
+  alertOkButton: {
+    height: 50,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  alertOkButtonText: {
+    color: "#fff",
+    fontFamily: FONTS.bold,
+    fontSize: responsiveFontSize(2),
+  },
+
+  paymentModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  paymentModalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingTop: 12,
+    paddingBottom: responsiveHeight(5),
+    paddingHorizontal: responsiveWidth(5),
+    maxHeight: responsiveHeight(60),
+    elevation: 20,
+  },
+  paymentModalTitle: {
+    fontFamily: FONTS.bold,
+    fontSize: responsiveFontSize(2.2),
+    color: '#111827',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  paymentMethodItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 20,
+    backgroundColor: "#F9FAFB",
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: "#F3F4F6",
+  },
+  paymentMethodItemActive: {
+    backgroundColor: "#FFF7ED",
+    borderColor: COLORS.primary,
+  },
+  paymentMethodIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 15,
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  paymentMethodIconBoxActive: {
+    backgroundColor: "#FFE4CC",
+    borderColor: COLORS.primary,
+  },
+  paymentMethodLabel: {
+    fontFamily: FONTS.medium,
+    fontSize: responsiveFontSize(1.9),
+    color: "#111827",
+  },
+  paymentMethodLabelActive: {
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
+  },
+  paymentMethodDesc: {
+    fontFamily: FONTS.regular,
+    fontSize: responsiveFontSize(1.4),
+    color: "#6B7280",
+    marginTop: 2,
   },
 });
 
