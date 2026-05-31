@@ -48,14 +48,21 @@ import TripCompletionModal from "../components/TripCompletionModal";
 
 const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
-  const { rideImage, pickup, destination, rideId, vehicleType, price } =
+  const { rideImage, pickup, destination, rideId, vehicleType, price, serviceType, genderPreference } =
     route.params || {};
   const { t } = useTranslation();
   const { showAlert, showToast } = useAlert();
   const { activeRide, setActiveRide, clearActiveRide } = useRide();
 
   const selectedRide = rides.find((r) => r.id === vehicleType);
-  const displayImage = selectedRide?.image || rideImage || require("../../assets/rickshaw.png");
+  
+  // For 'Hire' service, show gender-specific icons during searching
+  let displayImage = selectedRide?.image || rideImage || require("../../assets/rickshaw.png");
+  if (serviceType === "Hire") {
+    displayImage = genderPreference === "Female" 
+        ? require("../../assets/femaledriver.png") 
+        : require("../../assets/driver.png");
+  }
 
   const bottomSheetRef = useRef(null);
 
