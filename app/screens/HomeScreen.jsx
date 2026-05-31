@@ -22,6 +22,7 @@ import SearchBar from "../components/SearchBar";
 import LocationModal from "../components/LocationModal";
 import SaveAddressModal from "../components/SaveAddressModal";
 import MapLocationPickerModal from "../components/MapLocationPickerModal";
+import SingleMapLocationPickerModal from "../components/SingleMapLocationPickerModal";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import * as ExpoLocation from "expo-location";
@@ -61,8 +62,12 @@ const HomeScreen = ({ navigation, route }) => {
     setFetchingPreferences(true);
     try {
       const response = await preferenceService.getPreferences();
-      if (response.succeeded) {
-        setPreferences(response.data || []);
+      // Handle both camelCase and PascalCase from various backend environments/caches
+      const hasSucceeded = response.succeeded || response.Succeeded;
+      const data = response.data || response.Data;
+      
+      if (hasSucceeded) {
+        setPreferences(data || []);
       }
     } catch (error) {
       console.warn("Failed to fetch user preferences", error);
@@ -371,28 +376,41 @@ const HomeScreen = ({ navigation, route }) => {
 
             {/* Saved Preferences (Home, Work, etc.) */}
             {preferences.map((pref) => {
+              // Handle both PascalCase (from Redis/some endpoints) and camelCase (from others)
+              const pKey = pref.key || pref.Key;
+              const pValue = pref.value || pref.Value;
+              const pIcon = pref.icon || pref.Icon;
+              const pId = pref.id || pref.Id;
+
               let detail = {};
               try {
-                detail = JSON.parse(pref.value);
+                detail = JSON.parse(pValue);
               } catch {
-                detail = { address: pref.value };
+                detail = { address: pValue };
               }
+
+              // Normalize detail fields too
+              const addr = detail.address || detail.Address || "";
+              const lat = detail.latitude || detail.Latitude;
+              const lon = detail.longitude || detail.Longitude;
 
               return (
                 <TouchableOpacity
-                  key={pref.id}
+                  key={pId}
                   activeOpacity={0.8}
                   onPress={() => {
                     // Navigate to search with this as destination
-                    // Include coordinates if they were saved with the preference
+                    // Use the first part of the address as the "name" for display in search bar
+                    const displayName = addr.split(",")[0].trim() || pKey;
+
                     navigation.navigate("Search", { 
                       destination: {
-                        address: detail.address,
-                        name: pref.key,
-                        latitude: detail.latitude || undefined,
-                        longitude: detail.longitude || undefined,
+                        address: addr,
+                        name: displayName,
+                        latitude: lat || undefined,
+                        longitude: lon || undefined,
                       },
-                      activeField: "pickup",
+                      activeField: "destination",
                     });
                   }}
                   style={{
@@ -419,10 +437,10 @@ const HomeScreen = ({ navigation, route }) => {
                       }}
                       numberOfLines={1}
                     >
-                      {pref.key}
+                      {pKey}
                     </Text>
                     <Ionicons
-                      name={pref.icon || "location"}
+                      name={pIcon || "location"}
                       size={20}
                       color={COLORS.primary}
                       style={{ marginStart: 8 }}
@@ -438,7 +456,7 @@ const HomeScreen = ({ navigation, route }) => {
                     }}
                     numberOfLines={1}
                   >
-                    {detail.address || detail.houseNo || ""}
+                    {addr || detail.houseNo || detail.HouseNo || ""}
                   </Text>
                 </TouchableOpacity>
               );
@@ -514,7 +532,7 @@ const HomeScreen = ({ navigation, route }) => {
           longitude={selectedMapAddress?.longitude}
         />
 
-        <MapLocationPickerModal
+        <SingleMapLocationPickerModal
           visible={mapPickerVisible}
           onClose={() => setMapPickerVisible(false)}
           onSelect={(data) => {

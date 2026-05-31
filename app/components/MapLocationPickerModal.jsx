@@ -120,19 +120,25 @@ const MapLocationPickerModal = ({ visible, onClose, onSelect }) => {
     setFetchingAddress(true);
     setAddress("");
     try {
-      const results = await ExpoLocation.reverseGeocodeAsync({
-        latitude: region.latitude,
-        longitude: region.longitude,
-      });
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${region.latitude},${region.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+      const response = await fetch(url);
+      const json = await response.json();
 
-      if (results && results.length > 0) {
-        const item = results[0];
-        const parts = [item.name, item.street, item.district, item.city].filter(Boolean);
-        setAddress(parts.join(", "));
+      if (json.status === "OK") {
+        const result =
+          json.results.find((r) => !r.types.includes("plus_code")) ||
+          json.results[0];
+        
+        let cleanAddress = result.formatted_address.replace(
+          /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}\s*,?\s*/,
+          "",
+        );
+        setAddress(cleanAddress);
       } else {
         setAddress(`${region.latitude.toFixed(5)}, ${region.longitude.toFixed(5)}`);
       }
-    } catch {
+    } catch (error) {
+      console.warn("[MapPicker] Reverse geocode error:", error);
       setAddress(`${region.latitude.toFixed(5)}, ${region.longitude.toFixed(5)}`);
     } finally {
       setFetchingAddress(false);
@@ -188,11 +194,16 @@ const MapLocationPickerModal = ({ visible, onClose, onSelect }) => {
   const handleConfirm = () => {
     if (!selectedRegion || !address || fetchingAddress) return;
 
+    const addressParts = address.split(",");
+    const locationName = addressParts.length > 1
+      ? `${addressParts[0]}, ${addressParts[1]}`.trim()
+      : addressParts[0].trim();
+
     const locationData = {
       latitude: selectedRegion.latitude,
       longitude: selectedRegion.longitude,
       address,
-      name: address.split(",")[0].trim(),
+      name: locationName,
     };
 
     if (isPickupStep) {

@@ -55,11 +55,12 @@ const SearchScreen = () => {
 
   // Auto-focus the correct field on mount
   useEffect(() => {
-    // If destination is pre-filled from params (e.g. saved preference), focus pickup
-    if (route.params?.destination) {
-      setTimeout(() => pickupRef.current?.focus(), 500);
-    } else if (route.params?.activeField === "destination") {
+    if (route.params?.activeField === "destination") {
       setTimeout(() => destinationRef.current?.focus(), 500);
+    } else if (route.params?.activeField === "pickup") {
+      setTimeout(() => pickupRef.current?.focus(), 500);
+    } else if (route.params?.destination) {
+      setTimeout(() => pickupRef.current?.focus(), 500);
     } else {
       setTimeout(() => pickupRef.current?.focus(), 500);
     }
@@ -127,15 +128,15 @@ const SearchScreen = () => {
           distance: "0",
         };
         
-        // Only auto-fill if the user hasn't started typing yet
-        // Only auto-fill if the user hasn't started typing yet AND context is empty
         // Only auto-fill if the user hasn't started typing yet AND context is empty AND params are empty
-        if (!pickup && !ctxPickup && !route.params?.pickup && !route.params?.destination) {
+        if (!pickup && !ctxPickup && !route.params?.pickup) {
           setPickup(locationData.name);
           setPickupData(locationData);
-          // If we have pickup, focus destination automatically
-          setActiveField("destination");
-          setTimeout(() => destinationRef.current?.focus(), 100);
+          // If we have pickup but no destination, focus destination automatically
+          if (!destination && !route.params?.destination) {
+            setActiveField("destination");
+            setTimeout(() => destinationRef.current?.focus(), 100);
+          }
         }
       }
     } catch (e) {
