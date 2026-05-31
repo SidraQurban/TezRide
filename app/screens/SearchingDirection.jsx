@@ -36,18 +36,22 @@ import BackBtn from "../components/BackBtn";
 import { useTranslation } from "react-i18next";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 
 import customerHub from "../api/customerHub";
 import DriverInterestCard from "../components/DriverInterestCard";
 import { useRide } from "../context/RideContext";
+import { useAlert } from "../context/AlertContext";
 import { rides } from "../data/data.jsx";
 import rideService from "../api/rideService";
+import TripCompletionModal from "../components/TripCompletionModal";
 
 const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
   const { rideImage, pickup, destination, rideId, vehicleType, price } =
     route.params || {};
   const { t } = useTranslation();
+  const { showAlert, showToast } = useAlert();
   const { activeRide, setActiveRide, clearActiveRide } = useRide();
 
   const selectedRide = rides.find((r) => r.id === vehicleType);
@@ -61,7 +65,6 @@ const SearchingDirection = ({ route }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showNoDriversModal, setShowNoDriversModal] = useState(false);
-  const [rating, setRating] = useState(5);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [driverAssignedInfo, setDriverAssignedInfo] = useState(null);
   const [interestedDrivers, setInterestedDrivers] = useState([]);
@@ -267,8 +270,12 @@ const SearchingDirection = ({ route }) => {
       const pRideId = payload.rideId || payload.RideId;
       if (String(pRideId) !== String(rideId)) return;
       
-      if (rideStatusRef.current !== "searching") return; // already handled
-      Alert.alert(t("error"), payload.reason || payload.Reason || t("selection_failed"));
+      if (rideStatusRef.current !== "searching") return;
+      showAlert({
+        title: t("error"),
+        message: payload.reason || payload.Reason || t("selection_failed"),
+        type: 'error'
+      });
     };
 
     // DriverSelected: { rideId, driverId, success: true }
@@ -359,7 +366,11 @@ const SearchingDirection = ({ route }) => {
     } catch (error) {
       selectionSentRef.current = false; // allow retry on network error
       setRideStatus("searching"); // rollback UI on error
-      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+      showAlert({
+        title: t("error"),
+        message: error.message || t("something_went_wrong"),
+        type: 'error'
+      });
     }
   };
 
@@ -435,6 +446,38 @@ const SearchingDirection = ({ route }) => {
             showRoute={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
             showPickupMarker={true}
             animateZoomOut={true}
+            onPickupDragEnd={async (coords) => {
+              const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+              const response = await fetch(url);
+              const json = await response.json();
+              if (json.status === "OK") {
+                const result = json.results[0];
+                setActiveRide({
+                  pickup: {
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    name: result.formatted_address.split(',')[0],
+                    address: result.formatted_address
+                  }
+                });
+              }
+            }}
+            onDestinationDragEnd={async (coords) => {
+              const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+              const response = await fetch(url);
+              const json = await response.json();
+              if (json.status === "OK") {
+                const result = json.results[0];
+                setActiveRide({
+                  destination: {
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    name: result.formatted_address.split(',')[0],
+                    address: result.formatted_address
+                  }
+                });
+              }
+            }}
           />
 
           {/* Pulse / vehicle icon */}
@@ -722,150 +765,44 @@ const SearchingDirection = ({ route }) => {
           </View>
         </Modal>
       
-      {/* Ride Completion Modal */}
-      <Modal
+      <TripCompletionModal
         visible={showCompletionModal}
-        animationType="slide"
-        transparent={false}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
-          <ScrollView contentContainerStyle={{ padding: 24, alignItems: 'center' }} showsVerticalScrollIndicator={false}>
-            <View style={{ 
-              width: 100, 
-              height: 100, 
-              borderRadius: 50, 
-              backgroundColor: '#F0FDF4', 
-              justifyContent: 'center', 
-              alignItems: 'center',
-              marginTop: 40,
-              marginBottom: 20
-            }}>
-              <Ionicons name="checkmark-circle" size={64} color="#10B981" />
-            </View>
-            
-            <Text style={{ fontFamily: FONTS.bold, fontSize: 28, color: COLORS.text, textAlign: 'center' }}>
-              {t("ride_completed_title", { defaultValue: "Trip Completed!" })}
-            </Text>
-            
-            <View style={{ 
-              width: '100%', 
-              backgroundColor: '#F8F9FA', 
-              borderRadius: 20, 
-              padding: 20, 
-              marginVertical: 30,
-              borderWidth: 1,
-              borderColor: '#E9ECEF'
-            }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={{ fontFamily: FONTS.bold, fontSize: 22, color: COLORS.text }}>{activeRide?.distanceKm || 0} km</Text>
-                  <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D' }}>Distance</Text>
-                </View>
-                <View style={{ width: 1, backgroundColor: '#DEE2E6', height: '80%', alignSelf: 'center' }} />
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={{ fontFamily: FONTS.bold, fontSize: 22, color: COLORS.text }}>{activeRide?.durationMinutes || 0} min</Text>
-                  <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D' }}>Time Taken</Text>
-                </View>
-              </View>
+        activeRide={activeRide}
+        isSubmitting={isSubmittingRating}
+        onFinish={async (userRating) => {
+          setIsSubmittingRating(true);
+          try {
+            const targetDriverId = activeRide?.driverId || (activeRide?.assignedDriver?.driverId || activeRide?.assignedDriver?.DriverId);
+            if (targetDriverId) {
+              await rideService.submitRating({
+                rideId: rideId,
+                targetUserId: targetDriverId,
+                rating: userRating,
+                comment: "Ride completed successfully"
+              });
+            }
 
-              <View style={{ height: 1, backgroundColor: '#DEE2E6', marginBottom: 20 }} />
-
-              <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: '#6C757D', textAlign: 'center', marginBottom: 8 }}>
-                {activeRide?.payFromWallet 
-                   ? t("paid_via_wallet", { defaultValue: "PAID VIA WALLET" }) 
-                   : t("total_fare_paid", { defaultValue: "TOTAL FARE PAID (CASH)" })}
-              </Text>
-              <Text style={{ fontFamily: FONTS.bold, fontSize: 36, color: COLORS.primary, textAlign: 'center' }}>
-                {activeRide?.finalFare ? `${activeRide.currency || "PKR"} ${activeRide.finalFare}` : "PKR 0"}
-              </Text>
-            </View>
-
-            {/* Rating Section */}
-            <View style={{ width: '100%', alignItems: 'center', marginBottom: 40 }}>
-              <Text style={{ fontFamily: FONTS.bold, fontSize: 18, color: COLORS.text, marginBottom: 15 }}>
-                 How was your Captain?
-              </Text>
-              <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-                  {[1, 2, 3, 4, 5].map((s) => (
-                      <TouchableOpacity 
-                        key={s} 
-                        onPress={() => {
-                          setRating(s);
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        }}
-                      >
-                          <Ionicons 
-                              name={s <= rating ? "star" : "star-outline"} 
-                              size={48} 
-                              color={s <= rating ? "#F59E0B" : "#D1D5DB"} 
-                              style={{ marginHorizontal: 8 }}
-                          />
-                      </TouchableOpacity>
-                  ))}
-              </View>
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              disabled={isSubmittingRating}
-              onPress={async () => {
-                setIsSubmittingRating(true);
-                try {
-                  const targetDriverId = activeRide?.driverId;
-                  if (targetDriverId) {
-                      await rideService.submitRating({
-                          rideId: rideId,
-                          targetUserId: targetDriverId,
-                          rating: rating,
-                          comment: "Great captain!"
-                      });
-                  }
-
-                  setShowCompletionModal(false);
-                  clearActiveRide();
-                  await customerHub.stop();
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: "MainDrawer" }],
-                  });
-                } catch (err) {
-                  console.warn("Rating submission failed", err);
-                  setShowCompletionModal(false);
-                  clearActiveRide();
-                  await customerHub.stop();
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: "MainDrawer" }],
-                  });
-                } finally {
-                  setIsSubmittingRating(false);
-                }
-              }}
-              style={{
-                width: '100%',
-                height: 60,
-                borderRadius: 18,
-                backgroundColor: COLORS.primary,
-                justifyContent: 'center',
-                alignItems: 'center',
-                shadowColor: COLORS.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 10,
-                elevation: 8,
-              }}
-            >
-              {isSubmittingRating ? (
-                  <ActivityIndicator color="#FFF" />
-              ) : (
-                  <Text style={{ fontFamily: FONTS.bold, fontSize: 18, color: '#FFF' }}>
-                      {t("submit_and_finish", { defaultValue: "Submit & Finish" })}
-                  </Text>
-              )}
-            </TouchableOpacity>
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
+            setShowCompletionModal(false);
+            clearActiveRide();
+            await customerHub.stop();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MainDrawer" }],
+            });
+          } catch (err) {
+            console.warn("Rating submission failed", err);
+            setShowCompletionModal(false);
+            clearActiveRide();
+            await customerHub.stop();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MainDrawer" }],
+            });
+          } finally {
+            setIsSubmittingRating(false);
+          }
+        }}
+      />
 
       {/* No Drivers Found Modal */}
       <Modal

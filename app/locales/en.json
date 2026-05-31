@@ -290,5 +290,13 @@
   "no_rider_found_title": "No Riders Found",
   "no_rider_found_desc": "We couldn't find any available riders in your area at the moment. Please try again in a few minutes.",
   "go_back": "Go Back",
-  "cancel_request": "Cancel Request"
+  "cancel_request": "Cancel Request",
+  "cash": "Cash",
+  "digital_payment": "Digital Payment",
+  "select_on_map": "Select on Map",
+  "add_new": "Add New",
+  "selected_location": "Selected Location",
+  "calculating_address": "Calculating address...",
+  "confirm_pickup": "Confirm Pickup →",
+  "confirm_destination": "Confirm Destination ✓"
 }

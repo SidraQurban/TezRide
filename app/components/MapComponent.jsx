@@ -99,6 +99,7 @@ const MapComponent = memo(({
   onLocationSelected,
   onEditPickup,
   onEditDestination,
+  forcedRegion,
 }) => {
   const { t } = useTranslation();
   const mapRef = useRef(null);
@@ -151,12 +152,16 @@ const MapComponent = memo(({
     }
   }, [pickup?.latitude, pickup?.longitude, destination?.latitude, destination?.longitude, isSelectionMode]);
 
-  // Trigger zoom whenever map is ready OR either point changes
+  // Trigger zoom whenever map is ready OR either point changes OR forcedRegion changes
   useEffect(() => {
     if (!mapReady) return;
+    if (forcedRegion) {
+        mapRef.current?.animateToRegion(forcedRegion, 600);
+        return;
+    }
     const id = setTimeout(fitBothPoints, 150); // slight delay so markers render first
     return () => clearTimeout(id);
-  }, [mapReady, fitBothPoints]);
+  }, [mapReady, fitBothPoints, forcedRegion]);
 
   // ─── User location ────────────────────────────────────────────────────────
   const handleUserLocationChange = useCallback(event => {
@@ -237,6 +242,10 @@ const MapComponent = memo(({
             identifier="pickup-marker"
             coordinate={{ latitude: pickup.latitude, longitude: pickup.longitude }}
             anchor={{ x: 0.5, y: 1 }}
+            draggable={!!onPickupDragEnd}
+            onDragEnd={(e) => {
+              if (onPickupDragEnd) onPickupDragEnd(e.nativeEvent.coordinate);
+            }}
           >
             <View style={styles.markerWrap}>
               <View style={[styles.iconCircle, { backgroundColor: COLORS.primary }]}>
@@ -253,6 +262,10 @@ const MapComponent = memo(({
             identifier="dest-marker"
             coordinate={{ latitude: destination.latitude, longitude: destination.longitude }}
             anchor={{ x: 0.5, y: 1 }}
+            draggable={!!onDestinationDragEnd}
+            onDragEnd={(e) => {
+              if (onDestinationDragEnd) onDestinationDragEnd(e.nativeEvent.coordinate);
+            }}
           >
             <View style={styles.markerWrap}>
               <View style={[styles.iconCircle, { backgroundColor: "#FF3B30" }]}>

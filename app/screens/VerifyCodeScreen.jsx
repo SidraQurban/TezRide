@@ -34,20 +34,15 @@ import Animated, {
 } from "react-native-reanimated";
 
 import authService from "../api/authService";
-import ModernAlert from "../components/ModernAlert";
+import { useAlert } from "../context/AlertContext";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const VerifyCodeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
+  const { showAlert, showToast } = useAlert();
   const isUrdu = i18n.language?.startsWith("ur");
   const { phoneNumber, autoFillOTP } = route.params || {};
-
-  const [alertConfig, setAlertConfig] = useState({
-    visible: false,
-    title: "",
-    message: "",
-  });
 
   const toggleLanguage = () => {
     const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
@@ -139,17 +134,17 @@ const VerifyCodeScreen = ({ navigation, route }) => {
           ],
         });
       } else {
-        setAlertConfig({
-          visible: true,
+        showAlert({
           title: t("error"),
           message: response.message || t("otp_verification_failed"),
+          type: 'error'
         });
       }
     } catch (error) {
-      setAlertConfig({
-        visible: true,
+      showAlert({
         title: t("error"),
         message: error.message || t("something_went_wrong"),
+        type: 'error'
       });
     } finally {
       setLoading(false);
@@ -171,17 +166,17 @@ const VerifyCodeScreen = ({ navigation, route }) => {
           ? t("wait_for_otp") 
           : response.message || t("otp_send_failed");
         
-        setAlertConfig({
-          visible: true,
+        showAlert({
           title: t("error"),
           message: message,
+          type: 'error'
         });
       }
     } catch (error) {
-      setAlertConfig({
-        visible: true,
+      showAlert({
         title: t("error"),
         message: (error.message && error.message.toLowerCase().includes("please wait")) ? t("wait_for_otp") : (error.message || t("something_went_wrong")),
+        type: 'error'
       });
     } finally {
       setResendLoading(false);
@@ -502,14 +497,6 @@ const VerifyCodeScreen = ({ navigation, route }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <ModernAlert
-        visible={alertConfig.visible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        isUrdu={isUrdu}
-        okText={t("ok_btn") || "OK"}
-        onOk={() => setAlertConfig({ ...alertConfig, visible: false })}
-      />
     </SafeAreaView>
   );
 };

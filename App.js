@@ -3,6 +3,7 @@ import "react-native-gesture-handler";
 import React, { useEffect } from "react";
 import AppNavigator from "./app/navigation/AppNavigator";
 import { RideProvider } from "./app/context/RideContext";
+import { AlertProvider } from "./app/context/AlertContext";
 import {
   useFonts,
   Poppins_400Regular,
@@ -72,7 +73,9 @@ export default function App() {
       />
 
       <RideProvider>
-        <AppNavigator />
+        <AlertProvider>
+          <AppNavigator />
+        </AlertProvider>
       </RideProvider>
     </>
   );

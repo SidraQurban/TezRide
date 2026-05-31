@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import * as ExpoLocation from "expo-location";
 import { useRide } from "../context/RideContext";
+import MapLocationPickerModal from "../components/MapLocationPickerModal";
 
 const SearchScreen = () => {
   const { t, i18n } = useTranslation();
@@ -36,29 +37,33 @@ const SearchScreen = () => {
     setDestination: setCtxDestination 
   } = useRide();
 
-  const [pickup, setPickup] = useState(ctxPickup?.name || ctxPickup?.address || "");
-  const [destination, setDestination] = useState(ctxDestination?.name || ctxDestination?.address || "");
-  const [pickupData, setPickupData] = useState(ctxPickup);
-  const [destinationData, setDestinationData] = useState(ctxDestination);
+  const [pickup, setPickup] = useState(route.params?.pickup?.name || route.params?.pickup?.address || ctxPickup?.name || ctxPickup?.address || "");
+  const [destination, setDestination] = useState(route.params?.destination?.name || route.params?.destination?.address || ctxDestination?.name || ctxDestination?.address || "");
+  const [pickupData, setPickupData] = useState(route.params?.pickup || ctxPickup);
+  const [destinationData, setDestinationData] = useState(route.params?.destination || ctxDestination);
   const [activeField, setActiveField] = useState(route.params?.activeField || "pickup");
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sessionToken, setSessionToken] = useState("");
   const [currentLocation, setCurrentLocation] = useState(null);
+  const [showMapPicker, setShowMapPicker] = useState(false);
 
   const debounceTimeout = useRef(null);
   const pickupRef = useRef(null);
   const destinationRef = useRef(null);
   const [searchPerformed, setSearchPerformed] = useState(false);
 
-  // Auto-focus the field if passed in params
+  // Auto-focus the correct field on mount
   useEffect(() => {
-    if (route.params?.activeField === "destination") {
+    // If destination is pre-filled from params (e.g. saved preference), focus pickup
+    if (route.params?.destination) {
+      setTimeout(() => pickupRef.current?.focus(), 500);
+    } else if (route.params?.activeField === "destination") {
       setTimeout(() => destinationRef.current?.focus(), 500);
     } else {
       setTimeout(() => pickupRef.current?.focus(), 500);
     }
-  }, [route.params?.activeField]);
+  }, []);
 
   // Generate a new session token for cost-effective billing
   const generateSessionToken = () => {
@@ -124,7 +129,8 @@ const SearchScreen = () => {
         
         // Only auto-fill if the user hasn't started typing yet
         // Only auto-fill if the user hasn't started typing yet AND context is empty
-        if (!pickup && !ctxPickup) {
+        // Only auto-fill if the user hasn't started typing yet AND context is empty AND params are empty
+        if (!pickup && !ctxPickup && !route.params?.pickup && !route.params?.destination) {
           setPickup(locationData.name);
           setPickupData(locationData);
           // If we have pickup, focus destination automatically
@@ -223,11 +229,13 @@ const SearchScreen = () => {
           setPredictions([]);
           setSearchPerformed(false);
           if (destinationData && destination.trim().length > 0) {
+            // Resolve coordinates if the destination came from a saved preference without coordinates
+            const resolvedDest = await resolveLocationCoords(destinationData);
             setCtxPickup(locationData);
-            setCtxDestination(destinationData);
+            setCtxDestination(resolvedDest);
             navigation.navigate("ConfirmRide", {
               pickup: locationData,
-              destination: destinationData,
+              destination: resolvedDest,
             });
           } else {
             setActiveField("destination");
@@ -257,6 +265,31 @@ const SearchScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+  // Ensures a location object has coordinates - geocodes by address if needed
+  const resolveLocationCoords = async (locationData) => {
+    if (locationData?.latitude && locationData?.longitude) return locationData;
+    if (!locationData?.address && !locationData?.name) return locationData;
+
+    try {
+      const query = locationData.address || locationData.name;
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${GOOGLE_MAPS_API_KEY}&components=country:pk`;
+      const response = await fetch(url);
+      const json = await response.json();
+      if (json.status === "OK" && json.results.length > 0) {
+        const result = json.results[0];
+        return {
+          ...locationData,
+          latitude: result.geometry.location.lat,
+          longitude: result.geometry.location.lng,
+          id: locationData.id || result.place_id,
+          address: locationData.address || result.formatted_address,
+        };
+      }
+    } catch (e) {
+      console.warn("[SearchScreen] Geocode resolve failed:", e);
+    }
+    return locationData;
   };
 
   const handleUseCurrentLocation = async () => {
@@ -381,7 +414,47 @@ const SearchScreen = () => {
         }}
       />
       
-      <CurrentLocation onPress={handleUseCurrentLocation} />
+      <View style={{ flexDirection: isUrdu ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <CurrentLocation onPress={handleUseCurrentLocation} />
+        <TouchableOpacity 
+          onPress={() => setShowMapPicker(true)}
+          style={{
+            flexDirection: isUrdu ? 'row-reverse' : 'row',
+            alignItems: 'center',
+            backgroundColor: '#F3F4F6',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            borderRadius: 20,
+            marginTop: responsiveHeight(1.5),
+          }}
+        >
+          <Ionicons name="map-outline" size={18} color={COLORS.primary} style={{ marginHorizontal: 4 }} />
+          <Text style={{ fontFamily: FONTS.medium, fontSize: responsiveFontSize(1.4), color: COLORS.primary }}>
+            {t("select_on_map")}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <MapLocationPickerModal
+        visible={showMapPicker}
+        onClose={() => setShowMapPicker(false)}
+        onSelect={({ pickup: pickedPickup, destination: pickedDest }) => {
+          setShowMapPicker(false);
+
+          setPickup(pickedPickup.name);
+          setPickupData(pickedPickup);
+          setDestination(pickedDest.name);
+          setDestinationData(pickedDest);
+
+          setCtxPickup(pickedPickup);
+          setCtxDestination(pickedDest);
+
+          navigation.navigate("ConfirmRide", {
+            pickup: pickedPickup,
+            destination: pickedDest,
+          });
+        }}
+      />
 
       <View
         style={{

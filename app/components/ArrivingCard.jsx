@@ -115,7 +115,9 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus }) => {
 
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="star" size={16} color="#FFC107" />
-            <Text style={{ marginLeft: 4, fontSize: 13 }}>{driver?.rating || ""}</Text>
+            <Text style={{ marginLeft: 4, fontSize: 13, fontFamily: FONTS.medium }}>
+              {driver?.rating ? parseFloat(driver.rating).toFixed(1) : "5.0"}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -149,7 +151,11 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus }) => {
             <Text style={{ fontFamily: FONTS.medium, fontSize: 14 }} numberOfLines={1}>
               {pickup?.address || t("my_current_location")}
             </Text>
-            <Text style={{ color: "#8A8A8A", fontSize: 12 }}>{driver?.distanceKm?.toFixed(1) || 0} {t("km")} {t("away")}</Text>
+            {(driver?.distanceKm != null && driver?.distanceKm !== undefined) && (
+              <Text style={{ color: "#8A8A8A", fontSize: 12 }}>
+                {parseFloat(driver.distanceKm).toFixed(2)} {t("km")} {t("away")}
+              </Text>
+            )}
           </View>
         </View>
 

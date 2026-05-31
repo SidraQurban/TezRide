@@ -47,12 +47,14 @@ const InterestedDrivers = ({ drivers, onSelect, rideId }) => {
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Ionicons name="star" size={14} color="#FFC107" />
-            <Text style={{ marginLeft: 4, fontFamily: FONTS.medium }}>{item.rating}</Text>
+            <Text style={{ marginLeft: 4, fontFamily: FONTS.medium }}>
+              {item.rating ? parseFloat(item.rating).toFixed(1) : "5.0"}
+            </Text>
           </View>
         </View>
         
         <Text style={{ color: '#8A8A8A', fontSize: responsiveFontSize(1.6), marginTop: 2 }}>
-          {item.vehicleType} • {item.distanceKm.toFixed(1)} km {t("away")}
+          {item.vehicleType} • {item.distanceKm != null ? parseFloat(item.distanceKm).toFixed(2) : "0.00"} km {t("away")}
         </Text>
       </View>
 

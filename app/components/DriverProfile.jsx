@@ -81,7 +81,7 @@ const DriverProfile = ({ driver }) => {
       </View>
 
       {/* STATS (Only show if we have real data from backend) */}
-      {(driver?.totalTrips || driver?.yearsActive || driver?.rating) && (
+      {(driver?.totalTrips || driver?.yearsActive || driver?.rating || driver?.distanceKm) && (
         <View
           style={{
             flexDirection: "row",
@@ -90,8 +90,9 @@ const DriverProfile = ({ driver }) => {
           }}
         >
           {[
-            { icon: "star", value: driver?.rating, label: t("ratings") },
+            { icon: "star", value: driver?.rating != null ? parseFloat(driver.rating).toFixed(1) : null, label: t("ratings") },
             { icon: "car", value: driver?.totalTrips, label: t("trips") },
+            { icon: "navigate", value: driver?.distanceKm != null ? `${parseFloat(driver.distanceKm).toFixed(2)} km` : null, label: t("away", "Away") },
             { icon: "time", value: driver?.yearsActive, label: t("years") },
           ].filter(item => item.value !== undefined && item.value !== null).map((item, index) => (
             <View key={index} style={{ alignItems: "center" }}>

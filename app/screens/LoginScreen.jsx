@@ -26,7 +26,7 @@ import { I18nManager } from "react-native";
 
 import authService from "../api/authService";
 import { ActivityIndicator, Alert } from "react-native";
-import ModernAlert from "../components/ModernAlert";
+import { useAlert } from "../context/AlertContext";
 
 const countries = [
   { code: "+92", flag: "🇵🇰", name: "Pakistan" },
@@ -37,6 +37,7 @@ const countries = [
 
 const LoginScreen = () => {
   const { t, i18n } = useTranslation();
+  const { showAlert, showToast } = useAlert();
   const isUrdu = i18n.language?.startsWith("ur");
   const [phone, setPhone] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
@@ -44,12 +45,6 @@ const LoginScreen = () => {
   const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-
-  const [alertConfig, setAlertConfig] = useState({
-    visible: false,
-    title: "",
-    message: "",
-  });
 
   const toggleLanguage = () => {
     const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
@@ -87,17 +82,17 @@ const LoginScreen = () => {
           ? t("wait_for_otp") 
           : response.message || t("otp_send_failed");
         
-        setAlertConfig({
-          visible: true,
+        showAlert({
           title: t("error"),
           message: message,
+          type: 'error'
         });
       }
     } catch (error) {
-      setAlertConfig({
-        visible: true,
+      showAlert({
         title: t("error"),
         message: (error.message && error.message.toLowerCase().includes("please wait")) ? t("wait_for_otp") : (error.message || t("something_went_wrong")),
+        type: 'error'
       });
     } finally {
       setLoading(false);
@@ -500,14 +495,6 @@ const LoginScreen = () => {
           </View>
         </Modal>
       </KeyboardAvoidingView>
-      <ModernAlert
-        visible={alertConfig.visible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        isUrdu={isUrdu}
-        okText={t("ok_btn") || "OK"}
-        onOk={() => setAlertConfig({ ...alertConfig, visible: false })}
-      />
     </SafeAreaView>
   );
 };

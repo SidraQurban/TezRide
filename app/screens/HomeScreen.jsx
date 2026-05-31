@@ -21,6 +21,7 @@ import Services from "../components/Services";
 import SearchBar from "../components/SearchBar";
 import LocationModal from "../components/LocationModal";
 import SaveAddressModal from "../components/SaveAddressModal";
+import MapLocationPickerModal from "../components/MapLocationPickerModal";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import * as ExpoLocation from "expo-location";
@@ -50,6 +51,8 @@ const HomeScreen = ({ navigation, route }) => {
     React.useState(false);
   const [preferences, setPreferences] = React.useState([]);
   const [fetchingPreferences, setFetchingPreferences] = React.useState(false);
+  const [mapPickerVisible, setMapPickerVisible] = React.useState(false);
+  const [selectedMapAddress, setSelectedMapAddress] = React.useState(null);
   // walletBalance and fetchingBalance removed as per request
 
   // fetchWalletBalance removed as per request
@@ -381,11 +384,15 @@ const HomeScreen = ({ navigation, route }) => {
                   activeOpacity={0.8}
                   onPress={() => {
                     // Navigate to search with this as destination
+                    // Include coordinates if they were saved with the preference
                     navigation.navigate("Search", { 
                       destination: {
                         address: detail.address,
-                        name: pref.key
-                      }
+                        name: pref.key,
+                        latitude: detail.latitude || undefined,
+                        longitude: detail.longitude || undefined,
+                      },
+                      activeField: "pickup",
                     });
                   }}
                   style={{
@@ -442,6 +449,36 @@ const HomeScreen = ({ navigation, route }) => {
                 <ActivityIndicator size="small" color={COLORS.primary} />
               </View>
             )}
+
+            {/* Add New Address Card */}
+            {!fetchingPreferences && (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setMapPickerVisible(true)}
+                style={{
+                  backgroundColor: "rgba(255, 92, 0, 0.05)",
+                  borderRadius: 12,
+                  padding: responsiveWidth(3),
+                  marginRight: responsiveWidth(6),
+                  width: responsiveWidth(30),
+                  borderWidth: 1.5,
+                  borderColor: COLORS.primary,
+                  borderStyle: 'dashed',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+              >
+                <Ionicons name="add-circle" size={32} color={COLORS.primary} />
+                <Text style={{ 
+                  fontFamily: FONTS.bold, 
+                  fontSize: responsiveFontSize(1.4), 
+                  color: COLORS.primary,
+                  marginTop: 6
+                }}>
+                  {t("add_new", "Add New")}
+                </Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </View>
 
@@ -463,13 +500,27 @@ const HomeScreen = ({ navigation, route }) => {
           visible={saveAddressModalVisible}
           onClose={() => {
             setSaveAddressModalVisible(false);
+            setSelectedMapAddress(null);
             fetchUserPreferences();
           }}
           address={
-            currentAddressName
-              ? `${currentAddressName}, ${currentAddressDetail}`
-              : ""
+            selectedMapAddress 
+              ? selectedMapAddress.address
+              : currentAddressName
+                ? `${currentAddressName}, ${currentAddressDetail}`
+                : ""
           }
+          latitude={selectedMapAddress?.latitude}
+          longitude={selectedMapAddress?.longitude}
+        />
+
+        <MapLocationPickerModal
+          visible={mapPickerVisible}
+          onClose={() => setMapPickerVisible(false)}
+          onSelect={(data) => {
+            setSelectedMapAddress(data);
+            setSaveAddressModalVisible(true);
+          }}
         />
       </ScrollView>
     </SafeAreaView>

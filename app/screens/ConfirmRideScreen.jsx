@@ -43,6 +43,7 @@ import * as ImagePicker from "expo-image-picker";
 import storage from "../utils/storage";
 import { rides } from "../data/data.jsx";
 import { useRide } from "../context/RideContext";
+import { useAlert } from "../context/AlertContext";
 
 const ConfirmRide = () => {
   const navigation = useNavigation();
@@ -58,6 +59,7 @@ const ConfirmRide = () => {
     setSelectedService,
     setActiveRide,
   } = useRide();
+  const { showAlert, showToast } = useAlert();
 
   const pickup = route.params?.pickup || ctxPickup;
   const destination = route.params?.destination || ctxDestination;
@@ -118,6 +120,7 @@ const ConfirmRide = () => {
   const [tempPref, setTempPref] = useState("male");
   const [gModalVisible, setGModalVisible] = useState(false);
   const [waveDrivers, setWaveDrivers] = useState([]);
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectionType, setSelectionType] = useState("pickup");
 
@@ -281,7 +284,11 @@ const ConfirmRide = () => {
 
     // Final guard for women preference
     if (genderPreference === "female" && (customerStatus !== 2 && customerStatus !== "Approved")) {
-      Alert.alert(t("verification_required_title"), t("verification_required_msg"));
+      showAlert({
+        title: t("verification_required_title"),
+        message: t("verification_required_msg"),
+        type: 'info'
+      });
       return;
     }
 
@@ -323,6 +330,7 @@ const ConfirmRide = () => {
         estimatedFare: liveEstimate?.estimatedFare || 0,
         estimatedDistance: liveEstimate?.estimatedDistanceKm || routeDetails?.distance || 0,
         estimatedDuration: liveEstimate?.estimatedDurationMinutes || routeDetails?.duration || 0,
+        paymentMethod: paymentMethod,
       };
 
       const response = await rideService.requestRide(requestData);
@@ -339,7 +347,11 @@ const ConfirmRide = () => {
         }
 
         if (!rideId || rideId === "00000000-0000-0000-0000-000000000000") {
-          Alert.alert(t("error"), t("could_not_create_ride") || "Could not create ride. Please try again.");
+          showAlert({
+            title: t("error"),
+            message: t("could_not_create_ride") || "Could not create ride. Please try again.",
+            type: 'error'
+          });
           return;
         }
 
@@ -365,10 +377,18 @@ const ConfirmRide = () => {
             : selectedRide?.price,
         });
       } else {
-        Alert.alert(t("error"), response.message || t("ride_request_failed"));
+        showAlert({
+          title: t("error"),
+          message: response.message || t("ride_request_failed"),
+          type: 'error'
+        });
       }
     } catch (error) {
-      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+      showAlert({
+        title: t("error"),
+        message: error.message || t("something_went_wrong"),
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -443,7 +463,11 @@ const ConfirmRide = () => {
           setGenderPreference("female");
           setPrefModalVisible(false);
         } else if (status === 1 || status === "Pending") {
-          Alert.alert(t("pending_verification_title"), t("pending_verification_msg"));
+          showAlert({
+            title: t("pending_verification_title"),
+            message: t("pending_verification_msg"),
+            type: 'info'
+          });
         } else {
           // status 0 or NotSubmitted
           Alert.alert(
@@ -457,7 +481,11 @@ const ConfirmRide = () => {
         }
       }
     } catch (error) {
-      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+      showAlert({
+        title: t("error"),
+        message: error.message || t("something_went_wrong"),
+        type: 'error'
+      });
     } finally {
       setStatusLoading(false);
     }
@@ -477,7 +505,11 @@ const ConfirmRide = () => {
 
   const handleVerifySubmit = async () => {
     if (!vForm.firstName || !vForm.lastName || !vForm.cnicNumber || !vForm.address || !vForm.frontImage || !vForm.backImage) {
-      Alert.alert(t("error"), "Please fill all fields and provide images.");
+      showAlert({
+        title: t("error"),
+        message: "Please fill all fields and provide images.",
+        type: 'error'
+      });
       return;
     }
 
@@ -513,14 +545,22 @@ const ConfirmRide = () => {
       const response = await authService.submitCustomerVerification(formData);
       const isSuccess = response.succeeded === true || response.success === true || (response.message && response.message.toLowerCase().includes("success"));
       if (isSuccess) {
-        Alert.alert(t("success", "Success"), response.message || t("verification_success_msg"));
+        showToast(response.message || t("verification_success_msg"), 'success');
         setVModalVisible(false);
         setCustomerStatus(1); // Set to pending locally
       } else {
-        Alert.alert(t("error"), response.message || t("something_went_wrong"));
+        showAlert({
+          title: t("error"),
+          message: response.message || t("something_went_wrong"),
+          type: 'error'
+        });
       }
     } catch (error) {
-      Alert.alert(t("error"), error.message || t("something_went_wrong"));
+      showAlert({
+        title: t("error"),
+        message: error.message || t("something_went_wrong"),
+        type: 'error'
+      });
     } finally {
       setVerifying(false);
     }
@@ -584,6 +624,48 @@ const ConfirmRide = () => {
           zIndex: 50,
         }}
       >
+        {/* PAYMENT METHOD SELECTION */}
+        {!isSelectionMode && (
+          <View style={{
+            backgroundColor: "#FFF",
+            borderRadius: 25,
+            padding: 5,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            elevation: 10,
+            shadowColor: "#000",
+            shadowOpacity: 0.15,
+            shadowRadius: 10,
+            marginBottom: responsiveHeight(2),
+            borderWidth: 1,
+            borderColor: "#F3F4F6",
+          }}>
+            {["Cash", "Digital Payment", "Wallet"].map((method) => (
+              <TouchableOpacity
+                key={method}
+                onPress={() => setPaymentMethod(method)}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 20,
+                  backgroundColor: paymentMethod === method ? COLORS.primary : "transparent",
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Text style={{
+                  color: paymentMethod === method ? COLORS.white : "#6B7280",
+                  fontFamily: paymentMethod === method ? FONTS.bold : FONTS.medium,
+                  fontSize: responsiveFontSize(1.4),
+                }}>
+                  {t(method.toLowerCase().replace(" ", "_"))}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         <TouchableOpacity
           onPress={isSelectionMode ? handleLocationConfirm : handleConfirmRide}
           disabled={loading}

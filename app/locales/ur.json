@@ -282,5 +282,13 @@
   "no_rider_found_title": "کوئی رائیڈر نہیں ملا",
   "no_rider_found_desc": "اس وقت آپ کے علاقے میں کوئی بھی دستیاب رائیڈر نہیں مل سکا۔ براہ کرم چند منٹ بعد دوبارہ کوشش کریں۔",
   "go_back": "واپس جائیں",
-  "cancel_request": "درخواست منسوخ کریں"
+  "cancel_request": "درخواست منسوخ کریں",
+  "cash": "نقد",
+  "digital_payment": "ڈیجیٹل ادائیگی",
+  "select_on_map": "نقشے پر منتخب کریں",
+  "add_new": "نیا شامل کریں",
+  "selected_location": "منتخب مقام",
+  "calculating_address": "پتہ نکالا جا رہا ہے...",
+  "confirm_pickup": "پک اپ کی تصدیق کریں â",
+  "confirm_destination": "منزل کی تصدیق کریں ✓"
 }

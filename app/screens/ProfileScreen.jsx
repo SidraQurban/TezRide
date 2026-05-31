@@ -29,20 +29,12 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
 import AppHeader from "../components/AppHeader";
 import ImageSourceModal from "../components/ImageSourceModal";
-import ProfileAlert from "../components/ProfileAlert";
+import { useAlert } from "../context/AlertContext";
 
 const ProfileScreen = ({ navigation }) => {
   const { t } = useTranslation();
+  const { showAlert, showToast } = useAlert();
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({
-    visible: false,
-    title: "",
-    message: "",
-  });
   const [profile, setProfile] = useState({
     id: "",
     firstName: "",
@@ -77,7 +69,11 @@ const ProfileScreen = ({ navigation }) => {
     try {
       const userId = await storage.getItem("userId");
       if (!userId) {
-        showAlert(t("error"), "User ID not found. Please log in again.");
+        showAlert({
+          title: t("error"),
+          message: "User ID not found. Please log in again.",
+          type: 'error'
+        });
         return;
       }
       const response = await authService.getUserProfile(userId);
@@ -102,7 +98,11 @@ const ProfileScreen = ({ navigation }) => {
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
-      showAlert(t("error"), t("something_went_wrong"));
+      showAlert({
+        title: t("error"),
+        message: t("something_went_wrong"),
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -117,10 +117,11 @@ const ProfileScreen = ({ navigation }) => {
     // Request permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      showAlert(
-        t("error"),
-        "Camera roll access is required to update your profile picture."
-      );
+      showAlert({
+        title: t("error"),
+        message: "Camera roll access is required to update your profile picture.",
+        type: 'error'
+      });
       return;
     }
 
@@ -158,18 +159,26 @@ const ProfileScreen = ({ navigation }) => {
       if (response.succeeded) {
         // Keep the local URI displayed; server holds the base64 version
         await storage.setItem("profilePictureUrl", asset.uri);
-        showAlert(t("success"), t("profile_pic_updated_success", "Profile picture updated!"));
+        showToast(t("profile_pic_updated_success", "Profile picture updated!"), 'success');
       } else {
         // Revert on failure
         setProfile((prev) => ({
           ...prev,
           profilePictureUrl: profile.profilePictureUrl,
         }));
-        showAlert(t("error"), response.message || t("something_went_wrong"));
+        showAlert({
+          title: t("error"),
+          message: response.message || t("something_went_wrong"),
+          type: 'error'
+        });
       }
     } catch (err) {
       console.error("Image upload error:", err);
-      showAlert(t("error"), t("something_went_wrong"));
+      showAlert({
+        title: t("error"),
+        message: t("something_went_wrong"),
+        type: 'error'
+      });
     } finally {
       setUploadingImage(false);
     }
@@ -179,7 +188,11 @@ const ProfileScreen = ({ navigation }) => {
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      showAlert(t("error"), "Camera access is required to take a photo.");
+      showAlert({
+        title: t("error"),
+        message: "Camera access is required to take a photo.",
+        type: 'error'
+      });
       return;
     }
 
@@ -210,14 +223,22 @@ const ProfileScreen = ({ navigation }) => {
 
       const response = await authService.updateProfile(updateData);
       if (!response.succeeded) {
-        showAlert(t("error"), response.message || t("something_went_wrong"));
+        showAlert({
+          title: t("error"),
+          message: response.message || t("something_went_wrong"),
+          type: 'error'
+        });
       } else {
         await storage.setItem("profilePictureUrl", asset.uri);
-        showAlert(t("success"), t("profile_pic_updated_success", "Profile picture updated!"));
+        showToast(t("profile_pic_updated_success", "Profile picture updated!"), 'success');
       }
     } catch (err) {
       console.error("Camera upload error:", err);
-      showAlert(t("error"), t("something_went_wrong"));
+      showAlert({
+        title: t("error"),
+        message: t("something_went_wrong"),
+        type: 'error'
+      });
     } finally {
       setUploadingImage(false);
     }
@@ -231,7 +252,11 @@ const ProfileScreen = ({ navigation }) => {
   // ─── Profile Update ───────────────────────────────────────────────────────
   const handleUpdate = async () => {
     if (!profile.firstName.trim() || !profile.lastName.trim()) {
-      showAlert(t("error"), "First and Last name are required.");
+      showAlert({
+        title: t("error"),
+        message: "First and Last name are required.",
+        type: 'warning'
+      });
       return;
     }
 
@@ -248,29 +273,34 @@ const ProfileScreen = ({ navigation }) => {
 
       const response = await authService.updateProfile(updateData);
       if (response.succeeded) {
-        showAlert(t("success"), t("profile_updated_success", "Profile updated successfully!"));
+        showToast(t("profile_updated_success", "Profile updated successfully!"), 'success');
         const fullName = `${profile.firstName} ${profile.lastName}`.trim();
         await storage.setItem("customerName", fullName);
         if (profile.profilePictureUrl)
           await storage.setItem("profilePictureUrl", profile.profilePictureUrl);
       } else {
-        showAlert(t("error"), response.message || t("something_went_wrong"));
+        showAlert({
+          title: t("error"),
+          message: response.message || t("something_went_wrong"),
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      showAlert(t("error"), t("something_went_wrong"));
+      showAlert({
+        title: t("error"),
+        message: t("something_went_wrong"),
+        type: 'error'
+      });
     } finally {
       setUpdating(false);
     }
   };
 
-  const showAlert = (title, message) => {
-    setAlertConfig({
-      visible: true,
-      title,
-      message,
-    });
-  };
+  const [updating, setUpdating] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   if (loading) {
     return (
@@ -457,15 +487,6 @@ const ProfileScreen = ({ navigation }) => {
         onCamera={handleTakePhoto}
         onGallery={handlePickImage}
         t={t}
-      />
-
-      <ProfileAlert
-        visible={alertConfig.visible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        onOk={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
-        okText={t("ok_btn", "OK")}
-        isUrdu={false}
       />
     </SafeAreaView>
   );

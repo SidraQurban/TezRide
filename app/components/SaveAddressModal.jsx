@@ -31,7 +31,7 @@ const CATEGORIES = [
   { id: "other", label: "Other", icon: "location" },
 ];
 
-const SaveAddressModal = ({ visible, onClose, address }) => {
+const SaveAddressModal = ({ visible, onClose, address, latitude, longitude }) => {
   const { t, i18n } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState("home");
   const [houseNo, setHouseNo] = useState("");
@@ -61,7 +61,9 @@ const SaveAddressModal = ({ visible, onClose, address }) => {
         houseNo,
         street,
         landmark,
-        type: selectedCategory
+        type: selectedCategory,
+        latitude: latitude || null,
+        longitude: longitude || null,
       };
 
       // Map common categories to clean keys
