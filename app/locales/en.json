@@ -298,5 +298,21 @@
   "selected_location": "Selected Location",
   "calculating_address": "Calculating address...",
   "confirm_pickup": "Confirm Pickup →",
-  "confirm_destination": "Confirm Destination ✓"
+  "confirm_destination": "Confirm Destination ✓",
+  "full_name": "Full Name",
+  "email_address": "Email Address",
+  "message": "Message",
+  "subject": "Subject",
+  "send_message": "Send Message",
+  "phone": "Phone",
+  "whatsapp": "WhatsApp",
+  "email": "Email",
+  "our_office": "Our Office",
+  "contact_info": "Contact Information",
+  "support_24_7": "24/7 Support",
+  "get_in_touch": "Get in Touch",
+  "message_sent_success": "Your message has been sent successfully!",
+  "fill_all_fields": "Please fill all fields",
+  "here_to_help_title": "We're here to help",
+  "here_to_help_desc": "Get assistance with rides, deliveries, payments, and more."
 }

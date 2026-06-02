@@ -297,5 +297,21 @@
   "pay_digitally": "ایزی پیسہ، جاز کیش، کارڈ",
   "pay_from_wallet": "ایپ بیلنس استعمال کریں",
   "select_pickup": "پک اپ منتخب کریں",
-  "select_destination": "منزل منتخب کریں"
+  "select_destination": "منزل منتخب کریں",
+  "full_name": "پورا نام",
+  "email_address": "ای میل ایڈریس",
+  "message": "پیغام",
+  "subject": "موضوع",
+  "send_message": "پیغام بھیجیں",
+  "phone": "فون",
+  "whatsapp": "واٹس ایپ",
+  "email": "ای میل",
+  "our_office": "ہمارا دفتر",
+  "contact_info": "رابطے کی معلومات",
+  "support_24_7": "24/7 سپورٹ",
+  "get_in_touch": "رابطہ کریں",
+  "message_sent_success": "آپ کا پیغام کامیابی سے بھیج دیا گیا ہے!",
+  "fill_all_fields": "براہ کرم تمام خانے پُر کریں",
+  "here_to_help_title": "ہم آپ کی مدد کے لیے حاضر ہیں",
+  "here_to_help_desc": "رائیڈز، ڈیلیوری، ادائیگیوں اور مزید کے بارے میں مدد حاصل کریں۔"
 }
