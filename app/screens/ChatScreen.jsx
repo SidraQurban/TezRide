@@ -104,6 +104,7 @@ const ChatScreen = () => {
   const route = useRoute();
   const { rideId, driverName, profilePicUrl, phoneNumber } = route.params;
   const { t, i18n } = useTranslation();
+  const isRTL = i18n.language?.startsWith("ur");
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -236,7 +237,8 @@ const ChatScreen = () => {
           style={[
             styles.msgRow,
             isMe ? styles.msgRowRight : styles.msgRowLeft,
-            consecutive && { marginTop: -2 }
+            consecutive && { marginTop: -2 },
+            { flexDirection: isRTL ? 'row-reverse' : 'row' }
           ]}
         >
           <View style={[
@@ -245,10 +247,14 @@ const ChatScreen = () => {
             consecutive && isMe && { borderTopRightRadius: 18 },
             consecutive && !isMe && { borderTopLeftRadius: 18 }
           ]}>
-            <Text style={[styles.msgText, isMe && styles.msgTextMine]}>
+            <Text style={[
+              styles.msgText, 
+              isMe && styles.msgTextMine,
+              { textAlign: isRTL ? 'right' : 'left' }
+            ]}>
               {item.content}
             </Text>
-            <View style={styles.bubbleFooter}>
+            <View style={[styles.bubbleFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Text style={[styles.bubbleTime, isMe && styles.bubbleTimeMine]}>
                 {formatTime(item.timestamp)}
               </Text>
@@ -280,12 +286,12 @@ const ChatScreen = () => {
 
       {/* ── Header ── */}
       <SafeAreaView edges={['top']} style={styles.safeHeader}>
-        <View style={styles.header}>
+        <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn} activeOpacity={0.7}>
-            <Ionicons name="chevron-back" size={22} color="#1A1A2E" />
+            <Ionicons name={isRTL ? "chevron-forward" : "chevron-back"} size={22} color="#1A1A2E" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.headerCenter} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.headerCenter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]} activeOpacity={0.8}>
             <View style={styles.avatarWrap}>
               {profilePicUrl ? (
                 <Image source={{ uri: profilePicUrl }} style={styles.avatar} />
@@ -296,7 +302,7 @@ const ChatScreen = () => {
               )}
               <View style={[styles.statusDot, isTyping && styles.statusDotTyping]} />
             </View>
-            <View style={styles.headerText}>
+            <View style={[styles.headerText, { alignItems: isRTL ? 'flex-end' : 'flex-start', marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0 }]}>
               <Text style={styles.headerName} numberOfLines={1}>{driverName || t('driver')}</Text>
               {isTyping ? (
                 <Animated.Text entering={FadeIn.duration(200)} style={styles.headerStatus}>
@@ -344,13 +350,13 @@ const ChatScreen = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <View style={styles.inputBarOuter}>
-          <View style={[styles.inputBar, { flexDirection: i18n.language?.startsWith("ur") ? "row-reverse" : "row" }]}>
+          <View style={[styles.inputBar, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
             <TouchableOpacity style={styles.attachBtn} activeOpacity={0.6}>
               <Ionicons name="add-circle-outline" size={26} color="#999" />
             </TouchableOpacity>
 
             <TextInput
-              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
+              style={[styles.input, { textAlign: isRTL ? "right" : "left", writingDirection: isRTL ? "rtl" : "ltr" }]}
               placeholder={t('type_message') || 'Type a message...'}
               placeholderTextColor="#B0B0B0"
               value={inputText}
@@ -372,10 +378,10 @@ const ChatScreen = () => {
                 end={{ x: 1, y: 1 }}
               >
                 <Ionicons
-                  name="send"
+                  name={isRTL ? "send-sharp" : "send"}
                   size={17}
                   color="#FFF"
-                  style={{ marginLeft: 2 }}
+                  style={{ marginLeft: isRTL ? 0 : 2, marginRight: isRTL ? 2 : 0, transform: [{ scaleX: isRTL ? -1 : 1 }] }}
                 />
               </LinearGradient>
             </AnimatedTouchable>
@@ -477,10 +483,20 @@ const styles = StyleSheet.create({
   bubbleMine: {
     backgroundColor: COLORS.primary,
     borderBottomRightRadius: 4,
+    elevation: 2,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   bubbleOther: {
     backgroundColor: '#FFF',
-    borderBottomLeftRadius: 4
+    borderBottomLeftRadius: 4,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   msgText: { fontFamily: FONTS.regular, fontSize: 16, lineHeight: 22, color: '#1A1A2E' },
   msgTextMine: { color: '#FFF' },

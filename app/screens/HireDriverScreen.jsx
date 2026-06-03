@@ -36,8 +36,10 @@ import { rides } from "../data/data.jsx";
 
 const { width } = Dimensions.get("window");
 import BackBtn from "../components/BackBtn";
+import CurrentLocation from "../components/CurrentLocation";
+import MapLocationPickerModal from "../components/MapLocationPickerModal";
 // Lowercase DURATIONS will be replaced by dynamic state if settings load, otherwise default to these
-const DEFAULT_DURATIONS = [4, 8, 12, 24];
+const DEFAULT_DURATIONS = [2, 4, 6];
 
 const PAYMENT_METHODS = [
   {
@@ -78,12 +80,12 @@ const HireDriverScreen = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [sessionToken, setSessionToken] = useState(() =>
-    Math.random().toString(36).substring(2, 15)
+    Math.random().toString(36).substring(2, 15),
   );
   const debounceTimeout = useRef(null);
 
   // Booking state
-  const [duration, setDuration] = useState(4);
+  const [duration, setDuration] = useState(2);
   const [gender, setGender] = useState("Male");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
@@ -97,12 +99,15 @@ const HireDriverScreen = () => {
   const [selectedVehicle, setSelectedVehicle] = useState("Car");
   const [allowedVehicles, setAllowedVehicles] = useState([]);
   const [durations, setDurations] = useState(DEFAULT_DURATIONS); // dynamic durations
+  const [vehicleModel, setVehicleModel] = useState("Sedan Car (Toyota Corolla)");
+  const [vehiclePlate, setVehiclePlate] = useState("BR5-23930");
 
   // Verification state
   const [customerStatus, setCustomerStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
   const [vModalVisible, setVModalVisible] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
   const [vForm, setVForm] = useState({
     firstName: "",
     lastName: "",
@@ -113,8 +118,10 @@ const HireDriverScreen = () => {
     backImage: null,
     requiresWomenOnlyRides: true,
   });
+  const [customDurationModalVisible, setCustomDurationModalVisible] = useState(false);
+  const [customDurationInput, setCustomDurationInput] = useState("");
 
-  // Pre-fill verification form from storage
+  // Pre-fill verification form  storage
   useEffect(() => {
     (async () => {
       let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
@@ -138,8 +145,8 @@ const HireDriverScreen = () => {
             savedGender === "female"
               ? "Female"
               : savedGender === "male"
-              ? "Male"
-              : prev.gender,
+                ? "Male"
+                : prev.gender,
         }));
       }
     })();
@@ -160,14 +167,9 @@ const HireDriverScreen = () => {
           setSelectedVehicle(vehicles[0]);
         }
 
-        const durList = response.data.allowedDurations
-          .split(",")
-          .map((d) => parseInt(d.trim()))
-          .filter((d) => !isNaN(d));
-        if (durList.length > 0) {
-          setDurations(durList);
-          if (!durList.includes(duration)) setDuration(durList[0]);
-        }
+        // We keep durations restricted to 2h, 4h, 6h for clean UI as per request
+        setDurations([2, 4, 6]);
+        if (![2, 4, 6].includes(duration)) setDuration(2);
       }
     } catch (error) {
       console.warn("Error fetching Hire settings:", error);
@@ -234,6 +236,25 @@ const HireDriverScreen = () => {
         });
         setSessionToken(Math.random().toString(36).substring(2, 15));
       }
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    setSearchLoading(true);
+    try {
+      let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setSearchLoading(false);
+        return;
+      }
+      let location = await ExpoLocation.getCurrentPositionAsync({
+        accuracy: ExpoLocation.Accuracy.BestForNavigation,
+      });
+      handleGeocode(location.coords);
+    } catch (error) {
+      console.error("Geocoding Error:", error);
     } finally {
       setSearchLoading(false);
     }
@@ -428,16 +449,14 @@ const HireDriverScreen = () => {
         showAlert({
           title: t("error"),
           message: msg.includes("Insufficient wallet balance")
-            ? t(
-                "insufficient_balance_msg",
-                msg
-              )
+            ? t("insufficient_balance_msg", msg)
             : msg.includes("Female driver requests")
-            ? t(
-                "female_only_error",
-                "Female driver requests are only available for verified female customers."
-              )
-            : msg || t("ride_request_failed", "Request failed. Please try again."),
+              ? t(
+                  "female_only_error",
+                  "Female driver requests are only available for verified female customers.",
+                )
+              : msg ||
+                t("ride_request_failed", "Request failed. Please try again."),
           type: "error",
           icon:
             paymentMethod === "Wallet" ? (
@@ -486,7 +505,7 @@ const HireDriverScreen = () => {
     if (!settings) return;
     const maxInc = (totalPrice * settings.maxFareIncreasePercentage) / 100;
     const maxDec = (totalPrice * settings.maxFareDecreasePercentage) / 100;
-    
+
     if (fareAdjustment > maxInc) setFareAdjustment(Math.floor(maxInc));
     else if (fareAdjustment < -maxDec) setFareAdjustment(-Math.floor(maxDec));
   }, [totalPrice, settings]);
@@ -503,7 +522,7 @@ const HireDriverScreen = () => {
     const maxDec = (totalPrice * maxDecPerc) / 100;
 
     const newAdjustment = fareAdjustment + amount;
-    
+
     // Boundary check
     if (newAdjustment > maxInc) {
       setFareAdjustment(Math.floor(maxInc));
@@ -522,12 +541,7 @@ const HireDriverScreen = () => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={["#F8F9FF", "#E9EEFF"]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background, paddingHorizontal: responsiveWidth(4) }}>
         {/* Header - Unified with Ride Module */}
         <BackBtn />
 
@@ -536,15 +550,13 @@ const HireDriverScreen = () => {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header Title Section */}
-          <View style={{ paddingVertical: 10 }}>
-            <Text style={styles.promoTitle}>
-              {t("hire_driver_title", "Hire a Professional Driver")}
-            </Text>
-            <Text style={styles.promoSubtitle}>
-              {t("hire_driver_desc", "Book a private driver for your own vehicle and enjoy the ride.")}
-            </Text>
-          </View>
+        <View style={styles.bannerContainer}>
+            <Image
+            source={require("../../assets/Hiredriver.png")}
+            style={styles.bannerImage}
+            resizeMode="cover"
+          />
+        </View>
 
           {/* Section 1: Pickup */}
           <View style={styles.section}>
@@ -561,10 +573,7 @@ const HireDriverScreen = () => {
               <TextInput
                 value={pickup}
                 onChangeText={handlePickupChange}
-                placeholder={t(
-                  "enter_pickup",
-                  "Where should the driver come?"
-                )}
+                placeholder={t("enter_pickup", "Where should the driver come?")}
                 style={styles.input}
                 placeholderTextColor="#999"
               />
@@ -572,6 +581,27 @@ const HireDriverScreen = () => {
                 <ActivityIndicator size="small" color={COLORS.primary} />
               )}
             </View>
+
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 5 }}>
+              <CurrentLocation onPress={handleUseCurrentLocation} />
+              <TouchableOpacity
+                onPress={() => setShowMapPicker(true)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: "#F3F4F6",
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 20,
+                }}
+              >
+                <Ionicons name="map-outline" size={18} color={COLORS.primary} style={{ marginRight: 4 }} />
+                <Text style={{ fontFamily: FONTS.medium, fontSize: responsiveFontSize(1.4), color: COLORS.primary }}>
+                  {t("select_on_map")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             {predictions.length > 0 && (
               <View style={styles.dropdown}>
                 {predictions.map((p) => (
@@ -595,49 +625,37 @@ const HireDriverScreen = () => {
             )}
           </View>
 
-          {/* Section: Vehicle Type */}
-          {allowedVehicles.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>
-                {t("vehicle_type", "What vehicle do you have?")}
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {allowedVehicles.map((v) => {
-                  const rideInfo = rides.find(
-                    (r) => r.label.toLowerCase() === v.toLowerCase()
-                  ) || rides.find((r) => r.id === "car");
-
-                  return (
-                    <TouchableOpacity
-                      key={v}
-                      style={[
-                        styles.vehicleCard,
-                        selectedVehicle === v && styles.activeVehicleCard,
-                      ]}
-                      onPress={() => setSelectedVehicle(v)}
-                    >
-                      <Image
-                        source={rideInfo.image}
-                        style={[
-                          styles.vehicleImage,
-                          selectedVehicle === v && { tintColor: COLORS.white },
-                        ]}
-                        resizeMode="contain"
-                      />
-                      <Text
-                        style={[
-                          styles.vehicleText,
-                          selectedVehicle === v && { color: COLORS.white },
-                        ]}
-                      >
-                        {v}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+          {/* Section: Vehicle Info Card */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              {t("vehicle_you_have_label", "Vehicle You Have")}
+            </Text>
+            <View style={styles.vehicleInputCard}>
+              <View style={styles.vehicleIconCircle}>
+                <Image
+                  source={require("../../assets/car.png")}
+                  style={styles.vehicleIconSmall}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.vehicleInfoBox}>
+                <TextInput
+                  style={styles.vehicleCardInput}
+                  value={vehicleModel}
+                  onChangeText={setVehicleModel}
+                  placeholder={t("car_model_placeholder", "e.g. Sedan Car (Toyota Corolla)")}
+                  placeholderTextColor="#999"
+                />
+                <TextInput
+                  style={styles.vehicleCardPlate}
+                  value={vehiclePlate}
+                  onChangeText={setVehiclePlate}
+                  placeholder={t("lic_placeholder", "Lic: BR5-23930")}
+                  placeholderTextColor="#999"
+                />
+              </View>
             </View>
-          )}
+          </View>
 
           {/* Section: Reason for Hire */}
           <View style={styles.section}>
@@ -656,7 +674,7 @@ const HireDriverScreen = () => {
                 onChangeText={setReason}
                 placeholder={t(
                   "enter_reason",
-                  "e.g. Travel to another city, Party, etc."
+                  "e.g. Travel to another city, Party, etc.",
                 )}
                 style={[styles.input, { height: 60, textAlignVertical: "top" }]}
                 placeholderTextColor="#999"
@@ -675,7 +693,7 @@ const HireDriverScreen = () => {
                 {duration} {t("hours", "Hours")}
               </Text>
             </View>
-            <View style={styles.durationGrid}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.durationRow}>
               {durations.map((d) => (
                 <TouchableOpacity
                   key={d}
@@ -685,7 +703,7 @@ const HireDriverScreen = () => {
                   ]}
                   onPress={() => {
                     setDuration(d);
-                    setFareAdjustment(0); // Reset adjustment when duration changes
+                    setFareAdjustment(0);
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }}
                 >
@@ -705,12 +723,37 @@ const HireDriverScreen = () => {
                     numberOfLines={1}
                   >
                     {d >= 24
-                      ? `${Math.floor(d / 24)}d ${d % 24 > 0 ? (d % 24) + 'h' : ''}`
+                      ? `${Math.floor(d / 24)}d ${d % 24 > 0 ? (d % 24) + "h" : ""}`
                       : `${d} ${t("hrs", "hrs")}`}
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
+              <TouchableOpacity
+                style={[
+                  styles.durationCard,
+                  !durations.includes(duration) && styles.activeCard,
+                ]}
+                onPress={() => {
+                  setCustomDurationModalVisible(true);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                }}
+              >
+                <Ionicons 
+                  name="add-circle-outline" 
+                  size={24} 
+                  color={!durations.includes(duration) ? COLORS.white : COLORS.primary} 
+                />
+                <Text
+                  style={[
+                    styles.durationSubText,
+                    !durations.includes(duration) && styles.activeSubText,
+                    { marginTop: 2 }
+                  ]}
+                >
+                  {t("custom", "Custom")}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
 
           {/* Section 3: Time */}
@@ -748,10 +791,15 @@ const HireDriverScreen = () => {
             <View style={styles.preferenceRow}>
               {[
                 { id: "Male", label: t("male", "Male"), icon: "account-tie" },
-                { id: "Female", label: t("female", "Female"), icon: "account-tie-woman" },
+                {
+                  id: "Female",
+                  label: t("female", "Female"),
+                  icon: "account-tie-woman",
+                },
               ].map((p) => (
                 <TouchableOpacity
                   key={p.id}
+                  activeOpacity={0.8}
                   style={[
                     styles.prefItem,
                     gender === p.id && styles.prefItemActive,
@@ -759,39 +807,53 @@ const HireDriverScreen = () => {
                   onPress={() => checkStatusAndSetGender(p.id)}
                   disabled={statusLoading && p.id === "Female"}
                 >
-                  <View
-                    style={[
-                      styles.iconCircle,
-                      gender === p.id && styles.iconCircleActive,
-                    ]}
+                  <LinearGradient
+                    colors={gender === p.id ? [COLORS.primary, COLORS.secondary] : [COLORS.white, COLORS.white]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.prefGradient}
                   >
-                    {statusLoading && p.id === "Female" ? (
-                      <ActivityIndicator size="small" color={COLORS.primary} />
-                    ) : (
-                      <MaterialCommunityIcons
-                        name={p.icon}
-                        size={32}
-                        color={gender === p.id ? COLORS.primary : "#374151"}
-                      />
+                    <View
+                      style={[
+                        styles.iconCircle,
+                        gender === p.id && styles.iconCircleActive,
+                      ]}
+                    >
+                      {statusLoading && p.id === "Female" ? (
+                        <ActivityIndicator size="small" color={COLORS.primary} />
+                      ) : (
+                        <MaterialCommunityIcons
+                          name={p.icon}
+                          size={36}
+                          color={gender === p.id ? COLORS.white : "#374151"}
+                        />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.prefLabel,
+                        gender === p.id && styles.prefLabelActive,
+                      ]}
+                    >
+                      {p.label}
+                    </Text>
+                    
+                    {gender === p.id && (
+                      <View style={styles.checkBadge}>
+                        <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
+                      </View>
                     )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.prefLabel,
-                      gender === p.id && styles.prefLabelActive,
-                    ]}
-                  >
-                    {p.label}
-                  </Text>
-                  {p.id === "Female" && (
-                     <View style={styles.verifiedBadgeContainer}>
+
+                    {p.id === "Female" && gender !== "Female" && (
+                      <View style={styles.verifiedBadgeContainer}>
                         <Ionicons
                           name="shield-checkmark"
                           size={10}
                           color={COLORS.white}
                         />
-                     </View>
-                  )}
+                      </View>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
               ))}
             </View>
@@ -807,7 +869,7 @@ const HireDriverScreen = () => {
                   <Text style={styles.verificationHintText}>
                     {t(
                       "verification_required_hint",
-                      "Verification required for female-to-female matching"
+                      "Verification required for female-to-female matching",
                     )}
                   </Text>
                 </View>
@@ -875,13 +937,23 @@ const HireDriverScreen = () => {
             <View style={styles.adjustmentSection}>
               <View style={styles.rowBetween}>
                 <View>
-                  <Text style={[styles.summaryLabel, { color: COLORS.primary, fontFamily: FONTS.semiBold }]}>
+                  <Text
+                    style={[
+                      styles.summaryLabel,
+                      { color: COLORS.primary, fontFamily: FONTS.semiBold },
+                    ]}
+                  >
                     {t("adjust_fare", "Adjust Fare")}
                   </Text>
-                  <Text style={[styles.summaryLabel, { fontSize: 11, marginTop: 2 }]}>
-                    {fareAdjustment > 0 
-                      ? t("adding_tip", "Adding extra") 
-                      : fareAdjustment < 0 
+                  <Text
+                    style={[
+                      styles.summaryLabel,
+                      { fontSize: 11, marginTop: 2 },
+                    ]}
+                  >
+                    {fareAdjustment > 0
+                      ? t("adding_tip", "Adding extra")
+                      : fareAdjustment < 0
                         ? t("requesting_discount", "Requesting discount")
                         : t("base_price", "Same as base price")}
                   </Text>
@@ -916,45 +988,94 @@ const HireDriverScreen = () => {
                   {t("estimated_total", "Estimated Total")}
                 </Text>
                 <Text style={{ fontSize: 10, color: "#888" }}>
-                  ({totalPrice} {fareAdjustment >= 0 ? "+" : ""} {fareAdjustment} adjustment)
+                  ({totalPrice} {fareAdjustment >= 0 ? "+" : ""}{" "}
+                  {fareAdjustment} adjustment)
                 </Text>
               </View>
               <Text style={styles.totalAmount}>{finalTotal} PKR</Text>
             </View>
+
+            <TouchableOpacity
+              style={[styles.requestBtn, { marginTop: 24, overflow: "hidden" }]}
+              onPress={handleRequest}
+              disabled={requesting}
+            >
+              <LinearGradient
+                colors={[COLORS.primary, COLORS.secondary || COLORS.primary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.requestBtnGradient}
+              >
+                {requesting ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <>
+                    <Text style={styles.requestBtnText}>
+                      {t("hire_driver", "Hire Driver")}
+                    </Text>
+                  
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
 
-      {/* Sticky Footer */}
-      <BlurView intensity={80} style={styles.footer}>
-        <View style={styles.footerPrice}>
-          <Text style={styles.footerLabel}>
-            {t("total_to_pay", "Total to pay")}
-          </Text>
-          <Text style={styles.footerAmount}>{finalTotal} PKR</Text>
+      <MapLocationPickerModal
+        visible={showMapPicker}
+        isPickupOnly={true}
+        onClose={() => setShowMapPicker(false)}
+        onSelect={({ pickup: pickedPickup }) => {
+          setShowMapPicker(false);
+          setPickup(pickedPickup.name || pickedPickup.address);
+          setPickupData(pickedPickup);
+        }}
+      />
+
+      {/* Custom Duration Modal */}
+      <Modal
+        visible={customDurationModalVisible}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlayCenter}>
+          <View style={styles.modalSheetSmall}>
+            <Text style={styles.modalTitle}>{t("custom_duration", "Enter Hours")}</Text>
+            <TextInput
+              style={styles.textInput}
+              keyboardType="numeric"
+              placeholder={t("hours_placeholder", "e.g. 5")}
+              value={customDurationInput}
+              onChangeText={setCustomDurationInput}
+              autoFocus
+            />
+            <View style={[styles.modalActions, { marginTop: 20 }]}>
+              <TouchableOpacity 
+                style={[styles.modalBtn, { backgroundColor: "#F3F4F6" }]} 
+                onPress={() => setCustomDurationModalVisible(false)}
+              >
+                <Text style={[styles.modalBtnText, { color: "#333" }]}>{t("cancel", "Cancel")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalBtn, { backgroundColor: COLORS.primary }]} 
+                onPress={() => {
+                  const hrs = parseInt(customDurationInput);
+                  if (hrs > 0) {
+                    setDuration(hrs);
+                    setFareAdjustment(0);
+                    setCustomDurationModalVisible(false);
+                    setCustomDurationInput("");
+                  }
+                }}
+              >
+                <Text style={styles.modalBtnText}>{t("confirm", "Confirm")}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-        <TouchableOpacity
-          style={styles.requestBtn}
-          onPress={handleRequest}
-          disabled={requesting}
-        >
-          {requesting ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <>
-              <Text style={styles.requestBtnText}>
-                {t("book_now", "Book Now")}
-              </Text>
-              <Ionicons
-                name="arrow-forward"
-                size={20}
-                color={COLORS.white}
-                style={{ marginLeft: 8 }}
-              />
-            </>
-          )}
-        </TouchableOpacity>
-      </BlurView>
+      </Modal>
+
 
       {/* Time Picker */}
       {showTimePicker && (
@@ -962,7 +1083,7 @@ const HireDriverScreen = () => {
           value={startTime}
           mode="time"
           is24Hour={false}
-          display="spinner"
+          display="default"
           onChange={onTimeChange}
         />
       )}
@@ -984,53 +1105,52 @@ const HireDriverScreen = () => {
             <Text style={styles.modalTitle}>
               {t("select_payment", "Select Payment Method")}
             </Text>
-            {PAYMENT_METHODS.map((method) => (
-              <TouchableOpacity
-                key={method.id}
-                style={[
-                  styles.paymentMethodItem,
-                  paymentMethod === method.id && styles.paymentMethodItemActive,
-                ]}
-                onPress={() => {
-                  setPaymentMethod(method.id);
-                  setPaymentModalVisible(false);
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }}
-              >
-                <View style={styles.methodIconBox}>
-                  <Ionicons
-                    name={method.icon}
-                    size={24}
-                    color={
-                      paymentMethod === method.id ? COLORS.white : COLORS.primary
-                    }
-                  />
-                </View>
-                <View style={{ flex: 1, marginLeft: 14 }}>
-                  <Text
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {PAYMENT_METHODS.map((method) => {
+                const isActive = paymentMethod === method.id;
+                return (
+                  <TouchableOpacity
+                    key={method.id}
                     style={[
-                      styles.methodLabel,
-                      paymentMethod === method.id && { color: COLORS.white },
+                      styles.paymentMethodItem,
+                      isActive && styles.paymentMethodItemActive,
                     ]}
+                    onPress={() => {
+                      setPaymentMethod(method.id);
+                      setPaymentModalVisible(false);
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }}
                   >
-                    {t(method.label, method.fallbackLabel)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.methodDesc,
-                      paymentMethod === method.id && {
-                        color: "rgba(255,255,255,0.75)",
-                      },
-                    ]}
-                  >
-                    {t(method.desc, method.descFallback)}
-                  </Text>
-                </View>
-                {paymentMethod === method.id && (
-                  <Ionicons name="checkmark-circle" size={22} color={COLORS.white} />
-                )}
-              </TouchableOpacity>
-            ))}
+                    <View style={[
+                      styles.methodIconBox,
+                      isActive && styles.methodIconBoxActive
+                    ]}>
+                      <Ionicons
+                        name={method.icon}
+                        size={24}
+                        color={isActive ? COLORS.primary : "#6B7280"}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[
+                        styles.methodLabel,
+                        isActive && styles.methodLabelActive
+                      ]}>
+                        {t(method.label) !== method.label ? t(method.label) : method.fallbackLabel}
+                      </Text>
+                      <Text style={styles.methodDesc}>
+                        {t(method.desc) !== method.desc ? t(method.desc) : method.descFallback}
+                      </Text>
+                    </View>
+                    <Ionicons 
+                      name={isActive ? "checkmark-circle" : "ellipse-outline"} 
+                      size={24} 
+                      color={isActive ? COLORS.primary : "#D1D5DB"} 
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -1069,7 +1189,9 @@ const HireDriverScreen = () => {
                     onChangeText={(text) =>
                       setVForm((prev) => ({ ...prev, [field]: text }))
                     }
-                    keyboardType={field === "cnicNumber" ? "numeric" : "default"}
+                    keyboardType={
+                      field === "cnicNumber" ? "numeric" : "default"
+                    }
                   />
                 </View>
               ))}
@@ -1154,8 +1276,24 @@ const HireDriverScreen = () => {
   );
 };
 
-  const styles = StyleSheet.create({
-  container: { flex: 1 },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+  bannerContainer: {
+
+    height: responsiveHeight(25),
+    backgroundColor: COLORS.backgroundimg,
+    justifyContent: "center",
+    overflow: "hidden",
+    marginBottom: responsiveHeight(2),
+  },
+  bannerImage: {
+    width: responsiveWidth(95),
+    height: responsiveHeight(25),
+    borderRadius: responsiveHeight(0),
+    resizeMode: "contain",
+    alignSelf: "center",
+    position: "absolute"
+  },
   promoTitle: {
     fontSize: responsiveFontSize(2.6),
     fontFamily: FONTS.extraBold,
@@ -1170,15 +1308,14 @@ const HireDriverScreen = () => {
     marginBottom: responsiveHeight(1),
   },
   scrollContent: {
-    paddingHorizontal: responsiveWidth(4),
     paddingTop: responsiveHeight(1),
     paddingBottom: responsiveHeight(16),
   },
   section: { marginBottom: responsiveHeight(2.5) },
   sectionLabel: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: FONTS.semiBold,
-    color: "#333",
+    fontFamily: FONTS.bold,
+    color: COLORS.black,
     marginBottom: 10,
   },
   inputWrapper: {
@@ -1230,9 +1367,10 @@ const HireDriverScreen = () => {
     alignItems: "center",
   },
   durationValue: {
-    fontSize: responsiveFontSize(1.7),
+    fontSize: responsiveFontSize(1.5),
     fontFamily: FONTS.bold,
     color: COLORS.primary,
+    paddingVertical: 0,
   },
   durationGrid: {
     flexDirection: "row",
@@ -1241,23 +1379,31 @@ const HireDriverScreen = () => {
     gap: 10,
     justifyContent: "flex-start",
   },
+  durationRow: {
+    marginTop: 12,
+    paddingVertical: 8,
+  },
   durationCard: {
-    width: (width - 60) / 4,
-    minWidth: 70,
-    height: 75,
+    width: responsiveWidth(20),
+    height: responsiveHeight(7),
     backgroundColor: COLORS.white,
-    borderRadius: 16,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1.5,
-    borderColor: "#F0F0F0",
+    borderColor: "#F3F4F6",
+    marginRight: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
     elevation: 2,
   },
-  activeCard: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  activeCard: { 
+    backgroundColor: COLORS.active, 
+    borderColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.25,
+  },
   durationText: {
     fontSize: responsiveFontSize(2.2),
     fontFamily: FONTS.bold,
@@ -1266,11 +1412,11 @@ const HireDriverScreen = () => {
   durationSubText: {
     fontSize: responsiveFontSize(1.2),
     fontFamily: FONTS.regular,
-    color: "#888",
+    color: COLORS.icon,
     marginTop: 3,
   },
-  activeText: { color: COLORS.white },
-  activeSubText: { color: "rgba(255,255,255,0.7)" },
+  activeText: { color: COLORS.black },
+  activeSubText: {  color: COLORS.icon, },
   timeCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -1284,7 +1430,7 @@ const HireDriverScreen = () => {
     width: 46,
     height: 46,
     borderRadius: 13,
-    backgroundColor: "rgba(25, 118, 210, 0.1)",
+    backgroundColor: COLORS.active,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1301,46 +1447,77 @@ const HireDriverScreen = () => {
   },
   preferenceRow: {
     flexDirection: "row",
-    marginTop: 12,
+    marginTop: 8,
   },
   prefItem: {
     flex: 1,
-    backgroundColor: COLORS.white,
-    padding: 16,
+    height: 110,
     borderRadius: 20,
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#F3F4F6",
-    marginHorizontal: 6,
+    overflow: "hidden",
+    marginHorizontal: 8,
+    elevation: 4,
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  prefGradient: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
   },
   prefItemActive: {
     borderColor: COLORS.primary,
-    backgroundColor: "rgba(25, 118, 210, 0.03)",
   },
   iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#F9FAFB",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#F8FAFC",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 8,
   },
   iconCircleActive: {
-    backgroundColor: "rgba(25, 118, 210, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+  },
+  checkBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
   prefLabel: {
-    fontSize: responsiveFontSize(1.5),
+    fontSize: responsiveFontSize(1.4),
     fontFamily: FONTS.semiBold,
     color: "#666",
     marginLeft: 0,
   },
   prefLabelActive: {
-    color: COLORS.primary,
+    color: COLORS.white,
+    fontFamily: FONTS.bold,
+  },
+  modalSheetSmall: {
+    backgroundColor: COLORS.white,
+    width: "85%",
+    borderRadius: 24,
+    padding: 24,
+    alignSelf: "center",
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalBtn: {
+    flex: 1,
+    height: 50,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBtnText: {
+    fontFamily: FONTS.bold,
+    fontSize: responsiveFontSize(1.7),
+    color: COLORS.white,
   },
   verifiedBadgeContainer: {
     position: "absolute",
@@ -1382,7 +1559,7 @@ const HireDriverScreen = () => {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "rgba(25, 118, 210, 0.08)",
+    backgroundColor: COLORS.active,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1411,7 +1588,7 @@ const HireDriverScreen = () => {
   },
   adjustmentSection: {
     marginTop: 15,
-    backgroundColor: "rgba(25, 118, 210, 0.05)",
+    backgroundColor: COLORS.active,
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
@@ -1434,50 +1611,39 @@ const HireDriverScreen = () => {
     fontFamily: FONTS.extraBold,
     color: COLORS.primary,
   },
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: responsiveWidth(6),
-    paddingBottom: responsiveHeight(4),
-    paddingTop: 18,
-    backgroundColor: "rgba(255,255,255,0.85)",
-  },
-  footerPrice: { flex: 1 },
-  footerLabel: {
-    fontSize: responsiveFontSize(1.4),
-    fontFamily: FONTS.regular,
-    color: "#666",
-  },
-  footerAmount: {
-    fontSize: responsiveFontSize(2.2),
-    fontFamily: FONTS.bold,
-    color: COLORS.black,
-  },
   requestBtn: {
-    backgroundColor: COLORS.primary,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    width: "100%",
+  },
+  requestBtnGradient: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 22,
-    paddingVertical: 15,
-    borderRadius: 16,
-    elevation: 4,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 4 },
+    justifyContent: "center",
+    paddingVertical: 18,
+    width: "100%",
   },
   requestBtnText: {
     color: COLORS.white,
-    fontSize: responsiveFontSize(2),
+    fontSize: responsiveFontSize(2.2),
     fontFamily: FONTS.bold,
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
+  },
+  modalOverlayCenter: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
   },
   modalSheet: {
     backgroundColor: COLORS.white,
@@ -1511,33 +1677,44 @@ const HireDriverScreen = () => {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#E0E5F2",
+    borderRadius: 20,
+    backgroundColor: "#F9FAFB",
     marginBottom: 12,
-    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: "#F3F4F6",
   },
   paymentMethodItemActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#FFF7ED",
     borderColor: COLORS.primary,
   },
   methodIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    width: 46,
+    height: 46,
+    borderRadius: 15,
+    backgroundColor: "#FFF",
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 15,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  methodIconBoxActive: {
+    backgroundColor: "#FFE4CC",
+    borderColor: COLORS.primary,
   },
   methodLabel: {
-    fontSize: responsiveFontSize(1.8),
-    fontFamily: FONTS.semiBold,
-    color: COLORS.black,
+    fontFamily: FONTS.medium,
+    fontSize: responsiveFontSize(1.9),
+    color: "#111827",
+  },
+  methodLabelActive: {
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
   },
   methodDesc: {
-    fontSize: responsiveFontSize(1.4),
     fontFamily: FONTS.regular,
-    color: "#888",
+    fontSize: responsiveFontSize(1.4),
+    color: "#6B7280",
     marginTop: 2,
   },
   inputGroup: { marginBottom: 14 },
@@ -1596,7 +1773,7 @@ const HireDriverScreen = () => {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: "rgba(25, 118, 210, 0.08)",
+    backgroundColor: COLORS.active,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1607,30 +1784,47 @@ const HireDriverScreen = () => {
     fontSize: responsiveFontSize(1.6),
     color: COLORS.primary,
   },
-  vehicleCard: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+  vehicleInputCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E0E5F2",
-    marginRight: 10,
+    borderRadius: 20,
+    padding: 16,
     flexDirection: "row",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-  activeVehicleCard: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+  vehicleIconCircle: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    backgroundColor: COLORS.active,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  vehicleText: {
+  vehicleIconSmall: {
+    width: 44,
+    height: 44,
+  },
+  vehicleInfoBox: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  vehicleCardInput: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: FONTS.semiBold,
-    color: "#444",
-    marginLeft: 8,
+    fontFamily: FONTS.medium,
+    color: "#555",
+    padding: 0,
+    marginBottom: 2,
   },
-  vehicleImage: {
-    width: 32,
-    height: 32,
+  vehicleCardPlate: {
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: FONTS.regular,
+    color: "#888",
+    padding: 0,
   },
 });
 

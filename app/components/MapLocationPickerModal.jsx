@@ -40,7 +40,7 @@ const { height } = Dimensions.get("window");
  *   onClose   – () => void  (called when user closes before completing)
  *   onSelect  – ({ pickup, destination }) => void
  */
-const MapLocationPickerModal = ({ visible, onClose, onSelect }) => {
+const MapLocationPickerModal = ({ visible, onClose, onSelect, isPickupOnly = false }) => {
   const { t } = useTranslation();
 
   // ── Step tracking ─────────────────────────────────────────────────────────
@@ -206,6 +206,12 @@ const MapLocationPickerModal = ({ visible, onClose, onSelect }) => {
       name: locationName,
     };
 
+    if (isPickupOnly) {
+      onSelect({ pickup: locationData });
+      onClose();
+      return;
+    }
+
     if (isPickupStep) {
       // Save pickup, advance to destination step
       setConfirmedPickup(locationData);
@@ -273,19 +279,21 @@ const MapLocationPickerModal = ({ visible, onClose, onSelect }) => {
               </Text>
 
               {/* Step pills */}
-              <View style={styles.stepRow}>
-                <View style={[styles.stepPill, { backgroundColor: COLORS.primary }]}>
-                  <Ionicons name="person" size={10} color="#FFF" />
-                  <Text style={styles.stepPillText}>{t("pickup", "Pickup")}</Text>
+              {!isPickupOnly && (
+                <View style={styles.stepRow}>
+                  <View style={[styles.stepPill, { backgroundColor: COLORS.primary }]}>
+                    <Ionicons name="person" size={10} color="#FFF" />
+                    <Text style={styles.stepPillText}>{t("pickup", "Pickup")}</Text>
+                  </View>
+                  <View style={[styles.stepConnector, { backgroundColor: isPickupStep ? "#E0E0E0" : "#FF3B30" }]} />
+                  <View style={[styles.stepPill, { backgroundColor: isPickupStep ? "#E0E0E0" : "#FF3B30" }]}>
+                    <Ionicons name="flag" size={10} color={isPickupStep ? "#999" : "#FFF"} />
+                    <Text style={[styles.stepPillText, { color: isPickupStep ? "#999" : "#FFF" }]}>
+                      {t("destination", "Destination")}
+                    </Text>
+                  </View>
                 </View>
-                <View style={[styles.stepConnector, { backgroundColor: isPickupStep ? "#E0E0E0" : "#FF3B30" }]} />
-                <View style={[styles.stepPill, { backgroundColor: isPickupStep ? "#E0E0E0" : "#FF3B30" }]}>
-                  <Ionicons name="flag" size={10} color={isPickupStep ? "#999" : "#FFF"} />
-                  <Text style={[styles.stepPillText, { color: isPickupStep ? "#999" : "#FFF" }]}>
-                    {t("destination", "Destination")}
-                  </Text>
-                </View>
-              </View>
+              )}
             </View>
 
             {/* Confirmed pickup preview (visible on step 2) */}
@@ -402,9 +410,11 @@ const MapLocationPickerModal = ({ visible, onClose, onSelect }) => {
               style={styles.gradient}
             >
               <Text style={styles.confirmBtnText}>
-                {isPickupStep
-                  ? t("confirm_pickup", "Confirm Pickup →")
-                  : t("confirm_destination", "Confirm Destination ✓")}
+                {isPickupOnly
+                  ? t("confirm_location", "Confirm Location ✓")
+                  : isPickupStep
+                    ? t("confirm_pickup", "Confirm Pickup →")
+                    : t("confirm_destination", "Confirm Destination ✓")}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
