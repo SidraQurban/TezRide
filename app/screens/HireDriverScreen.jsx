@@ -1292,7 +1292,8 @@ const styles = StyleSheet.create({
     borderRadius: responsiveHeight(0),
     resizeMode: "contain",
     alignSelf: "center",
-    position: "absolute"
+  borderRadius:responsiveHeight(2.5)
+
   },
   promoTitle: {
     fontSize: responsiveFontSize(2.6),
