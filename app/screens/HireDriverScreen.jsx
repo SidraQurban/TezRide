@@ -92,7 +92,7 @@ const HireDriverScreen = () => {
   const [startTime, setStartTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [requesting, setRequesting] = useState(false);
-  const [driverRate, setDriverRate] = useState(0); // Fetch dynamically
+  const [driverRate, setDriverRate] = useState(450); // Default base rate as requested
   const [reason, setReason] = useState("");
   const [settings, setSettings] = useState(null);
   const [fareAdjustment, setFareAdjustment] = useState(0); // in PKR
@@ -912,7 +912,7 @@ const HireDriverScreen = () => {
               <Text style={styles.summaryLabel}>
                 {t("base_rate", "Base Rate")}
               </Text>
-              <Text style={styles.summaryValue}>{driverRate} PKR / hr</Text>
+              <Text style={styles.summaryValue}>{driverRate} {t("currency")} {t("per_hour")}</Text>
             </View>
             <View style={styles.rowBetween}>
               <Text style={styles.summaryLabel}>
@@ -930,7 +930,7 @@ const HireDriverScreen = () => {
               >
                 {t("base_total", "Base Total")}
               </Text>
-              <Text style={styles.summaryValue}>{totalPrice} PKR</Text>
+              <Text style={styles.summaryValue}>{totalPrice} {t("currency")}</Text>
             </View>
 
             {/* Fare Adjustment Section */}
@@ -992,7 +992,7 @@ const HireDriverScreen = () => {
                   {fareAdjustment} adjustment)
                 </Text>
               </View>
-              <Text style={styles.totalAmount}>{finalTotal} PKR</Text>
+              <Text style={styles.totalAmount}>{finalTotal} {t("currency")}</Text>
             </View>
 
             <TouchableOpacity
@@ -1277,7 +1277,7 @@ const HireDriverScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1, backgroundColor: COLORS.background, direction: 'ltr' },
   bannerContainer: {
 
     height: responsiveHeight(25),

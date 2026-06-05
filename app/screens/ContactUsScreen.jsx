@@ -25,7 +25,7 @@ import AppHeader from "../components/AppHeader";
 
 const ContactUsScreen = () => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language?.startsWith("ur");
+  const isRTL = false;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -64,15 +64,15 @@ const ContactUsScreen = () => {
           <FontAwesome name={icon} size={24} color={COLORS.primary} />
         )}
       </View>
-      <View style={[styles.cardContent, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+      <View style={[styles.cardContent, { alignItems: "flex-start" }]}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardValue}>{value}</Text>
       </View>
       <Ionicons
-        name={isRTL ? "chevron-back" : "chevron-forward"}
+        name="chevron-forward"
         size={20}
         color="#ccc"
-        style={{ marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}
+        style={{ marginLeft: 10, marginRight: 0 }}
       />
     </TouchableOpacity>
   );
@@ -82,8 +82,8 @@ const ContactUsScreen = () => {
       <AppHeader isRtlIcon={true} />
       
       {/* Page title aligned with WalletScreen */}
-      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>
+      <View style={[styles.pageTitleRow, { alignItems: "flex-start" }]}>
+        <Text style={[styles.pageTitle, { textAlign: "left" }]}>
           {t("contact_us", "Contact Us")}
         </Text>
       </View>
@@ -96,8 +96,8 @@ const ContactUsScreen = () => {
           <View style={styles.bannerContainer}>
             <LinearGradient
               colors={[COLORS.primary, COLORS.secondary]}
-              start={{ x: isRTL ? 1 : 0, y: 0 }}
-              end={{ x: isRTL ? 0 : 1, y: 0 }}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={styles.helpBanner}
             >
               <View style={styles.bannerIconContainer}>
@@ -110,7 +110,7 @@ const ContactUsScreen = () => {
             </LinearGradient>
           </View>
 
-          <View style={[styles.sectionHeader, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+          <View style={[styles.sectionHeader, { alignItems: "flex-start" }]}>
             <Text style={styles.sectionTitle}>{t("contact_info")}</Text>
           </View>
 
@@ -142,17 +142,17 @@ const ContactUsScreen = () => {
             />
           </View>
 
-          <View style={[styles.sectionHeader, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
+          <View style={[styles.sectionHeader, { alignItems: "flex-start" }]}>
             <Text style={styles.sectionTitle}>{t("get_in_touch")}</Text>
           </View>
 
           <View style={styles.formContainer}>
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { textAlign: isRTL ? "right" : "left" }]}>
+              <Text style={[styles.inputLabel, { textAlign: "left" }]}>
                 {t("full_name")}
               </Text>
               <TextInput
-                style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
+                style={[styles.input, { textAlign: "left" }]}
                 placeholder={t("full_name")}
                 value={formData.name}
                 onChangeText={(val) => handleInputChange("name", val)}
@@ -160,11 +160,11 @@ const ContactUsScreen = () => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { textAlign: isRTL ? "right" : "left" }]}>
+              <Text style={[styles.inputLabel, { textAlign: "left" }]}>
                 {t("email_address")}
               </Text>
               <TextInput
-                style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
+                style={[styles.input, { textAlign: "left" }]}
                 placeholder={t("email_address")}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -174,11 +174,11 @@ const ContactUsScreen = () => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { textAlign: isRTL ? "right" : "left" }]}>
+              <Text style={[styles.inputLabel, { textAlign: "left" }]}>
                 {t("subject")}
               </Text>
               <TextInput
-                style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
+                style={[styles.input, { textAlign: "left" }]}
                 placeholder={t("subject")}
                 value={formData.subject}
                 onChangeText={(val) => handleInputChange("subject", val)}
@@ -186,14 +186,14 @@ const ContactUsScreen = () => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { textAlign: isRTL ? "right" : "left" }]}>
+              <Text style={[styles.inputLabel, { textAlign: "left" }]}>
                 {t("message")}
               </Text>
               <TextInput
                 style={[
                   styles.input,
                   styles.textArea,
-                  { textAlign: isRTL ? "right" : "left" },
+                  { textAlign: "left" },
                 ]}
                 placeholder={t("message")}
                 multiline
@@ -216,10 +216,10 @@ const ContactUsScreen = () => {
               >
                 <Text style={styles.submitButtonText}>{t("send_message")}</Text>
                 <Ionicons
-                  name={isRTL ? "chevron-back" : "chevron-forward"}
+                  name="chevron-forward"
                   size={20}
                   color={COLORS.white}
-                  style={{ marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}
+                  style={{ marginLeft: 10, marginRight: 0 }}
                 />
               </LinearGradient>
             </TouchableOpacity>

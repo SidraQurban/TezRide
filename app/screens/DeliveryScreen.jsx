@@ -27,7 +27,7 @@ import { useNavigation } from "@react-navigation/native";
 
 const DeliveryScreen = () => {
   const { t, i18n } = useTranslation();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false; // Layout is always LTR
 
   const [pickup, setPickup] = useState({ latitude: 24.893, longitude: 67.075 });
   const [destination, setDestination] = useState({
@@ -148,7 +148,7 @@ const DeliveryScreen = () => {
                 keyboardShouldPersistTaps="always"
                 renderItem={({ item }) => (
                   <TouchableOpacity
-                    style={[styles.predictionItem, { flexDirection: isUrdu ? "row-reverse" : "row" }]}
+                    style={[styles.predictionItem, { flexDirection: "row" }]}
                     onPress={() =>
                       handleLocationSelect(item.place_id, item.description)
                     }
@@ -159,9 +159,9 @@ const DeliveryScreen = () => {
                       color={COLORS.primary}
                     />
                     <Text style={[styles.predictionText, { 
-                      textAlign: isUrdu ? "right" : "left",
-                      marginLeft: isUrdu ? 0 : 10,
-                      marginRight: isUrdu ? 10 : 0
+                      textAlign: "left",
+                      marginLeft: 10,
+                      marginRight: 0
                     }]} numberOfLines={1}>
                       {item.description}
                     </Text>

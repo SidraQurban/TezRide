@@ -23,7 +23,7 @@ import AppHeader from "../components/AppHeader";
 
 const RideHistoryScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language?.startsWith("ur");
+  const isRTL = false; // RTL disabled — layout is always LTR
   const [selectedRide, setSelectedRide] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -201,29 +201,29 @@ const RideHistoryScreen = ({ navigation }) => {
       onPress={() => openRideDetails(item)}
       style={styles.rideItem}
     >
-      <View style={[styles.rideHeader, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
-        <View style={[styles.vehicleInfo, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+      <View style={[styles.rideHeader, { flexDirection: "row" }]}>
+        <View style={[styles.vehicleInfo, { flexDirection: "row" }]}>
           <Ionicons name={item.vehicleType === 'bike' ? 'bicycle-outline' : 'car-outline'} size={24} color={COLORS.primary} />
-          <Text style={[styles.vehicleText, { [isRTL ? "marginRight" : "marginLeft"]: 8 }]}>{item.vehicleType?.toUpperCase() || t("ride")}</Text>
+          <Text style={[styles.vehicleText, { marginLeft: 8 }]}>{item.vehicleType?.toUpperCase() || t("ride")}</Text>
         </View>
-        <Text style={[styles.ridePrice, { textAlign: isRTL ? "right" : "left" }]}>
+        <Text style={[styles.ridePrice, { textAlign: "left" }]}>
           PKR {item.finalCost || item.fare || 0}
         </Text>
       </View>
       
-      <View style={[styles.addressContainer, { flexDirection: isRTL ? "row-reverse" : "row", paddingLeft: isRTL ? 0 : 5, paddingRight: isRTL ? 5 : 0 }]}>
+      <View style={[styles.addressContainer, { flexDirection: "row", paddingLeft: 5 }]}>
         <View style={styles.dotLineBox}>
           <View style={[styles.dot, { backgroundColor: COLORS.success }]} />
           <View style={styles.line} />
           <View style={[styles.dot, { backgroundColor: COLORS.error }]} />
         </View>
-        <View style={[styles.addressBox, { [isRTL ? "marginRight" : "marginLeft"]: 10, alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-          <Text style={[styles.addressText, { textAlign: isRTL ? "right" : "left" }]} numberOfLines={1}>{item.pickupAddress || t("pickup_location", "Pickup Location")}</Text>
-          <Text style={[styles.addressText, { textAlign: isRTL ? "right" : "left" }]} numberOfLines={1}>{item.dropoffAddress || item.destinationAddress || t("dropoff_location", "Dropoff Location")}</Text>
+        <View style={[styles.addressBox, { marginLeft: 10, alignItems: "flex-start" }]}>
+          <Text style={[styles.addressText, { textAlign: "left" }]} numberOfLines={1}>{item.pickupAddress || t("pickup_location", "Pickup Location")}</Text>
+          <Text style={[styles.addressText, { textAlign: "left" }]} numberOfLines={1}>{item.dropoffAddress || item.destinationAddress || t("dropoff_location", "Dropoff Location")}</Text>
         </View>
       </View>
 
-      <View style={[styles.rideFooter, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+      <View style={[styles.rideFooter, { flexDirection: "row" }]}>
         <Text style={styles.dateText}>
           {item.completedAt ? new Date(item.completedAt).toLocaleDateString() : 
            item.assignedAt ? new Date(item.assignedAt).toLocaleDateString() : ""}
@@ -245,11 +245,11 @@ const RideHistoryScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppHeader isRtlIcon={true} />
+      <AppHeader isRtlIcon={false} />
 
       {/* Page title */}
-      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("ride_history", "Ride History")}</Text>
+      <View style={[styles.pageTitleRow, { alignItems: "flex-start" }]}>
+        <Text style={[styles.pageTitle, { textAlign: "left" }]}>{t("ride_history", "Ride History")}</Text>
       </View>
 
       {loading && pageIndex === 1 ? (

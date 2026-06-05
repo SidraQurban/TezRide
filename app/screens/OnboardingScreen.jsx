@@ -20,23 +20,15 @@ import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
 import { useTranslation } from "react-i18next";
-import { I18nManager } from "react-native";
 
 const OnboardingScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
-  const isRtl = i18n.language.startsWith("ur");
+  const isRtl = false; // Layout is always LTR
 
   const toggleLanguage = () => {
     const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
     i18n.changeLanguage(newLang);
-    if (newLang === "ur" && !I18nManager.isRTL) {
-      I18nManager.forceRTL(true);
-      I18nManager.allowRTL(true);
-    } else if (newLang === "en" && I18nManager.isRTL) {
-      I18nManager.forceRTL(false);
-      I18nManager.allowRTL(false);
-    }
   };
   const flatlistRef = useRef();
   const [currentPage, setCurrentPage] = useState(0);
@@ -110,7 +102,7 @@ const OnboardingScreen = () => {
               name="globe-outline"
               size={18}
               color={COLORS.primary}
-              style={isRtl ? { marginLeft: 6 } : { marginRight: 6 }}
+              style={{ marginRight: 6 }}
             />
             <Text
               style={{
@@ -212,7 +204,7 @@ const OnboardingScreen = () => {
               }}
             >
               <AntDesign
-                name={isRtl ? "left" : "right"}
+                name="right"
                 style={{
                   fontSize: responsiveFontSize(2),
                   color: COLORS.white,
@@ -221,11 +213,11 @@ const OnboardingScreen = () => {
               />
 
               <AntDesign
-                name={isRtl ? "left" : "right"}
+                name="right"
                 style={{
                   fontSize: responsiveFontSize(2.9),
                   color: COLORS.white,
-                  marginLeft: -12, // slightly cleaner spacing
+                  marginLeft: -12,
                 }}
               />
             </LinearGradient>
@@ -264,7 +256,7 @@ const OnboardingScreen = () => {
               </Text>
 
               <AntDesign
-                name={isRtl ? "left" : "right"}
+                name="right"
                 style={{
                   fontSize: responsiveFontSize(2),
                   color: COLORS.white,
@@ -274,7 +266,7 @@ const OnboardingScreen = () => {
               />
 
               <AntDesign
-                name={isRtl ? "left" : "right"}
+                name="right"
                 style={{
                   fontSize: responsiveFontSize(2.9),
                   color: COLORS.white,

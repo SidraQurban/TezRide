@@ -196,7 +196,7 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus, teleme
         {/* Share My Ride Row */}
         <TouchableOpacity
           style={{
-            flexDirection: i18n.language === "ur" ? "row-reverse" : "row",
+            flexDirection: "row",
             alignItems: "center",
           }}
         >

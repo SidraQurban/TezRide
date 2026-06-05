@@ -89,7 +89,7 @@ const ConfirmRide = () => {
   ]);
 
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "ur";
+  const isRTL = false;
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["54%", "56%"], []);
   const [loading, setLoading] = useState(false);

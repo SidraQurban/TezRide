@@ -14,7 +14,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
-import { I18nManager } from "react-native";
 import { FONTS } from "../constants/theme";
 import authService from "../api/authService";
 import storage from "../utils/storage";
@@ -27,12 +26,13 @@ const drawerItems = [
   { label: "Profile", icon: "person-outline", route: "Profile" },
   { label: "Settings", icon: "settings-outline", route: "Settings" },
   { label: "Contact Us", icon: "call-outline", route: "ContactUs" },
+  
 ];
 
 const CustomDrawer = (props) => {
   const { state, navigation } = props;
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "ur";
+  const isRTL = false; // RTL disabled — layout is always LTR
 
   const [userName, setUserName] = useState("");
   const [profilePic, setProfilePic] = useState("");
@@ -66,13 +66,6 @@ const CustomDrawer = (props) => {
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ur" : "en";
     i18n.changeLanguage(newLang);
-    const isRtl = newLang === "ur";
-
-    if (isRtl !== I18nManager.isRTL) {
-      I18nManager.allowRTL(isRtl);
-      I18nManager.forceRTL(isRtl);
-    }
-    // Close the drawer automatically
     navigation.closeDrawer();
   };
 
@@ -189,7 +182,7 @@ const CustomDrawer = (props) => {
               style={{ marginRight: responsiveWidth(3) }}
             >
               <Ionicons
-                name={isRTL ? "chevron-back" : "chevron-forward"}
+                name="chevron-forward"
                 size={responsiveFontSize(3)}
                 color={COLORS.primary}
               />

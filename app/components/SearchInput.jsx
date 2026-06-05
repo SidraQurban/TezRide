@@ -21,7 +21,7 @@ const SearchInput = ({
   destinationRef,
 }) => {
   const { t, i18n } = useTranslation();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false;
 
   return (
     <View

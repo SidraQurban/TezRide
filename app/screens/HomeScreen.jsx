@@ -36,6 +36,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { FONTS } from "../constants/theme";
 
+
 import preferenceService from "../api/preferenceService";
 // import walletService from "../api/walletService"; // Removed as per request
 
@@ -177,18 +178,13 @@ const HomeScreen = ({ navigation, route }) => {
   }, [fetchCurrentAddress, fetchUserPreferences, checkLocationStatus]);
 
   const translateX = useSharedValue(0);
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false;
 
   React.useEffect(() => {
-    // Reset translation
     translateX.value = 0;
-
-    // Animate opposite sides for UR/EN (Subtle floating effect)
     translateX.value = withRepeat(
       withSequence(
-        withTiming(isUrdu ? responsiveWidth(6) : -responsiveWidth(6), {
-          duration: 2500,
-        }),
+        withTiming(-responsiveWidth(6), { duration: 2500 }),
         withTiming(0, { duration: 2500 }),
       ),
       -1,
@@ -247,7 +243,7 @@ const HomeScreen = ({ navigation, route }) => {
               width: responsiveWidth(85),
               alignSelf: "center",
               zIndex: 1,
-              alignItems: "flex-start", // Flex-start is Right in RTL, Left in LTR
+              alignItems: "flex-start",
             }}
           >
             <Text
@@ -255,7 +251,7 @@ const HomeScreen = ({ navigation, route }) => {
                 fontSize: responsiveFontSize(4.2),
                 fontFamily: FONTS.bold,
                 color: COLORS.white,
-                textAlign: isUrdu ? "right" : "left",
+                textAlign: "left",
                 includeFontPadding: false,
               }}
             >
@@ -267,7 +263,7 @@ const HomeScreen = ({ navigation, route }) => {
                 fontFamily: FONTS.medium,
                 color: COLORS.white,
                 opacity: 0.8,
-                textAlign: isUrdu ? "right" : "left",
+                textAlign: "left",
                 includeFontPadding: false,
               }}
             >
@@ -345,7 +341,7 @@ const HomeScreen = ({ navigation, route }) => {
                         fontFamily: FONTS.semiBold,
                         fontSize: responsiveFontSize(1.7),
                         color: COLORS.black,
-                        textAlign: isUrdu ? "right" : "left",
+                        textAlign: "left",
                       }}
                       numberOfLines={1}
                     >
@@ -364,7 +360,7 @@ const HomeScreen = ({ navigation, route }) => {
                       fontSize: responsiveFontSize(1.3),
                       color: COLORS.gray,
                       marginTop: 4,
-                      textAlign: isUrdu ? "right" : "left",
+                      textAlign: "left",
                     }}
                     numberOfLines={1}
                   >
@@ -433,7 +429,7 @@ const HomeScreen = ({ navigation, route }) => {
                         fontFamily: FONTS.semiBold,
                         fontSize: responsiveFontSize(1.7),
                         color: COLORS.black,
-                        textAlign: isUrdu ? "right" : "left",
+                        textAlign: "left",
                       }}
                       numberOfLines={1}
                     >
@@ -452,7 +448,7 @@ const HomeScreen = ({ navigation, route }) => {
                       fontSize: responsiveFontSize(1.3),
                       color: COLORS.gray,
                       marginTop: 4,
-                      textAlign: isUrdu ? "right" : "left",
+                      textAlign: "left",
                     }}
                     numberOfLines={1}
                   >
@@ -541,6 +537,7 @@ const HomeScreen = ({ navigation, route }) => {
           }}
         />
       </ScrollView>
+      
     </SafeAreaView>
   );
 };

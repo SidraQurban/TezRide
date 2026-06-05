@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
 
 const AppHeader = ({ isRtlIcon = false }) => {
   const { i18n } = useTranslation();
-  const isRtl = i18n.language === "ur";
 
   return (
     <View
@@ -25,7 +24,7 @@ const AppHeader = ({ isRtlIcon = false }) => {
       <View
         style={{
           width: '100%',
-          flexDirection: isRtl && isRtlIcon ? "row-reverse" : "row",
+          flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
           paddingHorizontal: responsiveWidth(4),

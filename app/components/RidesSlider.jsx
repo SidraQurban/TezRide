@@ -44,7 +44,7 @@ const RidesSlider = ({
 }) => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "ur";
+  const isRTL = false;
 
   // Animated shimmer for loading prices
   const shimmerAnim = useRef(new Animated.Value(0)).current;

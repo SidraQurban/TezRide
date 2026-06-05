@@ -104,7 +104,7 @@ const ChatScreen = () => {
   const route = useRoute();
   const { rideId, driverName, profilePicUrl, phoneNumber } = route.params;
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language?.startsWith("ur");
+  const isRTL = false;
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -254,7 +254,7 @@ const ChatScreen = () => {
             ]}>
               {item.content}
             </Text>
-            <View style={[styles.bubbleFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.bubbleFooter, { flexDirection: 'row' }]}>
               <Text style={[styles.bubbleTime, isMe && styles.bubbleTimeMine]}>
                 {formatTime(item.timestamp)}
               </Text>
@@ -286,12 +286,12 @@ const ChatScreen = () => {
 
       {/* ── Header ── */}
       <SafeAreaView edges={['top']} style={styles.safeHeader}>
-        <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.header, { flexDirection: 'row' }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn} activeOpacity={0.7}>
-            <Ionicons name={isRTL ? "chevron-forward" : "chevron-back"} size={22} color="#1A1A2E" />
+            <Ionicons name="chevron-back" size={22} color="#1A1A2E" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.headerCenter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.headerCenter, { flexDirection: 'row' }]} activeOpacity={0.8}>
             <View style={styles.avatarWrap}>
               {profilePicUrl ? (
                 <Image source={{ uri: profilePicUrl }} style={styles.avatar} />
@@ -302,7 +302,7 @@ const ChatScreen = () => {
               )}
               <View style={[styles.statusDot, isTyping && styles.statusDotTyping]} />
             </View>
-            <View style={[styles.headerText, { alignItems: isRTL ? 'flex-end' : 'flex-start', marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0 }]}>
+            <View style={[styles.headerText, { alignItems: 'flex-start', marginLeft: 12, marginRight: 0 }]}>
               <Text style={styles.headerName} numberOfLines={1}>{driverName || t('driver')}</Text>
               {isTyping ? (
                 <Animated.Text entering={FadeIn.duration(200)} style={styles.headerStatus}>
@@ -350,13 +350,13 @@ const ChatScreen = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <View style={styles.inputBarOuter}>
-          <View style={[styles.inputBar, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+          <View style={[styles.inputBar, { flexDirection: "row" }]}>
             <TouchableOpacity style={styles.attachBtn} activeOpacity={0.6}>
               <Ionicons name="add-circle-outline" size={26} color="#999" />
             </TouchableOpacity>
 
             <TextInput
-              style={[styles.input, { textAlign: isRTL ? "right" : "left", writingDirection: isRTL ? "rtl" : "ltr" }]}
+              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
               placeholder={t('type_message') || 'Type a message...'}
               placeholderTextColor="#B0B0B0"
               value={inputText}
@@ -378,10 +378,10 @@ const ChatScreen = () => {
                 end={{ x: 1, y: 1 }}
               >
                 <Ionicons
-                  name={isRTL ? "send-sharp" : "send"}
+                  name="send"
                   size={17}
                   color="#FFF"
-                  style={{ marginLeft: isRTL ? 0 : 2, marginRight: isRTL ? 2 : 0, transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+                  style={{ marginLeft: 2, marginRight: 0, transform: [{ scaleX: 1 }] }}
                 />
               </LinearGradient>
             </AnimatedTouchable>

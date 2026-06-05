@@ -31,7 +31,7 @@ const ModernAlert = ({
   icon = null
 }) => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "ur";
+  const isRTL = false; // Layout is always LTR
   
   const finalOkText = okText || t("ok_btn", "OK");
   const finalCancelText = cancelText || t("cancel_btn", "Cancel");
@@ -64,8 +64,8 @@ const ModernAlert = ({
 
           {/* Text Content */}
           <View style={styles.content}>
-            <Text style={[styles.title, { textAlign: isRTL ? "right" : "center" }]}>{title}</Text>
-            <Text style={[styles.message, { textAlign: isRTL ? "right" : "center" }]}>{message}</Text>
+            <Text style={[styles.title, { textAlign: "center" }]}>{title}</Text>
+            <Text style={[styles.message, { textAlign: "center" }]}>{message}</Text>
           </View>
 
           {/* Action Buttons */}

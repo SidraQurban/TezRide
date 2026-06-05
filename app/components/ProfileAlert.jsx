@@ -39,20 +39,20 @@ const ProfileAlert = ({
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { textAlign: isUrdu ? "right" : "left" }]}>
+            <Text style={[styles.title, { textAlign: "left" }]}>
               {title}
             </Text>
           </View>
 
           {/* Message */}
           <View style={styles.content}>
-            <Text style={[styles.message, { textAlign: isUrdu ? "right" : "left" }]}>
+            <Text style={[styles.message, { textAlign: "left" }]}>
               {message}
             </Text>
           </View>
 
           {/* Single OK button — aligned to start (left in LTR, right in RTL) */}
-          <View style={[styles.footer, { alignItems: isUrdu ? "flex-start" : "flex-end" }]}>
+          <View style={[styles.footer, { alignItems: "flex-end" }]}>
             <TouchableOpacity onPress={onOk} activeOpacity={0.8}>
               <LinearGradient
                 colors={[COLORS.primary, COLORS.secondary]}

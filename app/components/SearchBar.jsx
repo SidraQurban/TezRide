@@ -50,7 +50,7 @@ const SearchBar = () => {
           fontSize: responsiveFontSize(1.8),
           fontFamily: FONTS.regular,
           color: "#999",
-          textAlign: i18n.language === "ur" ? "right" : "left",
+          textAlign: "left",
         }}
       >
         {t("search_placeholder")}

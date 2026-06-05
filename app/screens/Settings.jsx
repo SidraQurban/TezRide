@@ -7,7 +7,6 @@ import {
   ScrollView,
   Switch,
   Modal,
-  I18nManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -27,7 +26,7 @@ const LANGUAGES = [
 
 const Settings = ({ navigation }) => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language?.startsWith("ur");
+  const isRTL = false; // RTL disabled — layout is always LTR
   const [langModalVisible, setLangModalVisible] = useState(false);
 
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
@@ -37,32 +36,27 @@ const Settings = ({ navigation }) => {
     if (code === i18n.language) return;
 
     i18n.changeLanguage(code);
-    const isRtl = code === "ur";
-    if (isRtl !== I18nManager.isRTL) {
-      I18nManager.allowRTL(isRtl);
-      I18nManager.forceRTL(isRtl);
-    }
   };
 
   // ─── Reusable row ──────────────────────────────────────────────────────────
   const SettingItem = ({ icon, label, value, onPress, type = "link", last = false }) => (
     <TouchableOpacity
-      style={[styles.settingItem, { flexDirection: isRTL ? "row-reverse" : "row" }, last && styles.settingItemLast]}
+      style={[styles.settingItem, { flexDirection: "row" }, last && styles.settingItemLast]}
       onPress={onPress}
       disabled={type === "switch"}
       activeOpacity={0.7}
     >
-      <View style={[styles.settingItemLeft, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
-        <View style={[styles.iconBox, { [isRTL ? "marginLeft" : "marginRight"]: 14 }]}>
+      <View style={[styles.settingItemLeft, { flexDirection: "row" }]}>
+        <View style={[styles.iconBox, { marginRight: 14 }]}>
           <Ionicons name={icon} size={20} color={COLORS.primary} />
         </View>
-        <Text style={[styles.settingLabel, { textAlign: isRTL ? "right" : "left" }]}>{label}</Text>
+        <Text style={[styles.settingLabel, { textAlign: "left" }]}>{label}</Text>
       </View>
 
       {type === "link" && (
-        <View style={[styles.settingRight, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+        <View style={[styles.settingRight, { flexDirection: "row" }]}>
           {value ? <Text style={styles.settingValue}>{value}</Text> : null}
-          <Ionicons name={isRTL ? "chevron-back" : "chevron-forward"} size={18} color="#ccc" />
+          <Ionicons name="chevron-forward" size={18} color="#ccc" />
         </View>
       )}
       {type === "switch" && (
@@ -78,11 +72,11 @@ const Settings = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppHeader isRtlIcon={true} />
+      <AppHeader isRtlIcon={false} />
 
       {/* Page title */}
-      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>{t("settings", "Settings")}</Text>
+      <View style={[styles.pageTitleRow, { alignItems: "flex-start" }]}>
+        <Text style={[styles.pageTitle, { textAlign: "left" }]}>{t("settings", "Settings")}</Text>
       </View>
 
       <View style={styles.contentArea}>
@@ -91,7 +85,7 @@ const Settings = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
         >
         {/* ── Account ─────────────────────────────────────────────── */}
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left", paddingRight: isRTL ? 4 : 0, paddingLeft: isRTL ? 0 : 4 }]}>{t("account", "Account")}</Text>
+        <Text style={[styles.sectionTitle, { textAlign: "left", paddingLeft: 4 }]}>{t("account", "Account")}</Text>
         <View style={styles.sectionBox}>
           <SettingItem
             icon="person-outline"
@@ -107,7 +101,7 @@ const Settings = ({ navigation }) => {
         </View>
 
         {/* ── App Settings ─────────────────────────────────────────── */}
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left", paddingRight: isRTL ? 4 : 0, paddingLeft: isRTL ? 0 : 4 }]}>{t("app_settings", "App Settings")}</Text>
+        <Text style={[styles.sectionTitle, { textAlign: "left", paddingLeft: 4 }]}>{t("app_settings", "App Settings")}</Text>
         <View style={styles.sectionBox}>
           <SettingItem
             icon="globe-outline"
@@ -126,7 +120,7 @@ const Settings = ({ navigation }) => {
         </View>
 
         {/* ── More ─────────────────────────────────────────────────── */}
-        <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left", paddingRight: isRTL ? 4 : 0, paddingLeft: isRTL ? 0 : 4 }]}>{t("more", "More")}</Text>
+        <Text style={[styles.sectionTitle, { textAlign: "left", paddingLeft: 4 }]}>{t("more", "More")}</Text>
         <View style={styles.sectionBox}>
           <SettingItem
             icon="help-circle-outline"
@@ -166,7 +160,7 @@ const Settings = ({ navigation }) => {
         >
           <View style={styles.modalCard}>
             {/* Modal Header */}
-            <View style={[styles.modalHeader, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+            <View style={[styles.modalHeader, { flexDirection: "row" }]}>
               <Text style={styles.modalTitle}>{t("language", "Language")}</Text>
               <TouchableOpacity onPress={() => setLangModalVisible(false)}>
                 <Ionicons name="close" size={22} color="#555" />
@@ -181,15 +175,15 @@ const Settings = ({ navigation }) => {
                   key={lang.code}
                   style={[
                     styles.langOption,
-                    { flexDirection: isRTL ? "row-reverse" : "row" },
+                    { flexDirection: "row" },
                     isSelected && styles.langOptionActive,
                   ]}
                   onPress={() => switchLanguage(lang.code)}
                   activeOpacity={0.8}
                 >
-                  <View style={[styles.langLeft, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+                  <View style={[styles.langLeft, { flexDirection: "row" }]}>
                     <Text style={styles.langFlag}>{lang.flag}</Text>
-                    <View style={{ alignItems: isRTL ? "flex-end" : "flex-start", marginHorizontal: 14 }}>
+                    <View style={{ alignItems: "flex-start", marginHorizontal: 14 }}>
                       <Text
                         style={[
                           styles.langLabel,

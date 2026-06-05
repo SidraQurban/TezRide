@@ -29,7 +29,7 @@ const SearchScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false;
   const { 
     pickup: ctxPickup, 
     destination: ctxDestination, 

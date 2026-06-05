@@ -8,7 +8,6 @@ import Svg, { Path } from "react-native-svg";
 const DrawerHeader = () => {
   const navigation = useNavigation();
   const { i18n } = useTranslation();
-  const isRTL = i18n.language === "ur";
 
   return (
     <View style={{ flexDirection: "row" }}>
@@ -22,7 +21,7 @@ const DrawerHeader = () => {
           height={24}
           viewBox="0 0 512 512"
           fill="none"
-          style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+          style={{ transform: [{ scaleX: 1 }] }}
         >
           <Path
             d="M96 128h320M128 256h320M96 384h320"

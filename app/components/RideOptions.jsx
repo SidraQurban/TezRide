@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 const RideOptions = () => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false;
   const [selectedCar, setSelectedCar] = useState(null);
   const [promoCode, setPromoCode] = useState("");
 

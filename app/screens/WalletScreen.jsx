@@ -72,7 +72,7 @@ const formatDate = (dateStr) => {
 
 const WalletScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language?.startsWith("ur");
+  const isRTL = false; // RTL disabled — layout is always LTR
 
   const [loading, setLoading] = useState(true);
   const [balanceData, setBalanceData] = useState({ balance: 0, currency: "PKR" });
@@ -197,11 +197,11 @@ const WalletScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppHeader isRtlIcon={true} />
+      <AppHeader isRtlIcon={false} />
 
       {/* Page title */}
-      <View style={[styles.pageTitleRow, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-        <Text style={[styles.pageTitle, { textAlign: isRTL ? "right" : "left" }]}>
+      <View style={[styles.pageTitleRow, { alignItems: "flex-start" }]}>
+        <Text style={[styles.pageTitle, { textAlign: "left" }]}>
           {t("wallet", "Wallet")}
         </Text>
       </View>
@@ -215,21 +215,19 @@ const WalletScreen = ({ navigation }) => {
         {/* Balance Card */}
         <LinearGradient
           colors={[COLORS.primary, COLORS.secondary]}
-          start={{ x: isRTL ? 1 : 0, y: 0 }}
-          end={{ x: isRTL ? 0 : 1, y: 0 }}
-          style={[styles.balanceCard, { flexDirection: isRTL ? "row-reverse" : "row" }]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.balanceCard, { flexDirection: "row" }]}
         >
-          <View style={{ alignItems: isRTL ? "flex-end" : "flex-start" }}>
-            <Text style={[styles.balanceLabel, { textAlign: isRTL ? "right" : "left" }]}>
+          <View style={{ alignItems: "flex-start" }}>
+            <Text style={[styles.balanceLabel, { textAlign: "left" }]}>
               {t("total_balance", "Total Balance")}
             </Text>
             {loading && !refreshing ? (
               <ActivityIndicator color="#fff" style={{ marginTop: 10 }} />
             ) : (
-              <Text style={[styles.balanceAmount, { textAlign: isRTL ? "right" : "left" }]}>
-                {isRTL
-                  ? `${balanceData.balance.toLocaleString()} ${balanceData.currency}`
-                  : `${balanceData.currency} ${balanceData.balance.toLocaleString()}`}
+              <Text style={[styles.balanceAmount, { textAlign: "left" }]}>
+                {`${balanceData.currency} ${balanceData.balance.toLocaleString()}`}
               </Text>
             )}
           </View>
@@ -260,8 +258,8 @@ const WalletScreen = ({ navigation }) => {
         </View>
 
         {/* ── Transactions Section ──────────────────────────────────── */}
-        <View style={[styles.sectionHeader, { alignItems: isRTL ? "flex-end" : "flex-start" }]}>
-          <Text style={[styles.sectionTitle, { textAlign: isRTL ? "right" : "left" }]}>
+        <View style={[styles.sectionHeader, { alignItems: "flex-start" }]}>
+          <Text style={[styles.sectionTitle, { textAlign: "left" }]}>
             {t("recent_activity", "Recent Activity")}
           </Text>
         </View>

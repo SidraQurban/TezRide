@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 const BackBtn = () => {
   const navigation = useNavigation();
   const { i18n } = useTranslation();
-  const isRTL = i18n.language === "ur";
+  const isRTL = false; // Layout is always LTR
 
   return (
     <View
@@ -34,7 +34,7 @@ const BackBtn = () => {
           height: "100%",
         }}
       >
-        <Ionicons name={isRTL ? "arrow-forward-outline" : "arrow-back-outline"} size={25} color={COLORS.primary} />
+        <Ionicons name="arrow-back-outline" size={25} color={COLORS.primary} />
       </TouchableOpacity>
 
       {/* Logo */}

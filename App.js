@@ -41,11 +41,10 @@ export default function App() {
     }
   }, [fontsLoaded]);
 
+  // Permanently disable RTL for all languages — layout stays LTR in both English and Urdu
   useEffect(() => {
-    const languageCode = i18n.language;
-    if (languageCode === "ur" && !I18nManager.isRTL) {
-      I18nManager.forceRTL(true);
-    } else if (languageCode === "en" && I18nManager.isRTL) {
+    if (I18nManager.isRTL) {
+      I18nManager.allowRTL(false);
       I18nManager.forceRTL(false);
     }
   }, []);

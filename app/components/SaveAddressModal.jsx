@@ -142,7 +142,7 @@ const SaveAddressModal = ({ visible, onClose, address, latitude, longitude }) =>
               {/* Address Input Section */}
               <View
                 style={{
-                  flexDirection: i18n.language?.startsWith("ur") ? "row-reverse" : "row",
+                  flexDirection: "row",
                   alignItems: "center",
                   marginBottom: responsiveHeight(3),
                   backgroundColor: '#F8F9FA',

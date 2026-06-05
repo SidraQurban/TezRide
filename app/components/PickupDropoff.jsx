@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 
 const PickupDropoff = ({ pickup, setPickup, dropoff, setDropoff }) => {
   const { i18n } = useTranslation();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false;
 
   return (
     <View

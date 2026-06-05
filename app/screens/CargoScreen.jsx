@@ -32,7 +32,7 @@ import CargoSchedule from "../components/CargoSchedule";
 
 const CargoScreen = () => {
   const { t, i18n } = useTranslation();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false; // Layout is always LTR
   const [pickup, setPickup] = useState("Clifton, Karachi, Pakistan");
   const [destination, setDestination] = useState("DHA Phase 6, Karachi, Pakistan");
   const [pickupCoords, setPickupCoords] = useState({ latitude: 24.8138, longitude: 67.0333 });
@@ -166,7 +166,7 @@ const CargoScreen = () => {
               keyboardShouldPersistTaps="always"
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={[styles.predictionItem, { flexDirection: isUrdu ? "row-reverse" : "row" }]}
+                  style={[styles.predictionItem, { flexDirection: "row" }]}
                   onPress={() =>
                     handleLocationSelect(item.place_id, item.description)
                   }
@@ -176,7 +176,7 @@ const CargoScreen = () => {
                     size={20}
                     color={COLORS.primary}
                   />
-                  <Text style={[styles.predictionText, { textAlign: isUrdu ? "right" : "left", marginRight: isUrdu ? 10 : 0, marginLeft: isUrdu ? 0 : 10 }]} numberOfLines={1}>
+                  <Text style={[styles.predictionText, { textAlign: "left", marginRight: 0, marginLeft: 10 }]} numberOfLines={1}>
                     {item.description}
                   </Text>
                 </TouchableOpacity>
@@ -212,20 +212,20 @@ const CargoScreen = () => {
         />
 
         {/* BADGES */}
-        <View style={[styles.badgesRow, { flexDirection: isUrdu ? "row-reverse" : "row" }]}>
-          <View style={[styles.badge, { flexDirection: isUrdu ? "row-reverse" : "row" }]}>
+        <View style={[styles.badgesRow, { flexDirection: "row" }]}>
+          <View style={[styles.badge, { flexDirection: "row" }]}>
             <Ionicons name="checkmark-circle" size={14} color="gray" />
-            <Text style={[styles.badgeText, { marginRight: isUrdu ? 4 : 0, marginLeft: isUrdu ? 0 : 4 }]}>{t("insurance_badge")}</Text>
+            <Text style={[styles.badgeText, { marginRight: 0, marginLeft: 4 }]}>{t("insurance_badge")}</Text>
           </View>
 
-          <View style={[styles.badge, { flexDirection: isUrdu ? "row-reverse" : "row" }]}>
+          <View style={[styles.badge, { flexDirection: "row" }]}>
             <Ionicons name="time-outline" size={14} color="gray" />
-            <Text style={[styles.badgeText, { marginRight: isUrdu ? 4 : 0, marginLeft: isUrdu ? 0 : 4 }]}>{t("realtime_tracking")}</Text>
+            <Text style={[styles.badgeText, { marginRight: 0, marginLeft: 4 }]}>{t("realtime_tracking")}</Text>
           </View>
 
-          <View style={[styles.badge, { flexDirection: isUrdu ? "row-reverse" : "row" }]}>
+          <View style={[styles.badge, { flexDirection: "row" }]}>
             <Ionicons name="shield-checkmark" size={14} color="gray" />
-            <Text style={[styles.badgeText, { marginRight: isUrdu ? 4 : 0, marginLeft: isUrdu ? 0 : 4 }]}>{t("verified_driver")}</Text>
+            <Text style={[styles.badgeText, { marginRight: 0, marginLeft: 4 }]}>{t("verified_driver")}</Text>
           </View>
         </View>
       </ScrollView>

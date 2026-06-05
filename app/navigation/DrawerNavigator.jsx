@@ -16,21 +16,21 @@ const Drawer = createDrawerNavigator();
 
 const DrawerNavigator = () => {
   const { i18n } = useTranslation();
-  const isRTL = i18n.language?.startsWith("ur");
+  const isRTL = false; // Layout is always LTR
 
-  const drawerPosition = isRTL && !I18nManager.isRTL ? "right" : "left";
+  const drawerPosition = "left";
 
   const HomeScreenWrapper = (props) => (
-    <View style={{ flex: 1, direction: isRTL ? "rtl" : "ltr" }}>
+    <View style={{ flex: 1 }}>
       <HomeScreen {...props} />
     </View>
   );
 
   return (
     <Drawer.Navigator
-      key={isRTL ? "urdu" : "english"}
+      key="standard-layout"
       drawerContent={(props) => (
-        <View style={{ flex: 1, direction: isRTL ? "rtl" : "ltr" }}>
+        <View style={{ flex: 1 }}>
           <CustomDrawer {...props} />
         </View>
       )}

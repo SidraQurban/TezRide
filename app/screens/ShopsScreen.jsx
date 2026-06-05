@@ -23,7 +23,7 @@ import { shopsData } from "../data/data";
 
 const ShopsScreen = () => {
   const { t, i18n } = useTranslation();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false; // Layout is always LTR
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -36,7 +36,7 @@ const ShopsScreen = () => {
           style={{
             marginHorizontal: responsiveWidth(4),
             marginTop: responsiveHeight(1),
-            flexDirection: isUrdu ? "row-reverse" : "row",
+            flexDirection: "row",
             alignItems: "center",
             borderWidth: 1.5,
             borderColor: COLORS.primary,

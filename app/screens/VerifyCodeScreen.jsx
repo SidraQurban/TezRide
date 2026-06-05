@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  I18nManager,
   Keyboard,
   ScrollView,
   ActivityIndicator,
@@ -41,17 +40,12 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const VerifyCodeScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const { showAlert, showToast } = useAlert();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false; // Layout is always LTR
   const { phoneNumber, autoFillOTP } = route.params || {};
 
   const toggleLanguage = () => {
     const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
     i18n.changeLanguage(newLang);
-    if (newLang === "ur" && !I18nManager.isRTL) {
-      I18nManager.forceRTL(true);
-    } else if (newLang === "en" && I18nManager.isRTL) {
-      I18nManager.forceRTL(false);
-    }
   };
 
   const [timer, setTimer] = useState(60);
@@ -237,7 +231,7 @@ const VerifyCodeScreen = ({ navigation, route }) => {
                 name="globe-outline"
                 size={14}
                 color={COLORS.primary}
-                style={i18n.language === "ur" ? { marginLeft: 6 } : { marginRight: 6 }}
+                style={{ marginRight: 6 }}
               />
               <Text
                 style={{
@@ -369,8 +363,8 @@ const VerifyCodeScreen = ({ navigation, route }) => {
               {/* OTP Inputs */}
               <View
                 style={{
-                  flexDirection: isUrdu ? "row-reverse" : "row",
-                  marginTop: responsiveHeight(3), // reduced from 5
+                  flexDirection: "row",
+                  marginTop: responsiveHeight(3),
                   justifyContent: "space-between",
                   width: responsiveWidth(80),
                   marginBottom: responsiveHeight(2),
@@ -409,8 +403,8 @@ const VerifyCodeScreen = ({ navigation, route }) => {
               {/* Resend Section */}
               <View
                 style={{
-                  marginTop: responsiveHeight(1), // reduced from 2
-                  flexDirection: isUrdu ? "row-reverse" : "row",
+                  marginTop: responsiveHeight(1),
+                  flexDirection: "row",
                   alignItems: "center",
                 }}
               >

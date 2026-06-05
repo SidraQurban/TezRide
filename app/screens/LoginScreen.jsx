@@ -22,7 +22,6 @@ import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FONTS } from "../constants/theme";
 import { useTranslation } from "react-i18next";
-import { I18nManager } from "react-native";
 
 import authService from "../api/authService";
 import { ActivityIndicator, Alert } from "react-native";
@@ -38,7 +37,7 @@ const countries = [
 const LoginScreen = () => {
   const { t, i18n } = useTranslation();
   const { showAlert, showToast } = useAlert();
-  const isUrdu = i18n.language?.startsWith("ur");
+  const isUrdu = false; // Layout is always LTR
   const [phone, setPhone] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -49,11 +48,6 @@ const LoginScreen = () => {
   const toggleLanguage = () => {
     const newLang = i18n.language?.startsWith("ur") ? "en" : "ur";
     i18n.changeLanguage(newLang);
-    if (newLang === "ur" && !I18nManager.isRTL) {
-      I18nManager.forceRTL(true);
-    } else if (newLang === "en" && I18nManager.isRTL) {
-      I18nManager.forceRTL(false);
-    }
   };
 
   const isPhoneComplete = phone.length === 10;
@@ -140,9 +134,7 @@ const LoginScreen = () => {
               name="globe-outline"
               size={14}
               color={COLORS.primary}
-              style={
-                i18n.language === "ur" ? { marginLeft: 6 } : { marginRight: 6 }
-              }
+              style={{ marginRight: 6 }}
             />
             <Text
               style={{
@@ -204,7 +196,7 @@ const LoginScreen = () => {
             {/* Phone Input */}
             <View
               style={{
-                flexDirection: isUrdu ? "row-reverse" : "row",
+                flexDirection: "row",
                 alignItems: "center",
                 marginTop: responsiveHeight(4),
                 borderWidth: 1.5,
@@ -218,7 +210,7 @@ const LoginScreen = () => {
             >
               {/* Country Picker */}
               <TouchableOpacity onPress={() => setModalVisible(true)}>
-                <View style={{ flexDirection: isUrdu ? "row-reverse" : "row", alignItems: "center" }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Text
                     style={{
                       fontSize: responsiveFontSize(2.5),
@@ -231,7 +223,7 @@ const LoginScreen = () => {
                     name="caret-down"
                     size={responsiveFontSize(2.2)}
                     color={COLORS.primary}
-                    style={{ marginLeft: isUrdu ? 0 : 10, marginRight: isUrdu ? 10 : 0 }}
+                    style={{ marginLeft: 10 }}
                   />
                 </View>
               </TouchableOpacity>
@@ -267,8 +259,7 @@ const LoginScreen = () => {
                   flex: 1,
                   fontSize: responsiveFontSize(2),
                   color: isPhoneComplete ? COLORS.primary : COLORS.black,
-                  marginLeft: isUrdu ? 0 : responsiveWidth(1),
-                  marginRight: isUrdu ? responsiveWidth(1) : 0,
+                  marginLeft: responsiveWidth(1),
                   fontFamily: FONTS.semiBold,
                   includeFontPadding: false,
                   textAlignVertical: "center",
@@ -384,10 +375,8 @@ const LoginScreen = () => {
                       <Text
                         style={{
                           fontSize: responsiveFontSize(2.5),
-                          marginRight:
-                            i18n.language === "ur" ? 0 : responsiveWidth(3),
-                          marginLeft:
-                            i18n.language === "ur" ? responsiveWidth(3) : 0,
+                          marginRight: responsiveWidth(3),
+                          marginLeft: 0,
                         }}
                       >
                         {item.flag}
@@ -396,7 +385,7 @@ const LoginScreen = () => {
                         style={{
                           fontSize: responsiveFontSize(1.8),
                           fontFamily: FONTS.medium,
-                          textAlign: i18n.language === "ur" ? "right" : "left",
+                          textAlign: "left",
                         }}
                       >
                         {t(item.name.toLowerCase())}
@@ -407,8 +396,8 @@ const LoginScreen = () => {
                         fontSize: responsiveFontSize(1.8),
                         fontFamily: FONTS.semiBold,
                         color: COLORS.primary,
-                        marginLeft: i18n.language === "ur" ? 0 : 10,
-                        marginRight: i18n.language === "ur" ? 10 : 0,
+                        marginLeft: 10,
+                        marginRight: 0,
                       }}
                     >
                       {"\u200E"}
@@ -446,7 +435,7 @@ const LoginScreen = () => {
                   fontFamily: FONTS.semiBold,
                   color: COLORS.black,
                   marginBottom: responsiveHeight(2),
-                  textAlign: i18n.language === "ur" ? "right" : "left",
+                  textAlign: "left",
                 }}
               >
                 {t("privacy_policy")}
@@ -457,7 +446,7 @@ const LoginScreen = () => {
                   fontFamily: FONTS.regular,
                   color: COLORS.black,
                   lineHeight: responsiveHeight(3),
-                  textAlign: i18n.language === "ur" ? "right" : "left",
+                  textAlign: "left",
                   marginBottom: responsiveHeight(3),
                 }}
               >

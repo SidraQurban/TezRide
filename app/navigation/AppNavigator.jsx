@@ -32,7 +32,7 @@ const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const { i18n } = useTranslation();
-  const isRtl = i18n.language?.startsWith("ur");
+  const isRtl = false; // Layout is always LTR
 
   // Determine the correct initial route based on stored token
   const [initialRoute, setInitialRoute] = useState(null); // null = loading
@@ -71,7 +71,7 @@ const AppNavigator = () => {
         initialRouteName={initialRoute}
         screenOptions={{
           headerShown: false,
-          contentStyle: { direction: isRtl ? "rtl" : "ltr" },
+          contentStyle: { direction: "ltr" },
         }}
       >
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
