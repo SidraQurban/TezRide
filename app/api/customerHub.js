@@ -186,10 +186,12 @@ class CustomerHub {
    */
   async getNearbyDrivers(vehicleType, lat, lon, gender) {
     if (!this.isConnected()) {
+      console.log('[CustomerHub] getNearbyDrivers skipped: not connected');
       return [];
     }
     try {
-      return await this.connection.invoke('GetNearbyDrivers', vehicleType, lat, lon, gender || 'male');
+      const drivers = await this.connection.invoke('GetNearbyDrivers', vehicleType, lat, lon, gender || 'male');
+      return drivers;
     } catch (e) {
       console.warn('[CustomerHub] getNearbyDrivers failed:', e);
       return [];

@@ -205,6 +205,9 @@ const SearchingDirection = ({ route }) => {
         setDriverLocation({
           latitude: parseFloat(lat),
           longitude: parseFloat(lon),
+          heading: payload.heading ?? payload.Heading ?? 0,
+          distanceRemaining: payload.distanceRemaining ?? payload.DistanceRemaining,
+          durationRemaining: payload.durationRemaining ?? payload.DurationRemaining,
         });
       }
     };
@@ -621,6 +624,7 @@ const SearchingDirection = ({ route }) => {
               pickup={pickup}
               destination={destination}
               rideStatus={rideStatus}
+              telemetry={driverLocation}
               onClose={() => bottomSheetRef.current?.snapToIndex(0)}
             />
           ) : interestedDrivers.length > 0 ? (

@@ -130,6 +130,10 @@ const MapComponent = memo(({
   useEffect(() => { checkPermission(); }, [checkPermission]);
 
   useEffect(() => {
+    // Wave drivers updated
+  }, [waveDrivers]);
+
+  useEffect(() => {
     const sub = AppState.addEventListener("change", next => {
       if (next === "active") checkPermission();
     });
@@ -282,24 +286,36 @@ const MapComponent = memo(({
             coordinate={driverAnimRegion.current}
             anchor={{ x: 0.5, y: 0.5 }}
           >
-            <View style={styles.driverBubble}>
+            <View style={[styles.driverBubble, { transform: [{ rotate: `${driverLocation.heading || 0}deg` }] }]}>
               <Image source={vehicleImage} style={{ width: 26, height: 26, resizeMode: "contain" }} />
             </View>
           </Marker.Animated>
         )}
 
         {/* Nearby wave drivers */}
-        {waveDrivers.filter(d => d.vehicleType === selectedCategory).map(driver => (
-          <Marker
-            key={`wave-${driver.driverId}`}
-            coordinate={{ latitude: driver.lat, longitude: driver.lon }}
-            anchor={{ x: 0.5, y: 0.5 }}
-          >
-            <View style={styles.driverBubble}>
-              <Image source={vehicleImage} style={{ width: 22, height: 22, resizeMode: "contain" }} />
-            </View>
-          </Marker>
-        ))}
+        {waveDrivers.map(driver => {
+          const lat = driver.lat ?? driver.Lat;
+          const lon = driver.lon ?? driver.Lon;
+          if (lat === undefined || lon === undefined || lat === null || lon === null) return null;
+          
+          const flat = parseFloat(lat);
+          const flon = parseFloat(lon);
+          if (isNaN(flat) || isNaN(flon)) return null;
+          
+          return (
+            <Marker
+              key={`wave-${driver.driverId || driver.DriverId || `pos-${flat}-${flon}`}`}
+              coordinate={{ latitude: flat, longitude: flon }}
+              anchor={{ x: 0.5, y: 0.5 }}
+              zIndex={10}
+              tracksViewChanges={true}
+            >
+              <View style={[styles.driverBubble, { transform: [{ rotate: `${driver.heading || driver.Heading || 0}deg` }] }]}>
+                <Image source={vehicleImage} style={{ width: 22, height: 22, resizeMode: "contain" }} />
+              </View>
+            </Marker>
+          );
+        })}
 
         {/* Route: driver → pickup */}
         {showRoute && isHeadingToPickup && driverLocation && originLoc && (

@@ -198,32 +198,42 @@ const ConfirmRide = () => {
     let isActive = true;
 
     const setupHubAndPoll = async () => {
-      await customerHub.start();
-
-      // Poll every 5 seconds for nearby drivers
-      intervalId = setInterval(async () => {
-        if (isActive && pickup?.latitude && pickup?.longitude) {
-          const drivers = await customerHub.getNearbyDrivers(selectedService, pickup.latitude, pickup.longitude, genderPreference);
-          if (drivers && drivers.length >= 0) {
-            setWaveDrivers(drivers);
+      try {
+        await customerHub.start();
+        
+        const fetchNearby = async () => {
+          if (isActive && pickup?.latitude && pickup?.longitude) {
+            try {
+              const svc = selectedService || "bike";
+              const gen = genderPreference || "male";
+              const drivers = await customerHub.getNearbyDrivers(svc, pickup.latitude, pickup.longitude, gen);
+              
+              if (isActive && drivers) {
+                setWaveDrivers(drivers);
+              }
+            } catch (err) {
+              // Silent catch
+            }
           }
-        }
-      }, 5000);
-      
-      // Do an immediate fetch as well
-      if (isActive && pickup?.latitude && pickup?.longitude) {
-        const drivers = await customerHub.getNearbyDrivers(selectedService, pickup.latitude, pickup.longitude, genderPreference);
-        if (drivers && drivers.length >= 0) {
-          setWaveDrivers(drivers);
-        }
+        };
+
+        // Initial fetch
+        fetchNearby();
+
+        // Polling every 3 seconds for nearby drivers
+        intervalId = setInterval(fetchNearby, 3000);
+      } catch (e) {
+        console.warn("[ConfirmRide] Hub/Poll setup failed:", e);
       }
     };
 
     setupHubAndPoll();
 
     const onWaveDrivers = (payload) => {
-      if (payload && payload.drivers) {
-        setWaveDrivers(payload.drivers);
+      // Handle both camelCase and PascalCase from server
+      const drivers = payload?.drivers || payload?.Drivers;
+      if (drivers) {
+        setWaveDrivers(drivers);
       }
     };
 

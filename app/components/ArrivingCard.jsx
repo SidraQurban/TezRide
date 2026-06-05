@@ -12,10 +12,13 @@ import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import i18n from "../locales/i18n";
 
-const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus }) => {
+const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus, telemetry }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
   
+  const displayDuration = telemetry?.durationRemaining ?? (driver?.timeMinutes ? `${driver.timeMinutes} ${t("mins")}` : "");
+  const displayDistance = telemetry?.distanceRemaining ?? (driver?.distanceKm != null ? `${parseFloat(driver.distanceKm).toFixed(2)} ${t("km")}` : "");
+
   return (
     <View
       style={{
@@ -53,10 +56,11 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus }) => {
         <Text
           style={{
             fontSize: responsiveFontSize(1.7),
-            color: "#8A8A8A",
+            color: COLORS.primary,
+            fontFamily: FONTS.bold,
           }}
         >
-          {driver?.timeMinutes ? `${driver.timeMinutes} ${t("mins")}` : ""}
+          {displayDuration}
         </Text>
       </View>
 
@@ -151,9 +155,9 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus }) => {
             <Text style={{ fontFamily: FONTS.medium, fontSize: 14 }} numberOfLines={1}>
               {pickup?.address || t("my_current_location")}
             </Text>
-            {(driver?.distanceKm != null && driver?.distanceKm !== undefined) && (
+            {displayDistance !== "" && (
               <Text style={{ color: "#8A8A8A", fontSize: 12 }}>
-                {parseFloat(driver.distanceKm).toFixed(2)} {t("km")} {t("away")}
+                {displayDistance} {rideStatus === "in_transit" ? t("to_destination") : t("away")}
               </Text>
             )}
           </View>
