@@ -89,7 +89,6 @@ const SearchingDirection = ({ route }) => {
   const snapPoints = useMemo(() => ["10%", "40%", "75%"], []);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showNoDriversModal, setShowNoDriversModal] = useState(false);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [driverAssignedInfo, setDriverAssignedInfo] = useState(null);
@@ -105,6 +104,7 @@ const SearchingDirection = ({ route }) => {
   );
   // searching | driver_selected | assigned | no_drivers | completed | cancelled
   const [rideStatus, setRideStatus] = useState(route.params?.recoveredStatus || activeRide?.status || "searching");
+  const [showCompletionModal, setShowCompletionModal] = useState(route.params?.recoveredStatus === "completed");
   const [searchWave, setSearchWave] = useState(null);
   const [waveDrivers, setWaveDrivers] = useState([]);
 
@@ -114,6 +114,59 @@ const SearchingDirection = ({ route }) => {
   const assignedDriverRef = useRef(assignedDriver);
   // Prevents duplicate selectDriver calls from double-taps or card timers
   const selectionSentRef = useRef(false);
+
+  // ── Data Recovery ────────────────────────────────────────────────────────
+  useEffect(() => {
+    const recoverRide = async () => {
+      // If we have a rideId in params but no activeRide data, fetch it
+      if (rideId && !activeRide?.pickup) {
+        try {
+          const res = await rideService.getRideDetails(rideId);
+          if (res.succeeded && res.data) {
+            const data = res.data;
+            const statusMap = {
+              1: "assigned",
+              2: "driver_arrived",
+              3: "in_transit",
+              4: "completed",
+              5: "cancelled",
+              6: "cancelled"
+            };
+            const mappedStatus = statusMap[data.status] || "searching";
+            
+            setActiveRide({
+              rideId: data.id,
+              status: mappedStatus,
+              pickup: { latitude: data.pickupLat, longitude: data.pickupLon, name: data.pickupAddress, address: data.pickupAddress },
+              destination: { latitude: data.dropoffLat, longitude: data.dropoffLon, name: data.dropoffAddress, address: data.dropoffAddress },
+              price: data.finalCost || data.fare,
+              vehicleType: data.vehicleType,
+              assignedDriver: data.assignedDriver,
+              finalFare: data.finalCost || data.fare,
+              currency: data.currency || "PKR",
+              distanceKm: data.distanceKm,
+              durationMinutes: data.durationMinutes
+            });
+            
+            setRideStatus(mappedStatus);
+            if (mappedStatus === "completed") {
+              setShowCompletionModal(true);
+            }
+            if (data.assignedDriver) {
+              setAssignedDriver(data.assignedDriver);
+              setDriverLocation({
+                latitude: parseFloat(data.assignedDriver.lat || data.assignedDriver.latitude),
+                longitude: parseFloat(data.assignedDriver.lon || data.assignedDriver.longitude),
+              });
+            }
+          }
+        } catch (err) {
+          console.warn("[SearchingDirection] Failed to recover ride details:", err);
+        }
+      }
+    };
+    recoverRide();
+  }, [rideId]);
 
   useEffect(() => {
     rideStatusRef.current = rideStatus;

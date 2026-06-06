@@ -155,10 +155,17 @@ export const NotificationService = {
         }
         break;
       case 'TRIP_COMPLETED':
-        navigation.navigate('RideHistory');
+        if (rideId) {
+          navigation.navigate('SearchingDirection', { 
+            rideId, 
+            recoveredStatus: 'completed' 
+          });
+        } else {
+          navigation.navigate('MainDrawer', { screen: 'RideHistory' });
+        }
         break;
       case 'RIDE_CANCELLED':
-        navigation.navigate('MainDrawer');
+        navigation.navigate('MainDrawer', { screen: 'Home' });
         break;
       default:
         console.log('Unknown notification type:', type);

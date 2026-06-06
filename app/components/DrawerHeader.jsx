@@ -12,7 +12,16 @@ const DrawerHeader = () => {
   return (
     <View style={{ flexDirection: "row" }}>
       <TouchableOpacity
-        onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
+        onPress={() => {
+          try {
+            navigation.dispatch(DrawerActions.toggleDrawer());
+          } catch (e) {
+            // If toggleDrawer fails (e.g. not in a drawer), go back instead
+            if (navigation.canGoBack()) {
+               navigation.goBack();
+            }
+          }
+        }}
         style={{ padding: SIZES.base * 1.2 }}
       >
         {/* Bars-Staggered SVG Icon */}
