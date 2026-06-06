@@ -33,7 +33,7 @@ const SearchBar = () => {
         shadowColor: "#000",
         shadowOpacity: 0.1,
         shadowRadius: 6,
-        marginTop: 13,
+        marginTop: 2,
         gap: 10,
       }}
     >

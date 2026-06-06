@@ -693,12 +693,12 @@ const HomeScreen = ({ navigation, route }) => {
             }}
             style={{
               position: 'absolute',
-              bottom: responsiveHeight(2),
+              bottom: responsiveHeight(5),
               left: responsiveWidth(5),
               right: responsiveWidth(5),
               backgroundColor: COLORS.white,
               borderRadius: 30,
-              padding: 15,
+              padding: 10,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -712,23 +712,29 @@ const HomeScreen = ({ navigation, route }) => {
               zIndex: 1000,
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
               <View style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
+                width: 32,
+                height: 32,
+                borderRadius: 16,
                 backgroundColor: 'rgba(255, 92, 0, 0.1)',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginRight: 12
+                marginRight: 10
               }}>
-                <Ionicons name="car-sport" size={24} color={COLORS.primary} />
+                <Ionicons name="car-sport" size={18} color={COLORS.primary} />
               </View>
-              <View>
-                <Text style={{ fontFamily: FONTS.bold, fontSize: 13, color: '#999', textTransform: 'uppercase' }}>
+              <View style={{ flex: 1 }}>
+                <Text 
+                  style={{ fontFamily: FONTS.bold, fontSize: 11, color: '#999', textTransform: 'uppercase' }}
+                  numberOfLines={1}
+                >
                   {t("live_trip", "Live Trip")}
                 </Text>
-                <Text style={{ fontFamily: FONTS.bold, fontSize: 15, color: COLORS.black }}>
+                <Text 
+                  style={{ fontFamily: FONTS.bold, fontSize: 14, color: COLORS.black }}
+                  numberOfLines={1}
+                >
                   {activeRide.status === 'assigned' ? t("driver_assigned", "Driver Assigned") : 
                    activeRide.status === 'driver_arrived' ? t("driver_arrived", "Driver Arrived") :
                    activeRide.status === 'in_transit' ? t("in_transit", "In Transit") :
@@ -738,8 +744,8 @@ const HomeScreen = ({ navigation, route }) => {
             </View>
             <View style={{
               backgroundColor: COLORS.primary,
-              paddingHorizontal: 15,
-              paddingVertical: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 5,
               borderRadius: 20,
               flexDirection: 'row',
               alignItems: 'center'
