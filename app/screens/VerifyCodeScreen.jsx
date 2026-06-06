@@ -34,6 +34,7 @@ import Animated, {
 
 import authService from "../api/authService";
 import { useAlert } from "../context/AlertContext";
+import NotificationService from "../utils/NotificationService";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -116,6 +117,11 @@ const VerifyCodeScreen = ({ navigation, route }) => {
       const response = await authService.verifyOTP(phoneNumber, finalCode, "Customer");
 
       if (response.succeeded) {
+        // Register for push notifications after successful login
+        if (response.data?.id) {
+          NotificationService.registerForPushNotifications(response.data.id, "Customer");
+        }
+        
         navigation.reset({
           index: 0,
           routes: [

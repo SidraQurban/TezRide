@@ -74,6 +74,14 @@ export const rideService = {
   submitRating: async (data) => {
     return apiClient.post('/api/ratings/submit', data);
   },
+
+  /**
+   * Retrieves the current active ride or search for the user.
+   * GET /api/customer/rides/current-ride
+   */
+  getCurrentRide: async () => {
+    return apiClient.get('/api/customer/rides/current-ride');
+  },
 };
 
 export default rideService;

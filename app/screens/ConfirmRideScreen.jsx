@@ -61,32 +61,18 @@ const ConfirmRide = () => {
   } = useRide();
   const { showAlert, showToast } = useAlert();
 
-  const pickup = route.params?.pickup || ctxPickup;
-  const destination = route.params?.destination || ctxDestination;
+  const pickup = ctxPickup;
+  const destination = ctxDestination;
 
-  // Sync route params to context on mount
+  // Sync route params to context on mount - ONLY ONCE
   useEffect(() => {
-    if (
-      route.params?.pickup &&
-      JSON.stringify(route.params.pickup) !== JSON.stringify(ctxPickup)
-    ) {
+    if (route.params?.pickup) {
       setPickup(route.params.pickup);
     }
-    if (
-      route.params?.destination &&
-      JSON.stringify(route.params.destination) !==
-        JSON.stringify(ctxDestination)
-    ) {
+    if (route.params?.destination) {
       setDestination(route.params.destination);
     }
-  }, [
-    route.params?.pickup,
-    route.params?.destination,
-    setPickup,
-    setDestination,
-    ctxPickup,
-    ctxDestination,
-  ]);
+  }, []); // Empty dependency array to run only once on mount
 
   const { t, i18n } = useTranslation();
   const isRTL = false;
@@ -126,6 +112,7 @@ const ConfirmRide = () => {
   const [walletAlertVisible, setWalletAlertVisible] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectionType, setSelectionType] = useState("pickup");
+  const [forcedRegion, setForcedRegion] = useState(null);
 
   // Verification form state
   const [vForm, setVForm] = useState({
@@ -138,6 +125,13 @@ const ConfirmRide = () => {
     backImage: null,
     requiresWomenOnlyRides: true,
   });
+
+  // Search state for selection mode
+  const [searchQuery, setSearchQuery] = useState("");
+  const [predictions, setPredictions] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const debounceTimer = useRef(null);
+  const ignoreNextRegionChange = useRef(false);
 
   const PAYMENT_METHODS = [
     {
@@ -492,6 +486,15 @@ const ConfirmRide = () => {
   };
 
   const startSelection = (type) => {
+    const point = type === "pickup" ? pickup : destination;
+    if (point?.latitude && point?.longitude) {
+      setForcedRegion({
+        latitude: point.latitude,
+        longitude: point.longitude,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      });
+    }
     setSelectionType(type);
     setIsSelectionMode(true);
     bottomSheetRef.current?.close();
@@ -633,6 +636,65 @@ const ConfirmRide = () => {
     navigation.navigate("Search", { activeField: "destination" });
   };
 
+  const fetchPredictions = async (text) => {
+    if (!text || text.length < 3) {
+      setPredictions([]);
+      return;
+    }
+    setSearching(true);
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(text)}&key=${GOOGLE_MAPS_API_KEY}&components=country:pk&language=${i18n.language}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (data.status === "OK") {
+        setPredictions(data.predictions);
+      }
+    } catch (err) {
+      console.warn("[ConfirmRide] Prediction error:", err);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSearchChange = (text) => {
+    setSearchQuery(text);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => fetchPredictions(text), 600);
+  };
+
+  const handleSelectPrediction = async (prediction) => {
+    setSearchQuery(prediction.description);
+    setPredictions([]);
+    try {
+      const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${prediction.place_id}&key=${GOOGLE_MAPS_API_KEY}`;
+      const resp = await fetch(detailUrl);
+      const data = await resp.json();
+      if (data.status === "OK") {
+        const { lat, lng } = data.result.geometry.location;
+        const newLoc = {
+          id: prediction.place_id,
+          name: prediction.structured_formatting?.main_text || prediction.description.split(",")[0],
+          address: prediction.description,
+          latitude: lat,
+          longitude: lng,
+        };
+        
+        if (selectionType === "pickup") setPickup(newLoc);
+        else setDestination(newLoc);
+
+        ignoreNextRegionChange.current = true;
+        setForcedRegion({
+          latitude: lat,
+          longitude: lng,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        });
+      }
+    } catch (err) {
+      console.warn("[ConfirmRide] Place details error:", err);
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       {/* MAIN CONTENT */}
@@ -643,7 +705,7 @@ const ConfirmRide = () => {
 
         <View
           style={{
-            height: responsiveHeight(60),
+            height: isSelectionMode ? responsiveHeight(90) : responsiveHeight(60),
             marginBottom: responsiveHeight(0.5),
           }}
         >
@@ -654,13 +716,19 @@ const ConfirmRide = () => {
             onRouteReady={handleRouteReady}
             onPickupDragEnd={handlePickupDragEnd}
             onDestinationDragEnd={handleDestinationDragEnd}
-            onEditPickup={handleEditPickup}
-            onEditDestination={handleEditDestination}
+            onEditPickup={() => startSelection("pickup")}
+            onEditDestination={() => startSelection("destination")}
+            forcedRegion={forcedRegion}
             waveDrivers={waveDrivers}
             selectedCategory={selectedService}
             isSelectionMode={isSelectionMode}
             selectionType={selectionType}
             onLocationSelected={async (region) => {
+              setForcedRegion(null); // Clear force once user moves map
+              if (ignoreNextRegionChange.current) {
+                ignoreNextRegionChange.current = false;
+                return;
+              }
               const data = await reverseGeocode(region);
               if (data) {
                 if (selectionType === "pickup") setPickup(data);
@@ -668,6 +736,79 @@ const ConfirmRide = () => {
               }
             }}
           />
+
+          {/* FLOAT SEARCH BAR IN SELECTION MODE */}
+          {isSelectionMode && (
+            <View style={styles.floatingSearchContainer}>
+              <View style={[styles.searchBox, searching && { borderColor: COLORS.primary, borderWidth: 1 }]}>
+                <Ionicons name="search" size={20} color={COLORS.primary} style={{ marginRight: 10 }} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder={selectionType === "pickup" ? "Enter Pickup" : "Enter Destination"}
+                  value={searchQuery}
+                  onChangeText={handleSearchChange}
+                  placeholderTextColor="#9CA3AF"
+                />
+                {(searchQuery.length > 0 || searching) && (
+                  <TouchableOpacity onPress={() => {setSearchQuery(""); setPredictions([]);}}>
+                    {searching ? (
+                      <ActivityIndicator size="small" color={COLORS.primary} />
+                    ) : (
+                      <Ionicons name="close-circle" size={20} color="#9BA3AF" />
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {predictions.length > 0 && (
+                <View style={styles.predictionsList}>
+                  <ScrollView 
+                    style={{ maxHeight: responsiveHeight(30) }} 
+                    bounces={false}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled={true}
+                  >
+                    {predictions.map((p, idx) => (
+                      <TouchableOpacity 
+                        key={p.place_id} 
+                        style={[styles.predictionItem, idx === predictions.length - 1 && { borderBottomWidth: 0 }]}
+                        onPress={() => handleSelectPrediction(p)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.predictionIconBox}>
+                          <Ionicons name="location-sharp" size={18} color={COLORS.primary} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.predictionMain} numberOfLines={1}>
+                            {p.structured_formatting?.main_text || p.description.split(",")[0]}
+                          </Text>
+                          <Text style={styles.predictionSub} numberOfLines={1}>
+                            {p.structured_formatting?.secondary_text || p.description}
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={14} color="#D1D5DB" />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* BACK BUTTON IN SELECTION MODE */}
+          {isSelectionMode && (
+            <TouchableOpacity 
+              style={styles.selectionBackBtn} 
+              onPress={() => {
+                setIsSelectionMode(false);
+                bottomSheetRef.current?.snapToIndex(0);
+                setSearchQuery("");
+                setPredictions([]);
+              }}
+            >
+              <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -1094,11 +1235,8 @@ const ConfirmRide = () => {
             setTempPref(genderPreference);
             setPrefModalVisible(true);
           }}
-          onEditPickup={null}
-          onEditDestination={null}
-          waveDrivers={waveDrivers}
-          onPickupPress={() => startSelection("pickup")}
-          onDestinationPress={() => startSelection("destination")}
+          onEditPickup={() => startSelection("pickup")}
+          onEditDestination={() => startSelection("destination")}
           onPaymentPress={() => setPaymentModalVisible(true)}
           activePayment={activePayment}
         />
@@ -1385,6 +1523,95 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.4),
     color: "#6B7280",
     marginTop: 2,
+  },
+  
+  // Selection Mode Styles
+  floatingSearchContainer: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    zIndex: 100,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 18,
+    paddingHorizontal: 15,
+    height: 58,
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: '#F3F4F6'
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: FONTS.medium,
+    fontSize: responsiveFontSize(1.8),
+    color: '#1F2937',
+  },
+  predictionsList: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    marginTop: 12,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  predictionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F9FAFB',
+  },
+  predictionIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 92, 0, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  predictionMain: {
+    fontFamily: FONTS.semiBold,
+    fontSize: responsiveFontSize(1.7),
+    color: '#111827',
+  },
+  predictionSub: {
+    fontFamily: FONTS.regular,
+    fontSize: responsiveFontSize(1.3),
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  selectionBackBtn: {
+    position: 'absolute',
+    top: 25,
+    left: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#FFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    zIndex: 110,
+    borderWidth: 1,
+    borderColor: '#F3F4F6'
   },
 });
 

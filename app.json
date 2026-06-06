@@ -15,6 +15,7 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#FF5C00",
@@ -27,7 +28,9 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "INTERNET",
-        "ACCESS_NETWORK_STATE"
+        "ACCESS_NETWORK_STATE",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
       ],
       "config": {
         "googleMaps": {
@@ -40,7 +43,19 @@
     },
     "plugins": [
       "expo-font",
-      "expo-localization"
+      "expo-localization",
+      "expo-av",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/applogo.jpeg",
+          "color": "#FF5C00",
+          "sounds": [
+            "./assets/notification_alert.mp3",
+            "./assets/completed_ride_alert.mp3"
+          ]
+        }
+      ]
     ],
     "extra": {
       "eas": {

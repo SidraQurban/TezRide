@@ -15,7 +15,7 @@ import {
   responsiveWidth,
 } from "react-native-responsive-dimensions";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, AlertCircle, XCircle, Info } from "lucide-react-native";
+import { CheckCircle2, AlertCircle, XCircle, Info, X } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -28,7 +28,8 @@ const ModernAlert = ({
   onCancel,
   cancelText,
   type = "info", // success, error, warning, info
-  icon = null
+  icon = null,
+  onClose = null // Optional close button callback
 }) => {
   const { t, i18n } = useTranslation();
   const isRTL = false; // Layout is always LTR
@@ -51,10 +52,23 @@ const ModernAlert = ({
       transparent
       visible={visible}
       animationType="fade"
-      onRequestClose={onCancel || onOk}
+      onRequestClose={onClose || onCancel}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+      <TouchableOpacity 
+        style={styles.overlay} 
+        activeOpacity={1} 
+        onPress={onClose || onCancel}
+      >
+        <TouchableOpacity activeOpacity={1} style={styles.container}>
+          {/* Close Button at top-right */}
+          <TouchableOpacity 
+            onPress={onClose || onCancel}
+            style={styles.closeBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <X size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
           {/* Icon Area */}
           <View style={styles.iconWrapper}>
             <View style={[styles.iconCircle, { backgroundColor: type === 'success' ? '#10B98115' : type === 'error' ? '#EF444415' : type === 'warning' ? '#F59E0B15' : COLORS.primary + '15' }]}>
@@ -95,8 +109,8 @@ const ModernAlert = ({
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -178,6 +192,15 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.semiBold,
     fontSize: responsiveFontSize(1.8),
   },
+  closeBtn: {
+    position: 'absolute',
+    top: 18,
+    right: 18,
+    zIndex: 10,
+    backgroundColor: '#F9FAFB',
+    padding: 6,
+    borderRadius: 20
+  }
 });
 
 export default ModernAlert;

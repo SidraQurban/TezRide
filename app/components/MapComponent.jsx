@@ -87,7 +87,7 @@ const MapComponent = memo(({
   rideStatus,
   showMarkers      = true,
   showRoute        = true,
-  showPickupMarker = false,
+  showPickupMarker = true,
   useGlobalState   = false,
   onRouteReady,
   onPickupDragEnd,
@@ -100,6 +100,7 @@ const MapComponent = memo(({
   onEditPickup,
   onEditDestination,
   forcedRegion,
+  hideUserDot      = false,
 }) => {
   const { t } = useTranslation();
   const mapRef = useRef(null);
@@ -160,12 +161,12 @@ const MapComponent = memo(({
   useEffect(() => {
     if (!mapReady) return;
     if (forcedRegion) {
-        mapRef.current?.animateToRegion(forcedRegion, 600);
-        return;
+      mapRef.current?.animateToRegion(forcedRegion, 600);
+      return;
     }
-    const id = setTimeout(fitBothPoints, 150); // slight delay so markers render first
+    const id = setTimeout(fitBothPoints, 200);
     return () => clearTimeout(id);
-  }, [mapReady, fitBothPoints, forcedRegion]);
+  }, [mapReady, fitBothPoints, forcedRegion, isSelectionMode]);
 
   // ─── User location ────────────────────────────────────────────────────────
   const handleUserLocationChange = useCallback(event => {
@@ -232,7 +233,7 @@ const MapComponent = memo(({
         }}
       >
         {/* User GPS dot */}
-        {hasPermission && userLocation && (
+        {hasPermission && userLocation && !hideUserDot && (
           <Marker coordinate={userLocation} anchor={{ x: 0.5, y: 0.5 }}>
             <View style={styles.userMarker}>
               <Ionicons name="navigate" size={14} color="#FFF" />
@@ -241,7 +242,7 @@ const MapComponent = memo(({
         )}
 
         {/* Pickup marker */}
-        {(showMarkers || showPickupMarker) && pickup && (!isSelectionMode || selectionType === "destination") && (
+        {showMarkers && showPickupMarker && pickup && (!isSelectionMode || selectionType === "destination") && (
           <Marker
             identifier="pickup-marker"
             coordinate={{ latitude: pickup.latitude, longitude: pickup.longitude }}
@@ -351,7 +352,11 @@ const MapComponent = memo(({
       {!isSelectionMode && pickup && destination && (onEditPickup || onEditDestination) && (
         <View style={styles.floatingBar}>
           {/* Pickup row */}
-          <TouchableOpacity style={styles.editRow} onPress={onEditPickup} activeOpacity={0.8}>
+          <TouchableOpacity 
+            style={styles.editRow}
+            onPress={onEditPickup}
+            activeOpacity={0.7}
+          >
             <View style={styles.dotPickup} />
             <Text style={styles.editAddr} numberOfLines={1}>
               {pickup.name || pickup.address || "Pickup"}
@@ -365,7 +370,11 @@ const MapComponent = memo(({
           </View>
 
           {/* Destination row */}
-          <TouchableOpacity style={styles.editRow} onPress={onEditDestination} activeOpacity={0.8}>
+          <TouchableOpacity 
+            style={styles.editRow}
+            onPress={onEditDestination}
+            activeOpacity={0.7}
+          >
             <Ionicons name="location-sharp" size={14} color={COLORS.primary} style={{ marginRight: 8 }} />
             <Text style={styles.editAddr} numberOfLines={1}>
               {destination.name || destination.address || "Destination"}

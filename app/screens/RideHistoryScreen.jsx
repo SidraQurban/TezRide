@@ -19,6 +19,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { COLORS, FONTS } from "../constants";
 import customerService from "../api/customerService";
+import rideService from "../api/rideService";
 import AppHeader from "../components/AppHeader";
 
 const RideHistoryScreen = ({ navigation }) => {
@@ -31,9 +32,31 @@ const RideHistoryScreen = ({ navigation }) => {
   const [pageIndex, setPageIndex] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  const [activeRide, setActiveRide] = useState(null);
+  const [fetchingActive, setFetchingActive] = useState(false);
+
+  const fetchActiveRide = async () => {
+    try {
+      setFetchingActive(true);
+      const res = await rideService.getCurrentRide();
+      if (res.succeeded && res.data) {
+        setActiveRide(res.data);
+      } else {
+        setActiveRide(null);
+      }
+    } catch (err) {
+      console.warn("Error fetching active ride in history:", err);
+    } finally {
+      setFetchingActive(false);
+    }
+  };
+
   const fetchHistory = async (page = 1) => {
     try {
-      if (page === 1) setLoading(true);
+      if (page === 1) {
+        setLoading(true);
+        fetchActiveRide();
+      }
       const response = await customerService.getRideHistory(page, 10);
       if (response.succeeded && response.data) {
         const processedRides = response.data;
@@ -243,6 +266,54 @@ const RideHistoryScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const renderHeader = () => {
+    if (!activeRide) return null;
+    return (
+      <View style={styles.liveSection}>
+         <Text style={styles.sectionHeader}>{t("live_trip", "Live Trip")}</Text>
+         <TouchableOpacity 
+           onPress={() => navigation.navigate('SearchingDirection', { 
+             rideId: activeRide.rideId,
+             preFetchedRide: activeRide 
+           })}
+           style={styles.liveCard}
+         >
+           <View style={styles.liveHeader}>
+             <View style={styles.liveBadge}>
+               <View style={styles.liveDot} />
+               <Text style={styles.liveBadgeText}>{t("live", "Live")}</Text>
+             </View>
+             <Text style={styles.livePrice}>PKR {activeRide.fare || activeRide.finalCost || 0}</Text>
+           </View>
+
+           <View style={styles.liveContent}>
+              <View style={styles.vehiclePill}>
+                <Ionicons name={activeRide.vehicleType === 'bike' ? 'bicycle' : 'car'} size={20} color={COLORS.primary} />
+                <Text style={styles.vehiclePillText}>{activeRide.vehicleType?.toUpperCase()}</Text>
+              </View>
+              <View style={styles.liveStatusBox}>
+                <Text style={styles.liveStatus}>{getStatusText(activeRide.status)}</Text>
+                <Text style={styles.liveRideId}>#{activeRide.rideId.substring(0, 8)}</Text>
+              </View>
+           </View>
+
+           <View style={styles.liveDivider} />
+
+           <View style={styles.liveFooter}>
+             <View style={{flex: 1}}>
+                <Text style={styles.liveAddrLabel}>{t("pickup", "Pickup")}</Text>
+                <Text style={styles.liveAddrText} numberOfLines={1}>{activeRide.pickupAddress}</Text>
+             </View>
+             <View style={styles.openLiveBtn}>
+               <Text style={styles.openLiveBtnText}>{t("open_live", "Open")}</Text>
+               <Ionicons name="chevron-forward" size={16} color={COLORS.white} />
+             </View>
+           </View>
+         </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader isRtlIcon={false} />
@@ -274,16 +345,145 @@ const RideHistoryScreen = ({ navigation }) => {
             }
           }}
           onEndReachedThreshold={0.5}
+          ListHeaderComponent={renderHeader}
           ListFooterComponent={loading && pageIndex > 1 ? <ActivityIndicator color={COLORS.primary} style={{ margin: 20 }} /> : null}
         />
       )}
 
       <RideDetailModal />
+
+
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  liveSection: {
+    paddingHorizontal: responsiveWidth(4),
+    marginTop: 15,
+  },
+  sectionHeader: {
+    fontSize: responsiveFontSize(1.8),
+    fontFamily: FONTS.bold,
+    color: COLORS.black,
+    marginBottom: 10,
+    marginLeft: 5,
+  },
+  liveCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 15,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    elevation: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    marginBottom: 10,
+  },
+  liveHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#ff0000',
+    marginRight: 6,
+  },
+  liveBadgeText: {
+    color: '#ff0000',
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+    textTransform: 'uppercase',
+  },
+  livePrice: {
+    fontSize: responsiveFontSize(2),
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
+  },
+  liveContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  vehiclePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 15,
+  },
+  vehiclePillText: {
+    marginLeft: 6,
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    color: '#4B5563',
+  },
+  liveStatusBox: {
+    alignItems: 'flex-end',
+  },
+  liveStatus: {
+    fontFamily: FONTS.bold,
+    fontSize: 14,
+    color: COLORS.primary,
+  },
+  liveRideId: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    fontFamily: FONTS.regular,
+  },
+  liveDivider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    marginVertical: 10,
+  },
+  liveFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  liveAddrLabel: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    fontFamily: FONTS.medium,
+  },
+  liveAddrText: {
+    fontSize: 12,
+    color: '#4B5563',
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+  },
+  openLiveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginLeft: 15,
+  },
+  openLiveBtnText: {
+    color: COLORS.white,
+    fontFamily: FONTS.bold,
+    fontSize: 12,
+    marginRight: 4,
+  },
+
   container: {
     flex: 1,
     backgroundColor: COLORS.white,

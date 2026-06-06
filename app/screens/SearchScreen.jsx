@@ -24,9 +24,12 @@ import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
 import * as ExpoLocation from "expo-location";
 import { useRide } from "../context/RideContext";
 import MapLocationPickerModal from "../components/MapLocationPickerModal";
+import preferenceService from "../api/preferenceService";
+import { useAlert } from "../context/AlertContext";
 
 const SearchScreen = () => {
   const { t, i18n } = useTranslation();
+  const { showToast, showAlert } = useAlert();
   const navigation = useNavigation();
   const route = useRoute();
   const isUrdu = false;
@@ -47,6 +50,8 @@ const SearchScreen = () => {
   const [sessionToken, setSessionToken] = useState("");
   const [currentLocation, setCurrentLocation] = useState(null);
   const [showMapPicker, setShowMapPicker] = useState(false);
+  const [savedPreferences, setSavedPreferences] = useState([]);
+  const [fetchingSaved, setFetchingSaved] = useState(false);
 
   const debounceTimeout = useRef(null);
   const pickupRef = useRef(null);
@@ -76,6 +81,7 @@ const SearchScreen = () => {
 
   useEffect(() => {
     setSessionToken(generateSessionToken());
+    fetchSavedPreferences();
 
     // Auto-fetch location as soon as possible
     (async () => {
@@ -141,6 +147,20 @@ const SearchScreen = () => {
       }
     } catch (e) {
       console.warn("Geocode error:", e);
+    }
+  };
+
+  const fetchSavedPreferences = async () => {
+    setFetchingSaved(true);
+    try {
+      const response = await preferenceService.getPreferences();
+      if (response.succeeded || response.Succeeded) {
+        setSavedPreferences(response.data || response.Data || []);
+      }
+    } catch (error) {
+      console.warn("Error fetching saved preferences in search:", error);
+    } finally {
+      setFetchingSaved(false);
     }
   };
 
@@ -379,6 +399,82 @@ const SearchScreen = () => {
     </TouchableOpacity>
   );
 
+  const renderSavedPreference = ({ item }) => {
+    const pKey = item.key || item.Key;
+    const pValue = item.value || item.Value;
+    const pIcon = item.icon || item.Icon;
+
+    let detail = {};
+    try {
+      detail = JSON.parse(pValue);
+    } catch {
+      detail = { address: pValue };
+    }
+
+    const addr = detail.address || detail.Address || "";
+    const displayName = addr.split(",")[0].trim() || pKey;
+
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          const loc = {
+            id: item.id || item.Id,
+            name: displayName,
+            address: addr,
+            latitude: detail.latitude || detail.Latitude,
+            longitude: detail.longitude || detail.Longitude,
+          };
+          
+          if (activeField === "pickup") {
+            setPickup(loc.name);
+            setPickupData(loc);
+            if (destinationData) {
+               navigation.navigate("ConfirmRide", { pickup: loc, destination: destinationData });
+            } else {
+               setActiveField("destination");
+               setTimeout(() => destinationRef.current?.focus(), 100);
+            }
+          } else {
+            setDestination(loc.name);
+            setDestinationData(loc);
+            if (pickupData) {
+               navigation.navigate("ConfirmRide", { pickup: pickupData, destination: loc });
+            } else {
+               setActiveField("pickup");
+               setTimeout(() => pickupRef.current?.focus(), 100);
+            }
+          }
+        }}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: responsiveHeight(1.5),
+          borderBottomWidth: 1,
+          borderBottomColor: "#F3F4F6",
+        }}
+      >
+        <View style={{ width: responsiveWidth(11), alignItems: "center" }}>
+          <View style={{ 
+            backgroundColor: 'rgba(255, 92, 0, 0.1)', 
+            padding: 8, 
+            borderRadius: 10 
+          }}>
+            <Ionicons name={pIcon || "bookmark"} size={18} color={COLORS.primary} />
+          </View>
+        </View>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={{ fontFamily: FONTS.semiBold, fontSize: responsiveFontSize(1.7), color: COLORS.black }}>
+            {pKey}
+          </Text>
+          <Text numberOfLines={1} style={{ fontFamily: FONTS.regular, fontSize: responsiveFontSize(1.4), color: COLORS.gray }}>
+            {addr}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color="#ccc" />
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView
       style={{
@@ -526,7 +622,7 @@ const SearchScreen = () => {
             </Text>
           </View>
         </View>
-      ) : (
+      ) : (activeField === "pickup" ? pickup : destination).trim().length > 0 ? (
         <FlatList
           data={predictions}
           keyExtractor={(item) => item.place_id}
@@ -534,6 +630,30 @@ const SearchScreen = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         />
+      ) : (
+        <View style={{ flex: 1 }}>
+          {savedPreferences.length > 0 && (
+            <View style={{ marginTop: 10 }}>
+              <Text style={{ 
+                fontFamily: FONTS.bold, 
+                fontSize: responsiveFontSize(1.6), 
+                color: "#999",
+                marginBottom: 10,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5
+              }}>
+                {t("saved_places", "Saved Places")}
+              </Text>
+              <FlatList
+                data={savedPreferences}
+                keyExtractor={(item) => (item.id || item.Id || item.key || item.Key).toString()}
+                renderItem={renderSavedPreference}
+                keyboardShouldPersistTaps="handled"
+                scrollEnabled={false}
+              />
+            </View>
+          )}
+        </View>
       )}
     </SafeAreaView>
   );

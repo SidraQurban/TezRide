@@ -8,6 +8,7 @@ import { COLORS, SIZES } from "../constants";
 import { FONTS } from "../constants/theme";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
+import { useRide } from "../context/RideContext";
 
 const servicesData = [
   {
@@ -56,16 +57,27 @@ const servicesData = [
 
 const Services = () => {
   const navigation = useNavigation();
+  const { activeRide } = useRide();
   const { t } = useTranslation();
 
   const handlePress = (item) => {
+    // If it's a normal ride service and we already have an active ride, redirect to it
+    if (item.title === "Ride" && activeRide?.rideId) {
+      navigation.navigate("SearchingDirection", {
+        rideId: activeRide.rideId,
+        recoveredStatus: activeRide.status,
+        pickup: activeRide.pickup,
+        destination: activeRide.destination,
+        driverInfo: activeRide.assignedDriver,
+        price: activeRide.price,
+        vehicleType: activeRide.vehicleType,
+        serviceType: activeRide.serviceType || "ride"
+      });
+      return;
+    }
+    
     navigation.navigate(item.screen);
   };
-  // const handlePress = (item) => {
-  //   if (item.title === "Ride" || item.title === "Rent Driver") {
-  //     navigation.navigate(item.screen);
-  //   }
-  // };
 
   return (
     <View>

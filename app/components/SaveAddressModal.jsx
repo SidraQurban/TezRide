@@ -22,6 +22,7 @@ import { COLORS, FONTS } from "../constants/theme";
 import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import preferenceService from "../api/preferenceService";
+import { useAlert } from "../context/AlertContext";
 
 const CATEGORIES = [
   { id: "home", label: "Home", icon: "home" },
@@ -33,6 +34,7 @@ const CATEGORIES = [
 
 const SaveAddressModal = ({ visible, onClose, address, latitude, longitude }) => {
   const { t, i18n } = useTranslation();
+  const { showToast } = useAlert();
   const [selectedCategory, setSelectedCategory] = useState("home");
   const [houseNo, setHouseNo] = useState("");
   const [street, setStreet] = useState("");
@@ -50,7 +52,7 @@ const SaveAddressModal = ({ visible, onClose, address, latitude, longitude }) =>
 
   const handleSave = async () => {
     if (!editableAddress) {
-      alert(t("enter_address_error") || "Please enter an address");
+      showToast(t("enter_address_error") || "Please enter an address", 'info');
       return;
     }
     
@@ -76,10 +78,11 @@ const SaveAddressModal = ({ visible, onClose, address, latitude, longitude }) =>
         CATEGORIES.find(c => c.id === selectedCategory)?.icon
       );
       
+      showToast(t("address_saved", "Address saved successfully!"), 'success');
       onClose();
     } catch (error) {
       console.error("Failed to save address preference:", error);
-      alert(t("save_failed") || "Failed to save address. Please try again.");
+      showToast(t("save_failed") || "Failed to save address. Please try again.", 'error');
     } finally {
       setLoading(false);
     }

@@ -257,7 +257,6 @@ const RidesSlider = ({
                   {(() => {
                     if (duration) return `${Math.round(duration)} ${t("mins")}`;
                     
-                    // Fallback to static info if duration not yet calculated
                     if (service.eta) return t(service.eta.replace(" ", "_").toLowerCase());
                     
                     return t("calculating");
@@ -317,71 +316,70 @@ const RidesSlider = ({
           borderColor: "#F3F4F6",
         }}
       >
-        {/* TOP ROW — Pickup */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+        {/* Pickup Row */}
+        <TouchableOpacity 
+          onPress={onEditPickup}
+          activeOpacity={0.7}
+          style={{ width: '100%', paddingVertical: 4 }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-            <View
-              style={{
-                width: responsiveWidth(2),
-                height:responsiveWidth(2),
-                borderRadius: responsiveWidth(1),
-                backgroundColor: "#FF6B00",
-                marginRight: responsiveWidth(2),
-              }}
-            />
-            <Text
-              style={{
-                fontFamily: FONTS.semiBold,
-                fontSize: responsiveFontSize(1.8),
-                color: "#1F2937",
-                textAlign: isRTL ? "right" : "left",
-              }}
-            >
-              {t("current_location")}
-            </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+              <View
+                style={{
+                  width: responsiveWidth(2),
+                  height: responsiveWidth(2),
+                  borderRadius: responsiveWidth(1),
+                  backgroundColor: "#10B981",
+                  marginRight: responsiveWidth(2),
+                }}
+              />
+              <Text
+                style={{
+                  fontFamily: FONTS.semiBold,
+                  fontSize: responsiveFontSize(1.8),
+                  color: "#1F2937",
+                  textAlign: isRTL ? "right" : "left",
+                }}
+              >
+                {t("pickup_location")}
+              </Text>
+            </View>
+
+            <TouchableOpacity onPress={onPreferencePress}>
+              <Text
+                style={{
+                  fontSize: responsiveFontSize(1.6),
+                  color: COLORS.primary,
+                  fontFamily: FONTS.semiBold,
+                  textAlign: "right",
+                }}
+              >
+                {genderPreference === "female" 
+                    ? t("female_driver") 
+                    : t("male_driver")}
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity onPress={onPreferencePress}>
+          <View style={{ marginLeft: responsiveWidth(3.5) }}>
             <Text
               style={{
-                fontSize: responsiveFontSize(1.6),
-                color: COLORS.primary,
-                fontFamily: FONTS.semiBold,
-                width: responsiveWidth(20),
-                textAlign: "right",
+                fontSize: responsiveFontSize(1.5),
+                color: "#6B7280",
+                fontFamily: FONTS.medium,
+                textAlign: isRTL ? "right" : "left",
               }}
+              numberOfLines={1}
             >
-              {genderPreference === "female" 
-                  ? t("female_driver") 
-                  : t("male_driver")}
+              {pickup?.address || t("select_pickup")}
             </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Pickup Address */}
-        <TouchableOpacity 
-          style={{ marginLeft: responsiveWidth(1) }} 
-          onPress={onEditPickup}
-          activeOpacity={onEditPickup ? 0.7 : 1}
-          disabled={!onEditPickup}
-        >
-          <Text
-            style={{
-              fontSize: responsiveFontSize(1.5),
-              color: "#6B7280",
-              fontFamily: FONTS.medium,
-              textAlign: isRTL ? "right" : "left",
-            }}
-            numberOfLines={1}
-          >
-            {pickup?.address || t("select_pickup")}
-          </Text>
+          </View>
         </TouchableOpacity>
 
         {/* Connector line */}
@@ -390,7 +388,7 @@ const RidesSlider = ({
             height: 20,
             width: 2,
             backgroundColor: "#E5E7EB",
-            marginStart: 1.5,
+            marginStart: responsiveWidth(1),
             marginVertical: 2,
             overflow: "hidden",
           }}
@@ -406,77 +404,78 @@ const RidesSlider = ({
           />
         </View>
 
-        {/* Dropoff Row with Payment Dropdown */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginLeft: responsiveWidth(-1.5)
-          }}
+        {/* Destination Row */}
+        <TouchableOpacity 
+          onPress={onEditDestination}
+          activeOpacity={0.7}
+          style={{ width: '100%', paddingVertical: 4 }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-            <Ionicons
-              name="location-sharp"
-              size={18}
-              color="#FF6B00"
-              style={{ marginRight: 6 }}
-            />
-            <Text
-              style={{
-                fontFamily: FONTS.semiBold,
-                fontSize: responsiveFontSize(1.8),
-                color: "#1F2937",
-                textAlign: isRTL ? "right" : "left",
-              }}
-            >
-              {t("destination_address")}
-            </Text>
-          </View>
-
-          {/* Payment Dropdown - Integrated into row */}
-          {activePayment && (
-            <TouchableOpacity 
-              onPress={onPaymentPress}
-              activeOpacity={0.7}
-              style={{ 
-                flexDirection: "row", 
-                alignItems: "center",
-              }}
-            >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+              <Ionicons
+                name="location-sharp"
+                size={18}
+                color="#FF6B00"
+                style={{ marginRight: 6 }}
+              />
               <Text
                 style={{
-                  fontSize: responsiveFontSize(1.4),
-                  color: COLORS.primary,
                   fontFamily: FONTS.semiBold,
+                  fontSize: responsiveFontSize(1.8),
+                  color: "#1F2937",
+                  textAlign: isRTL ? "right" : "left",
                 }}
               >
-                {t(activePayment.label) !== activePayment.label
-                  ? t(activePayment.label)
-                  : activePayment.fallbackLabel}
+                {t("destination_address")}
               </Text>
-              <Ionicons name="chevron-down" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
-            </TouchableOpacity>
-          )}
-        </View>
+            </View>
 
-        <TouchableOpacity 
-          style={{ marginLeft: responsiveWidth(1), }} 
-          onPress={onEditDestination}
-          activeOpacity={onEditDestination ? 0.7 : 1}
-          disabled={!onEditDestination}
-        >
-          <Text
-            style={{
-              fontSize: responsiveFontSize(1.5),
-              color: "#6B7280",
-              fontFamily: FONTS.medium,
-              textAlign: isRTL ? "right" : "left",
-            }}
-            numberOfLines={1}
-          >
-            {destination?.address || t("select_destination")}
-          </Text>
+            {/* Payment Dropdown */}
+            {activePayment && (
+              <TouchableOpacity 
+                onPress={onPaymentPress}
+                activeOpacity={0.7}
+                style={{ 
+                  flexDirection: "row", 
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: responsiveFontSize(1.4),
+                    color: COLORS.primary,
+                    fontFamily: FONTS.semiBold,
+                  }}
+                >
+                  {t(activePayment.label) !== activePayment.label
+                    ? t(activePayment.label)
+                    : activePayment.fallbackLabel}
+                </Text>
+                <Ionicons name="chevron-down" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
+            )}
+            {!activePayment && <Ionicons name="chevron-forward" size={14} color="#9CA3AF" />}
+          </View>
+
+          <View style={{ marginLeft: responsiveWidth(5.5) }}>
+            <Text
+              style={{
+                fontSize: responsiveFontSize(1.5),
+                color: "#6B7280",
+                fontFamily: FONTS.medium,
+                textAlign: isRTL ? "right" : "left",
+              }}
+              numberOfLines={1}
+            >
+              {destination?.address || t("select_destination")}
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
     </View>

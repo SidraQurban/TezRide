@@ -341,5 +341,9 @@
   "message_sent_success": "Your message has been sent successfully!",
   "fill_all_fields": "Please fill all fields",
   "here_to_help_title": "We're here to help",
-  "here_to_help_desc": "Get assistance with rides, deliveries, payments, and more."
+  "here_to_help_desc": "Get assistance with rides, deliveries, payments, and more.",
+  "delete_location": "Delete Location",
+  "delete_location_msg": "Are you sure you want to delete this saved location?",
+  "delete": "Delete",
+  "saved_places": "Saved Places"
 }

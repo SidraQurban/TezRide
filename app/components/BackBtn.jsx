@@ -26,7 +26,13 @@ const BackBtn = () => {
     >
       {/* Back Button */}
       <TouchableOpacity
-        onPress={() => navigation.goBack()}
+        onPress={() => {
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            navigation.navigate("MainDrawer");
+          }
+        }}
         style={{
           position: "absolute",
           left: responsiveWidth(4),

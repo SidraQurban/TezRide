@@ -38,16 +38,16 @@ const AppHeader = ({ isRtlIcon = false }) => {
 
         {/* Logo */}
         <View style={{ position: "absolute", left: 0, right: 0, alignItems: "center", pointerEvents: "none" }}>
-      <Image
-        source={require("../../assets/logo.png")}
-        style={{
-          width: responsiveWidth(60),
-          height: undefined,
-          aspectRatio: 3,
-          resizeMode: "contain",
-        }}
-      />
-      </View>
+          <Image
+            source={require("../../assets/logo.png")}
+            style={{
+              width: responsiveWidth(60),
+              height: undefined,
+              aspectRatio: 3,
+              resizeMode: "contain",
+            }}
+          />
+        </View>
       </View>
     </View>
   );

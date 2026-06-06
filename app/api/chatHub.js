@@ -54,16 +54,25 @@ class ChatHub {
   }
 
   async joinRideChat(rideId) {
-    if (!this.isConnected()) return;
+    await this.start();
+    if (!this.isConnected()) {
+      console.warn('[ChatHub] Cannot join chat: Not connected.');
+      return;
+    }
     return this.connection.invoke('JoinRideChat', rideId);
   }
 
   async sendMessage(rideId, content) {
-    if (!this.isConnected()) return;
+    await this.start();
+    if (!this.isConnected()) {
+      console.warn('[ChatHub] Cannot send message: Not connected.');
+      return;
+    }
     return this.connection.invoke('SendMessage', rideId, content);
   }
 
   async typing(rideId) {
+    await this.start();
     if (!this.isConnected()) return;
     return this.connection.invoke('Typing', rideId);
   }

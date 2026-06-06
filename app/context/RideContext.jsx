@@ -13,6 +13,7 @@ export const RideProvider = ({ children }) => {
   // ── Active Ride State ────────────────────────────────────────────────────
   // Persists ride lifecycle across screen remounts.
   // shape: { rideId: string, status: string, assignedDriver: object|null, finalFare: number|null, currency: string|null }
+  const [hasRestoredSession, setHasRestoredSession] = useState(false);
   const [activeRide, setActiveRideState] = useState(null);
 
   const updatePickup = useCallback((newPickup) => {
@@ -83,6 +84,8 @@ export const RideProvider = ({ children }) => {
       selectedService,
       setSelectedService,
       clearRideData,
+      hasRestoredSession,
+      setHasRestoredSession,
       // Active ride lifecycle
       activeRide,
       setActiveRide,
@@ -94,6 +97,7 @@ export const RideProvider = ({ children }) => {
       routeDetails,
       routeCoords,
       selectedService,
+      hasRestoredSession,
       activeRide,
       updatePickup,
       updateDestination,

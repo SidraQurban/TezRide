@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image, Linking } from "react-native";
 import React from "react";
 import { Ionicons, MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import {
@@ -104,7 +104,7 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus, teleme
                 fontSize: responsiveFontSize(1.9),
               }}
             >
-              {driver?.driverName || t("driver")}
+              {driver?.driverName || driver?.DriverName || t("driver")}
             </Text>
 
             <Text
@@ -113,14 +113,14 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus, teleme
                 fontSize: responsiveFontSize(1.5),
               }}
             >
-              {(driver?.vehicleType || "")} {driver?.vehiclePlateNumber ? `• ${driver.vehiclePlateNumber}` : ""}
+              {(driver?.vehicleType || driver?.VehicleType || "")} {(driver?.vehiclePlateNumber || driver?.VehiclePlateNumber) ? `• ${driver.vehiclePlateNumber || driver.VehiclePlateNumber}` : ""}
             </Text>
           </View>
 
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="star" size={16} color="#FFC107" />
             <Text style={{ marginLeft: 4, fontSize: 13, fontFamily: FONTS.medium }}>
-              {driver?.rating ? parseFloat(driver.rating).toFixed(1) : "5.0"}
+              {driver?.rating || driver?.Rating ? parseFloat(driver.rating || driver.Rating).toFixed(1) : "5.0"}
             </Text>
           </View>
         </View>
@@ -242,7 +242,8 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus, teleme
           onPress={() => navigation.navigate("Chat", { 
             rideId: driver?.rideId || driver?.RideId, 
             driverName: driver?.driverName || driver?.DriverName,
-            profilePicUrl: driver?.profilePicUrl || driver?.ProfilePicUrl
+            profilePicUrl: driver?.profilePicUrl || driver?.ProfilePicUrl,
+            phoneNumber: driver?.phoneNumber || driver?.PhoneNumber
           })}
           style={{
             width: responsiveWidth(16),
@@ -258,6 +259,15 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus, teleme
 
         {/* CALL */}
         <TouchableOpacity
+          onPress={() => {
+            let phone = driver?.phoneNumber || driver?.PhoneNumber;
+            if (phone) {
+              if (phone.startsWith('92')) {
+                phone = '0' + phone.substring(2);
+              }
+              Linking.openURL(`tel:${phone}`).catch((err) => console.warn("Failed to open dialer", err));
+            }
+          }}
           style={{
             width: responsiveWidth(15),
             height: responsiveWidth(15),

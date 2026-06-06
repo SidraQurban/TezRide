@@ -225,6 +225,31 @@ class CustomerHub {
     }
   }
 
+  /**
+   * Checks if there's an active ride/search on the server for recovery.
+   */
+  async syncActiveRide() {
+    if (!this.isConnected()) return null;
+    try {
+      return await this.connection.invoke('SyncActiveRide');
+    } catch (e) {
+      console.warn('[CustomerHub] syncActiveRide failed:', e);
+      return null;
+    }
+  }
+
+
+  // Streams the customer's live GPS position to the assigned driver.
+
+  async updateCustomerLocation(lat, lon) {
+    if (!this.isConnected()) return;
+    try {
+      await this.connection.invoke('UpdateCustomerLocation', lat, lon);
+    } catch (e) {
+      console.warn('[CustomerHub] updateCustomerLocation failed:', e);
+    }
+  }
+
   /** Returns true when the hub is actively connected. */
   isConnected() {
     return (

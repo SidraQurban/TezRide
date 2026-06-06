@@ -37,6 +37,7 @@ import { useTranslation } from "react-i18next";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
+import * as Location from 'expo-location';
 
 import customerHub from "../api/customerHub";
 import DriverInterestCard from "../components/DriverInterestCard";
@@ -48,11 +49,29 @@ import TripCompletionModal from "../components/TripCompletionModal";
 
 const SearchingDirection = ({ route }) => {
   const navigation = useNavigation();
-  const { rideImage, pickup, destination, rideId, vehicleType, price, serviceType, genderPreference } =
-    route.params || {};
+  const { 
+    rideImage, 
+    pickup: p_pickup, 
+    destination: p_destination, 
+    rideId: p_rideId, 
+    vehicleType: p_vehicleType, 
+    price: p_price, 
+    serviceType: p_serviceType, 
+    genderPreference: p_genderPreference 
+  } = route.params || {};
+
   const { t } = useTranslation();
   const { showAlert, showToast } = useAlert();
   const { activeRide, setActiveRide, clearActiveRide } = useRide();
+
+  // Fallback to activeRide context if params are missing (for shortcuts/re-entry)
+  const pickup = p_pickup || activeRide?.pickup;
+  const destination = p_destination || activeRide?.destination;
+  const rideId = p_rideId || activeRide?.rideId;
+  const vehicleType = p_vehicleType || activeRide?.vehicleType;
+  const price = p_price || activeRide?.price;
+  const serviceType = p_serviceType || activeRide?.serviceType || "ride";
+  const genderPreference = p_genderPreference || activeRide?.genderPreference;
 
   const selectedRide = rides.find((r) => r.id === vehicleType);
   
@@ -75,10 +94,17 @@ const SearchingDirection = ({ route }) => {
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const [driverAssignedInfo, setDriverAssignedInfo] = useState(null);
   const [interestedDrivers, setInterestedDrivers] = useState([]);
-  const [assignedDriver, setAssignedDriver] = useState(null);
-  const [driverLocation, setDriverLocation] = useState(null);
+  const [assignedDriver, setAssignedDriver] = useState(route.params?.driverInfo || activeRide?.assignedDriver || null);
+  const [driverLocation, setDriverLocation] = useState(
+    (route.params?.driverInfo || activeRide?.assignedDriver)?.lat
+      ? {
+          latitude: parseFloat((route.params?.driverInfo || activeRide?.assignedDriver).lat),
+          longitude: parseFloat((route.params?.driverInfo || activeRide?.assignedDriver).lon),
+        }
+      : null
+  );
   // searching | driver_selected | assigned | no_drivers | completed | cancelled
-  const [rideStatus, setRideStatus] = useState("searching");
+  const [rideStatus, setRideStatus] = useState(route.params?.recoveredStatus || activeRide?.status || "searching");
   const [searchWave, setSearchWave] = useState(null);
   const [waveDrivers, setWaveDrivers] = useState([]);
 
@@ -122,54 +148,60 @@ const SearchingDirection = ({ route }) => {
       });
     };
 
-    // ride_assigned: { rideId, driverId }
-    // NOTE: The server only sends rideId + driverId — no nested driverInfo.
-    // We look up the full driver object from the interestedDrivers list.
+    // ride_assigned: { rideId, driverId, driverName, rating, profilePicUrl, vehicleType, vehiclePlateNumber, lat, lon }
     const handleRideAssigned = (payload) => {
       const pRideId = payload.rideId || payload.RideId;
       if (String(pRideId) !== String(rideId)) return;
 
       const confirmedDriverId = String(payload.driverId || payload.DriverId);
       
-      // Look up the driver in this order: 
-      // 1. Explicit nested payload data (legacy/fallback)
-      // 2. The payload itself if it contains driver fields (flat format)
-      // 3. Currently visible cards
-      // 4. What we just selected (assignedDriver state)
-      const driverData =
-        payload.driverInfo ||
-        payload.DriverInfo ||
-        (payload.DriverName || payload.driverName ? payload : null) ||
-        interestedDriversRef.current.find(
-          (d) => String(d.driverId || d.DriverId) === confirmedDriverId
-        ) ||
-        assignedDriverRef.current; 
+      // Find the driver in the interested list (has all fields from driver_interested)
+      const knownDriver = interestedDriversRef.current.find(
+        (d) => String(d.driverId || d.DriverId) === confirmedDriverId
+      ) || assignedDriverRef.current;
+
+      // Normalize the ride_assigned payload into a consistent driver shape.
+      // The payload now uses camelCase but we support both for resilience.
+      const payloadDriver = {
+        driverId: confirmedDriverId,
+        driverName: payload.driverName || payload.DriverName,
+        rating: payload.rating ?? payload.DriverRating,
+        profilePicUrl: payload.profilePicUrl || payload.DriverProfilePicUrl,
+        vehicleType: payload.vehicleType || payload.VehicleType,
+        vehiclePlateNumber: payload.vehiclePlateNumber || payload.VehiclePlateNumber,
+        tripsCount: payload.tripsCount ?? payload.TripsCount,
+        phoneNumber: payload.phoneNumber || payload.PhoneNumber,
+        lat: payload.lat ?? payload.Lat,
+        lon: payload.lon ?? payload.Lon,
+      };
+
+      // Merge: knownDriver (full data from driver_interested) takes priority,
+      // payloadDriver fills any gaps, preserving price attached locally.
+      const finalDriverData = { ...payloadDriver, ...knownDriver };
 
       setRideStatus("assigned");
-      // Merge to ensure we don't lose existing fields (like price or local distance)
-      setAssignedDriver(prev => ({ ...prev, ...driverData }));
+      setAssignedDriver(finalDriverData);
       setInterestedDrivers([]);
       setSearchWave(null);
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      // Extract and set starting coordinates of driver immediately if present
-      if (driverData) {
-        const lat = driverData.lat || driverData.latitude;
-        const lon = driverData.lon || driverData.longitude;
-        if (lat && lon) {
-          setDriverLocation({
-            latitude: parseFloat(lat),
-            longitude: parseFloat(lon)
-          });
-        }
+      // Set driver location immediately so the icon appears on the map
+      const lat = finalDriverData.lat || finalDriverData.latitude;
+      const lon = finalDriverData.lon || finalDriverData.longitude;
+      if (lat && lon) {
+        setDriverLocation({
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lon),
+          heading: finalDriverData.heading || 0
+        });
       }
 
       // Persist to global context
       setActiveRide({ 
         status: "assigned", 
         driverId: confirmedDriverId,
-        assignedDriver: { ...assignedDriverRef.current, ...driverData } 
+        assignedDriver: finalDriverData
       });
 
       // Expand the bottom sheet to show the ArrivingCard
@@ -349,6 +381,49 @@ const SearchingDirection = ({ route }) => {
     };
   }, [rideId, navigation, t]);
 
+  // ── Customer Location Sender ─────────────────────────────────────────────
+  useEffect(() => {
+    // Only share location while driver is approaching (assigned/arrived)
+    const shouldShare = rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived";
+    
+    if (!shouldShare) return;
+
+    let locationSubscription = null;
+
+    const startLocationSharing = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+
+        locationSubscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            distanceInterval: 10,
+            timeInterval: 5000,
+          },
+          (location) => {
+            if (location?.coords) {
+              customerHub.updateCustomerLocation(
+                location.coords.latitude,
+                location.coords.longitude
+              );
+            }
+          }
+        );
+      } catch (err) {
+        console.warn("[SearchingDirection] Location sharing error:", err);
+      }
+    };
+
+    startLocationSharing();
+
+    return () => {
+      if (locationSubscription) {
+        locationSubscription.remove();
+      }
+    };
+  }, [rideStatus]);
+
   // ── Customer Actions ─────────────────────────────────────────────────────
 
   const handleAcceptDriver = async (driverId) => {
@@ -364,6 +439,17 @@ const SearchingDirection = ({ route }) => {
         setAssignedDriver(selected);
         setRideStatus("driver_selected"); // Set immediately for UI responsiveness
         setActiveRide({ status: "driver_selected", assignedDriver: selected });
+
+        // Immediately set driver location so the icon appears on the map
+        const lat = selected.lat || selected.Lat || selected.latitude;
+        const lon = selected.lon || selected.Lon || selected.longitude;
+        if (lat && lon) {
+            setDriverLocation({
+                latitude: parseFloat(lat),
+                longitude: parseFloat(lon),
+                heading: selected.heading || selected.Heading || 0
+            });
+        }
         
         // Immediately expand the bottom sheet to show the driver details (ArrivingCard)
         bottomSheetRef.current?.snapToIndex(2);
@@ -452,10 +538,11 @@ const SearchingDirection = ({ route }) => {
             waveDrivers={waveDrivers.filter(d => String(d.driverId) !== String(assignedDriver?.driverId))}
             selectedCategory={vehicleType}
             useGlobalState={true}
-            showMarkers={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
+            showMarkers={rideStatus === "searching" || rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
             showRoute={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" || rideStatus === "completed"}
-            showPickupMarker={true}
+            showPickupMarker={rideStatus === "searching" || rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived"}
             animateZoomOut={true}
+            hideUserDot={rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit"}
             onPickupDragEnd={async (coords) => {
               const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.latitude},${coords.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
               const response = await fetch(url);
@@ -628,19 +715,17 @@ const SearchingDirection = ({ route }) => {
               onClose={() => bottomSheetRef.current?.snapToIndex(0)}
             />
           ) : interestedDrivers.length > 0 ? (
-            <View style={{ flex: 1, padding: 20 }}>
-              <Text
-                style={{
-                  fontFamily: FONTS.semiBold,
-                  fontSize: responsiveFontSize(2),
-                  color: COLORS.primary,
-                  textAlign: "center",
-                  marginTop: responsiveHeight(2),
-                }}
-              >
-                {t("drivers_found")}
-              </Text>
-            </View>
+            <Text
+              style={{
+                fontFamily: FONTS.semiBold,
+                fontSize: responsiveFontSize(2),
+                color: COLORS.primary,
+                textAlign: "center",
+                marginTop: responsiveHeight(2),
+              }}
+            >
+              {t("drivers_found")}
+            </Text>
           ) : (
             <View style={{ flex: 1, padding: 20 }}>
               <View
@@ -881,7 +966,11 @@ const SearchingDirection = ({ route }) => {
                 activeOpacity={0.8}
                 onPress={() => {
                   setShowNoDriversModal(false);
-                  navigation.goBack();
+                  if (navigation.canGoBack()) {
+                    navigation.goBack();
+                  } else {
+                    navigation.navigate("MainDrawer");
+                  }
                 }}
                 style={{ width: '100%', marginBottom: 12 }}
               >

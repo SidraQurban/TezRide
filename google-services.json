@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "379334101565",
+    "project_id": "tezride-push-notification",
+    "storage_bucket": "tezride-push-notification.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379334101565:android:ca7ccb895da9da253f3854",
+        "android_client_info": {
+          "package_name": "com.tezride.pk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2U3MTqf1boNuQTU6pFQl_Y_hKaBUI8g4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

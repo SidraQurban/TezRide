@@ -73,12 +73,13 @@ export const AlertProvider = ({ children }) => {
                     hideAlert();
                 }}
                 okText={alertConfig.okText}
-                onCancel={alertConfig.onCancel ? () => {
-                    alertConfig.onCancel();
+                onCancel={() => {
+                    if (alertConfig.onCancel) alertConfig.onCancel();
                     hideAlert();
-                } : null}
+                }}
                 cancelText={alertConfig.cancelText}
                 icon={alertConfig.icon}
+                onClose={hideAlert}
             />
             <ModernToast
                 visible={toastConfig.visible}

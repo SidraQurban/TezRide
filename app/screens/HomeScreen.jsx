@@ -7,6 +7,7 @@ import {
   AppState,
   ActivityIndicator,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RefreshControl } from "react-native";
@@ -27,21 +28,21 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import * as ExpoLocation from "expo-location";
 import { GOOGLE_MAPS_API_KEY } from "../../config/keys";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
-} from "react-native-reanimated";
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from "react-native-reanimated";
 import { FONTS } from "../constants/theme";
-
-
+import { useAlert } from "../context/AlertContext";
 import preferenceService from "../api/preferenceService";
+import customerHub from "../api/customerHub";
+import rideService from "../api/rideService";
+import { useRide } from "../context/RideContext";
 // import walletService from "../api/walletService"; // Removed as per request
 
+import { useIsFocused } from "@react-navigation/native";
+
 const HomeScreen = ({ navigation, route }) => {
+  const isFocused = useIsFocused();
   const { t, i18n } = useTranslation();
+  const { showAlert, showToast } = useAlert();
   const [locationModalVisible, setLocationModalVisible] = React.useState(false);
   const dismissedManuallyRef = React.useRef(false);
   const appState = React.useRef(AppState.currentState);
@@ -55,9 +56,7 @@ const HomeScreen = ({ navigation, route }) => {
   const [fetchingPreferences, setFetchingPreferences] = React.useState(false);
   const [mapPickerVisible, setMapPickerVisible] = React.useState(false);
   const [selectedMapAddress, setSelectedMapAddress] = React.useState(null);
-  // walletBalance and fetchingBalance removed as per request
-
-  // fetchWalletBalance removed as per request
+  const { activeRide, setActiveRide, setPickup, setDestination, hasRestoredSession, setHasRestoredSession } = useRide();
 
   const fetchUserPreferences = React.useCallback(async () => {
     setFetchingPreferences(true);
@@ -66,7 +65,7 @@ const HomeScreen = ({ navigation, route }) => {
       // Handle both camelCase and PascalCase from various backend environments/caches
       const hasSucceeded = response.succeeded || response.Succeeded;
       const data = response.data || response.Data;
-      
+
       if (hasSucceeded) {
         setPreferences(data || []);
       }
@@ -76,6 +75,43 @@ const HomeScreen = ({ navigation, route }) => {
       setFetchingPreferences(false);
     }
   }, []);
+
+  const handleDeletePreference = async (key) => {
+    showAlert({
+      title: t("delete_location", "Delete Location"),
+      message: t("delete_location_msg", `Are you sure you want to delete "${key}"?`),
+      type: 'warning',
+      okText: t("delete", "Delete"),
+      cancelText: t("cancel", "Cancel"),
+      onOk: async () => {
+        try {
+          const response = await preferenceService.deletePreference(key);
+          if (response.succeeded || response.Succeeded) {
+            // Stronger optimistic update: filter by trimmed key and also attempt ID match if possible
+            setPreferences(current => {
+              return current.filter(p => {
+                const pk = (p.key || p.Key || "").toString().trim().toLowerCase();
+                const targetKey = key.toString().trim().toLowerCase();
+                return pk !== targetKey;
+              });
+            });
+
+            showToast(t("preference_deleted", "Location deleted successfully"), 'success');
+
+            // Wait slightly before refreshing from backend to avoid stale cache data
+            setTimeout(() => {
+              fetchUserPreferences();
+            }, 1500);
+          } else {
+            showToast(response.message || t("delete_failed", "Failed to delete"), 'error');
+          }
+        } catch (error) {
+          console.warn("Failed to delete preference", error);
+          showToast(t("something_went_wrong"), 'error');
+        }
+      }
+    });
+  };
 
   // Show modal if permission is missing OR device GPS is turned off
   const checkLocationStatus = React.useCallback(async () => {
@@ -105,7 +141,7 @@ const HomeScreen = ({ navigation, route }) => {
       if (status === "granted" && isGpsEnabled) {
         // Fast first: try last known position
         let location = await ExpoLocation.getLastKnownPositionAsync({});
-        
+
         if (!location) {
           // Fallback to low accuracy for faster result if no recent location exists
           location = await ExpoLocation.getCurrentPositionAsync({
@@ -147,6 +183,78 @@ const HomeScreen = ({ navigation, route }) => {
     fetchCurrentAddress();
     fetchUserPreferences();
   }, [checkLocationStatus, fetchCurrentAddress, fetchUserPreferences]);
+
+  const isSyncingRef = React.useRef(false); // useRef for reliable sync mutex (useState is async)
+
+  React.useEffect(() => {
+    const checkActiveRide = async () => {
+      // Guard 1: Only attempt recovery when this screen is focused and not yet restored this session.
+      if (!isFocused || hasRestoredSession) return;
+
+      // Guard 2: Prevent concurrent calls
+      if (isSyncingRef.current) return;
+
+      setHasRestoredSession(true); // Mark as checked for this app session
+      try {
+        await customerHub.start();
+
+        if (customerHub.isConnected()) {
+          isSyncingRef.current = true;
+          const activeSession = await customerHub.syncActiveRide();
+
+          if (activeSession) {
+            console.log("[HomeScreen] Recovered active session:", activeSession.rideId);
+
+            // Map DB status code to UI string
+            // DB enum: Assigned=1, DriverArrived=2, InTransit=3
+            let statusStr = "searching";
+            if (activeSession.status === 1) statusStr = "assigned";
+            else if (activeSession.status === 2) statusStr = "driver_arrived";
+            else if (activeSession.status === 3) statusStr = "in_transit";
+
+            // Update Global State
+            setPickup(activeSession.pickup);
+            setDestination(activeSession.destination);
+            setActiveRide({
+              rideId: activeSession.rideId,
+              status: statusStr,
+              assignedDriver: activeSession.driverInfo,
+              price: activeSession.fare,
+              pickup: activeSession.pickup,
+              destination: activeSession.destination,
+              vehicleType: activeSession.vehicleType,
+              serviceType: "ride"
+            });
+
+            // Redirect to the active ride screen
+            navigation.replace("SearchingDirection", {
+              rideId: activeSession.rideId,
+              pickup: activeSession.pickup,
+              destination: activeSession.destination,
+              vehicleType: activeSession.vehicleType,
+              price: activeSession.fare,
+              driverInfo: activeSession.driverInfo,
+              serviceType: "ride",
+              recoveredStatus: statusStr
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("[HomeScreen] Persistence sync failed:", err);
+      } finally {
+        isSyncingRef.current = false;
+      }
+    };
+
+    // Initial check on mount
+    checkActiveRide();
+
+    // Re-check when app comes back to foreground
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") checkActiveRide();
+    });
+    return () => sub.remove();
+  }, [navigation, setActiveRide, setPickup, setDestination, isFocused, hasRestoredSession]);
 
   // Re-check when user returns from Settings
   React.useEffect(() => {
@@ -206,9 +314,9 @@ const HomeScreen = ({ navigation, route }) => {
         contentContainerStyle={{ paddingBottom: responsiveHeight(5) }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh} 
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
             colors={[COLORS.primary]}
             tintColor={COLORS.primary}
           />
@@ -376,7 +484,7 @@ const HomeScreen = ({ navigation, route }) => {
               const pKey = pref.key || pref.Key;
               const pValue = pref.value || pref.Value;
               const pIcon = pref.icon || pref.Icon;
-              const pId = pref.id || pref.Id;
+              const pId = pref.id || pref.Id || `pref-${pKey}`;
 
               let detail = {};
               try {
@@ -395,11 +503,8 @@ const HomeScreen = ({ navigation, route }) => {
                   key={pId}
                   activeOpacity={0.8}
                   onPress={() => {
-                    // Navigate to search with this as destination
-                    // Use the first part of the address as the "name" for display in search bar
                     const displayName = addr.split(",")[0].trim() || pKey;
-
-                    navigation.navigate("Search", { 
+                    navigation.navigate("Search", {
                       destination: {
                         address: addr,
                         name: displayName,
@@ -411,23 +516,41 @@ const HomeScreen = ({ navigation, route }) => {
                   }}
                   style={{
                     backgroundColor: COLORS.white,
-                    borderRadius: 12,
-                    padding: responsiveWidth(3),
-                    marginRight: responsiveWidth(3),
-                    width: responsiveWidth(38),
-                    elevation: 2,
+                    borderRadius: 16,
+                    padding: 12,
+                    marginRight: 12,
+                    width: responsiveWidth(40),
+                    elevation: 3,
                     shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 2,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#F0F0F0',
+                    position: 'relative',
                   }}
                 >
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                    <View style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 14,
+                      backgroundColor: 'rgba(255, 92, 0, 0.08)',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginRight: 8
+                    }}>
+                      <Ionicons
+                        name={pIcon || "location"}
+                        size={16}
+                        color={COLORS.primary}
+                      />
+                    </View>
                     <Text
                       style={{
                         flex: 1,
                         fontFamily: FONTS.semiBold,
-                        fontSize: responsiveFontSize(1.7),
+                        fontSize: responsiveFontSize(1.6),
                         color: COLORS.black,
                         textAlign: "left",
                       }}
@@ -435,25 +558,36 @@ const HomeScreen = ({ navigation, route }) => {
                     >
                       {pKey}
                     </Text>
-                    <Ionicons
-                      name={pIcon || "location"}
-                      size={20}
-                      color={COLORS.primary}
-                      style={{ marginStart: 8 }}
-                    />
                   </View>
                   <Text
                     style={{
                       fontFamily: FONTS.regular,
                       fontSize: responsiveFontSize(1.3),
                       color: COLORS.gray,
-                      marginTop: 4,
                       textAlign: "left",
+                      opacity: 0.7
                     }}
                     numberOfLines={1}
                   >
                     {addr || detail.houseNo || detail.HouseNo || ""}
                   </Text>
+
+                  {/* Delete Button - Premium styling with no overlap */}
+                  <TouchableOpacity
+                    onPress={() => handleDeletePreference(pKey)}
+                    activeOpacity={0.7}
+                    style={{
+                      position: 'absolute',
+                      top: 6,
+                      right: 6,
+                      padding: 4,
+                      backgroundColor: '#FFF1F0',
+                      borderRadius: 10,
+                      zIndex: 20
+                    }}
+                  >
+                    <Ionicons name="close" size={12} color="#FF4D4F" />
+                  </TouchableOpacity>
                 </TouchableOpacity>
               );
             })}
@@ -483,9 +617,9 @@ const HomeScreen = ({ navigation, route }) => {
                 }}
               >
                 <Ionicons name="add-circle" size={32} color={COLORS.primary} />
-                <Text style={{ 
-                  fontFamily: FONTS.bold, 
-                  fontSize: responsiveFontSize(1.4), 
+                <Text style={{
+                  fontFamily: FONTS.bold,
+                  fontSize: responsiveFontSize(1.4),
                   color: COLORS.primary,
                   marginTop: 6
                 }}>
@@ -500,6 +634,8 @@ const HomeScreen = ({ navigation, route }) => {
         <View style={{ marginTop: responsiveHeight(1) }}>
           <Services />
         </View>
+
+
 
         {/* Location Modal */}
         <LocationModal
@@ -518,7 +654,7 @@ const HomeScreen = ({ navigation, route }) => {
             fetchUserPreferences();
           }}
           address={
-            selectedMapAddress 
+            selectedMapAddress
               ? selectedMapAddress.address
               : currentAddressName
                 ? `${currentAddressName}, ${currentAddressDetail}`
@@ -537,7 +673,85 @@ const HomeScreen = ({ navigation, route }) => {
           }}
         />
       </ScrollView>
-      
+
+      {/* Live Trip Floating Pill - High visibility entry to live ride */}
+      {activeRide?.rideId && (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => {
+              // Passing full details ensures SearchingDirection hydrates correctly
+              navigation.navigate('SearchingDirection', { 
+                 rideId: activeRide.rideId,
+                 recoveredStatus: activeRide.status,
+                 pickup: activeRide.pickup,
+                 destination: activeRide.destination,
+                 driverInfo: activeRide.assignedDriver,
+                 price: activeRide.price,
+                 vehicleType: activeRide.vehicleType,
+                 serviceType: activeRide.serviceType || "ride"
+              });
+            }}
+            style={{
+              position: 'absolute',
+              bottom: responsiveHeight(2),
+              left: responsiveWidth(5),
+              right: responsiveWidth(5),
+              backgroundColor: COLORS.white,
+              borderRadius: 30,
+              padding: 15,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              elevation: 10,
+              shadowColor: COLORS.primary,
+              shadowOffset: { width: 0, height: 5 },
+              shadowOpacity: 0.3,
+              shadowRadius: 10,
+              borderWidth: 1.5,
+              borderColor: COLORS.primary,
+              zIndex: 1000,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: 'rgba(255, 92, 0, 0.1)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 12
+              }}>
+                <Ionicons name="car-sport" size={24} color={COLORS.primary} />
+              </View>
+              <View>
+                <Text style={{ fontFamily: FONTS.bold, fontSize: 13, color: '#999', textTransform: 'uppercase' }}>
+                  {t("live_trip", "Live Trip")}
+                </Text>
+                <Text style={{ fontFamily: FONTS.bold, fontSize: 15, color: COLORS.black }}>
+                  {activeRide.status === 'assigned' ? t("driver_assigned", "Driver Assigned") : 
+                   activeRide.status === 'driver_arrived' ? t("driver_arrived", "Driver Arrived") :
+                   activeRide.status === 'in_transit' ? t("in_transit", "In Transit") :
+                   t("ride_in_progress", "Ride In Progress")}
+                </Text>
+              </View>
+            </View>
+            <View style={{
+              backgroundColor: COLORS.primary,
+              paddingHorizontal: 15,
+              paddingVertical: 8,
+              borderRadius: 20,
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
+              <Text style={{ color: '#fff', fontFamily: FONTS.bold, fontSize: 12, marginRight: 5 }}>
+                {t("open", "Open")}
+              </Text>
+              <Ionicons name="arrow-forward" size={14} color="#fff" />
+            </View>
+          </TouchableOpacity>
+      )}
+
     </SafeAreaView>
   );
 };

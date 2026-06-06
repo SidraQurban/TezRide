@@ -24,6 +24,7 @@ import RideHistoryScreen from "../screens/RideHistoryScreen";
 import Settings from "../screens/Settings";
 import ContactUsScreen from "../screens/ContactUsScreen";
 import ChatScreen from "../screens/ChatScreen";
+import NotificationHandler from "../components/NotificationHandler";
 
 import authService from "../api/authService";
 import { COLORS } from "../constants";
@@ -67,38 +68,40 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={initialRoute}
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { direction: "ltr" },
-        }}
-      >
-        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-        <Stack.Screen name="login" component={LoginScreen} />
-        <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
-        <Stack.Screen
-          name="MainDrawer"
-          component={DrawerNavigator}
-          options={{ contentStyle: { direction: "ltr" } }}
-        />
-        <Stack.Screen name="Search" component={SearchScreen} />
-        <Stack.Screen name="Delivery" component={DeliveryScreen} />
-        <Stack.Screen name="HireDriver" component={HireDriverScreen} />
-        <Stack.Screen name="Shops" component={ShopsScreen} />
-        <Stack.Screen name="Cargo" component={CargoScreen} />
-        <Stack.Screen name="LocationDetails" component={LocationDetailsScreen} />
-        <Stack.Screen name="Promo" component={PromoScreen} />
-        <Stack.Screen name="ConfirmRide" component={ConfirmRideScreen} />
-        <Stack.Screen name="SearchingDirection" component={SearchingDirection} />
-        <Stack.Screen name="DriverProfile" component={DriverProfileScreen} />
-        <Stack.Screen name="SearchDriver" component={SearchDriverScreen} />
-        <Stack.Screen name="Wallet" component={WalletScreen} />
-        <Stack.Screen name="RideHistory" component={RideHistoryScreen} />
-        <Stack.Screen name="Settings" component={Settings} />
-        <Stack.Screen name="ContactUs" component={ContactUsScreen} />
-        <Stack.Screen name="Chat" component={ChatScreen} />
-      </Stack.Navigator>
+      <NotificationHandler>
+        <Stack.Navigator
+          initialRouteName={initialRoute}
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { direction: "ltr" },
+          }}
+        >
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          <Stack.Screen name="login" component={LoginScreen} />
+          <Stack.Screen name="VerifyCode" component={VerifyCodeScreen} />
+          <Stack.Screen
+            name="MainDrawer"
+            component={DrawerNavigator}
+            options={{ contentStyle: { direction: "ltr" } }}
+          />
+          <Stack.Screen name="Search" component={SearchScreen} />
+          <Stack.Screen name="Delivery" component={DeliveryScreen} />
+          <Stack.Screen name="HireDriver" component={HireDriverScreen} />
+          <Stack.Screen name="Shops" component={ShopsScreen} />
+          <Stack.Screen name="Cargo" component={CargoScreen} />
+          <Stack.Screen name="LocationDetails" component={LocationDetailsScreen} />
+          <Stack.Screen name="Promo" component={PromoScreen} />
+          <Stack.Screen name="ConfirmRide" component={ConfirmRideScreen} />
+          <Stack.Screen name="SearchingDirection" component={SearchingDirection} />
+          <Stack.Screen name="DriverProfile" component={DriverProfileScreen} />
+          <Stack.Screen name="SearchDriver" component={SearchDriverScreen} />
+          <Stack.Screen name="Wallet" component={WalletScreen} />
+          <Stack.Screen name="RideHistory" component={RideHistoryScreen} />
+          <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name="ContactUs" component={ContactUsScreen} />
+          <Stack.Screen name="Chat" component={ChatScreen} />
+        </Stack.Navigator>
+      </NotificationHandler>
     </NavigationContainer>
   );
 };

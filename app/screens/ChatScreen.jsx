@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
     Dimensions,
   Linking,
-  StatusBar
+  StatusBar,
+  Keyboard
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -121,11 +122,12 @@ const ChatScreen = () => {
     const init = async () => {
       const uId = await storage.getItem('userId');
       setUserId(uId);
-      await chatHub.start();
-      await chatHub.joinRideChat(rideId);
+
+      // Non-blocking hub start
+      chatHub.start().then(() => chatHub.joinRideChat(rideId));
 
       try {
-        const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+        const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://api.tezride.pk';
         const res = await fetch(`${apiUrl}/api/conversation/history/${rideId}`, {
           headers: { Authorization: `Bearer ${await storage.getItem('jwToken')}` }
         });
@@ -133,7 +135,9 @@ const ChatScreen = () => {
           const text = await res.text();
           if (text) {
             const json = JSON.parse(text);
-            if (json.succeeded) setMessages(json.data.reverse());
+            if (json.succeeded && json.data) {
+              setMessages(json.data.reverse());
+            }
           }
         }
       } catch (e) {
@@ -145,20 +149,21 @@ const ChatScreen = () => {
     init();
 
     const onMsg = (p) => {
-      if (p.rideId === rideId) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const pRideId = p.rideId || p.RideId;
+      if (String(pRideId) === String(rideId)) {
         setMessages(prev => [...prev, {
           id: `${Date.now()}-${Math.random()}`,
-          senderId: p.senderId,
-          content: p.content,
-          timestamp: p.timestamp
+          senderId: p.senderId || p.SenderId || p.userId || p.UserId,
+          content: p.content || p.Content || p.text || p.Text,
+          timestamp: p.timestamp || p.Timestamp || new Date().toISOString()
         }]);
         setIsTyping(false);
       }
     };
 
     const onTyping = (p) => {
-      if (p.rideId === rideId) {
+      const pRideId = p.rideId || p.RideId;
+      if (String(pRideId) === String(rideId)) {
         setIsTyping(true);
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
@@ -179,7 +184,6 @@ const ChatScreen = () => {
     if (!inputText.trim()) return;
     const text = inputText;
     setInputText('');
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     sendScale.value = withSpring(0.85, {}, () => {
       sendScale.value = withSpring(1);
     });
@@ -192,7 +196,15 @@ const ChatScreen = () => {
   }, [rideId]);
 
   const handleCall = () => {
-    if (phoneNumber) Linking.openURL(`tel:${phoneNumber}`);
+    if (phoneNumber) {
+      let dialNum = phoneNumber.toString();
+      if (dialNum.startsWith('92')) {
+        dialNum = '0' + dialNum.substring(2);
+      }
+      Linking.openURL(`tel:${dialNum}`).catch(err => console.warn("Dial error:", err));
+    } else {
+      console.warn("No phone number found for dialing");
+    }
   };
 
   /* ── helpers ── */
@@ -210,7 +222,7 @@ const ChatScreen = () => {
 
   const isConsecutive = (index) => {
     if (index === 0) return false;
-    return messages[index].senderId === messages[index - 1].senderId
+    return String(messages[index].senderId).toLowerCase() === String(messages[index - 1].senderId).toLowerCase()
       && !shouldShowTimestamp(index);
   };
 
@@ -277,45 +289,42 @@ const ChatScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* ── Background gradient ── */}
-      <LinearGradient
-        colors={['#FFF5EB', '#F0F2F5', '#F0F2F5']}
-        locations={[0, 0.3, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-
       {/* ── Header ── */}
       <SafeAreaView edges={['top']} style={styles.safeHeader}>
-        <View style={[styles.header, { flexDirection: 'row' }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn} activeOpacity={0.7}>
-            <Ionicons name="chevron-back" size={22} color="#1A1A2E" />
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('MainDrawer')} 
+            style={styles.headerBtn} 
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={24} color="#1A1A2E" />
           </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.headerCenter, { flexDirection: 'row' }]} activeOpacity={0.8}>
-            <View style={styles.avatarWrap}>
+          <View style={styles.headerInfo}>
+            <View style={styles.avatarContainer}>
               {profilePicUrl ? (
                 <Image source={{ uri: profilePicUrl }} style={styles.avatar} />
               ) : (
                 <LinearGradient colors={[COLORS.primary, COLORS.secondary]} style={styles.avatarFallback}>
-                  <Ionicons name="person" size={18} color="#FFF" />
+                  <Ionicons name="person" size={20} color="#FFF" />
                 </LinearGradient>
               )}
-              <View style={[styles.statusDot, isTyping && styles.statusDotTyping]} />
+              <View style={[styles.statusIndicator, isTyping && styles.statusIndicatorTyping]} />
             </View>
-            <View style={[styles.headerText, { alignItems: 'flex-start', marginLeft: 12, marginRight: 0 }]}>
-              <Text style={styles.headerName} numberOfLines={1}>{driverName || t('driver')}</Text>
-              {isTyping ? (
-                <Animated.Text entering={FadeIn.duration(200)} style={styles.headerStatus}>
-                  {t('typing') || 'typing'}...
-                </Animated.Text>
-              ) : (
-                <Text style={styles.headerStatusOnline}>{t('online') || 'Online'}</Text>
-              )}
+            <View style={styles.nameContainer}>
+              <Text style={styles.driverNameText} numberOfLines={1}>
+                {driverName || (t('driver') === 'driver' ? 'Driver' : t('driver'))}
+              </Text>
+              <Text style={[styles.statusText, isTyping && { color: COLORS.primary }]}>
+                {isTyping ? `${t('typing') === 'typing' ? 'Typing' : t('typing')}...` : (t('online') === 'online' ? 'Online' : t('online'))}
+              </Text>
             </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleCall} style={[styles.headerBtn, styles.callBtn]} activeOpacity={0.7}>
-            <Ionicons name="call" size={18} color={COLORS.primary} />
+          </View>
+          <TouchableOpacity 
+            onPress={handleCall} 
+            style={[styles.headerBtn, styles.callHeaderBtn]} 
+            activeOpacity={0.7}
+          >
+            <Ionicons name="call" size={20} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -332,12 +341,10 @@ const ChatScreen = () => {
           data={messages}
           keyExtractor={item => item.id}
           renderItem={renderItem}
-          contentContainerStyle={[
-            styles.listContent,
-            messages.length === 0 && { flex: 1 }
-          ]}
+          contentContainerStyle={styles.listContent}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onScrollBeginDrag={Keyboard.dismiss}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={<EmptyState driverName={driverName} t={t} />}
           ListFooterComponent={isTyping ? <TypingIndicator /> : null}
@@ -346,18 +353,18 @@ const ChatScreen = () => {
 
       {/* ── Input bar ── */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.inputBarOuter}>
-          <View style={[styles.inputBar, { flexDirection: "row" }]}>
+          <View style={styles.inputBar}>
             <TouchableOpacity style={styles.attachBtn} activeOpacity={0.6}>
               <Ionicons name="add-circle-outline" size={26} color="#999" />
             </TouchableOpacity>
 
             <TextInput
-              style={[styles.input, { textAlign: "left", writingDirection: "ltr" }]}
-              placeholder={t('type_message') || 'Type a message...'}
+              style={styles.input}
+              placeholder={t('type_message') === 'type_message' ? 'Type a message...' : t('type_message')}
               placeholderTextColor="#B0B0B0"
               value={inputText}
               onChangeText={onTextChange}
@@ -366,7 +373,7 @@ const ChatScreen = () => {
             />
 
             <AnimatedTouchable
-              style={[styles.sendBtn, hasText && styles.sendBtnActive, sendBtnStyle]}
+              style={[styles.sendBtn, sendBtnStyle]}
               onPress={sendMessage}
               disabled={!hasText}
               activeOpacity={0.7}
@@ -381,7 +388,6 @@ const ChatScreen = () => {
                   name="send"
                   size={17}
                   color="#FFF"
-                  style={{ marginLeft: 2, marginRight: 0, transform: [{ scaleX: 1 }] }}
                 />
               </LinearGradient>
             </AnimatedTouchable>
@@ -394,171 +400,64 @@ const ChatScreen = () => {
 
 /* ════════════════════════════ STYLES ════════════════════════════ */
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-
-  /* header */
-  safeHeader: { backgroundColor: 'transparent', zIndex: 10 },
+  container: { flex: 1, backgroundColor: '#F0F2F5' },
+  safeHeader: { backgroundColor: '#FFF', elevation: 4, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.06)'
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: 'space-between',
   },
   headerBtn: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: '#F2F3F5',
-    justifyContent: 'center', alignItems: 'center'
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F7F8FA',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  callBtn: { backgroundColor: 'rgba(255,92,0,0.08)' },
-  headerCenter: {
-    flex: 1, flexDirection: 'row', alignItems: 'center',
-    marginHorizontal: 10
-  },
-  avatarWrap: { position: 'relative' },
-  avatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: '#FFF' },
-  avatarFallback: {
-    width: 40, height: 40, borderRadius: 20,
-    justifyContent: 'center', alignItems: 'center'
-  },
-  statusDot: {
-    position: 'absolute', bottom: 0, right: 0,
-    width: 12, height: 12, borderRadius: 6,
-    backgroundColor: '#34C759',
-    borderWidth: 2, borderColor: '#FFF'
-  },
-  statusDotTyping: { backgroundColor: COLORS.primary },
-  headerText: { marginLeft: 10, flex: 1 },
-  headerName: { fontFamily: FONTS.semiBold, fontSize: 15, color: '#1A1A2E' },
-  headerStatus: { fontFamily: FONTS.medium, fontSize: 11, color: COLORS.primary, marginTop: 1 },
-  headerStatusOnline: { fontFamily: FONTS.medium, fontSize: 11, color: '#34C759', marginTop: 1 },
+  callHeaderBtn: { backgroundColor: COLORS.primary + '15' },
+  headerInfo: { flex: 1, flexDirection: 'row', alignItems: 'center', marginHorizontal: 12 },
+  avatarContainer: { position: 'relative' },
+  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#EEE' },
+  avatarFallback: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  statusIndicator: { position: 'absolute', bottom: 0, right: 0, width: 14, height: 14, borderRadius: 7, backgroundColor: '#34C759', borderWidth: 2.5, borderColor: '#FFF' },
+  statusIndicatorTyping: { backgroundColor: COLORS.primary },
+  nameContainer: { marginLeft: 12, flex: 1 },
+  driverNameText: { fontSize: 16, fontFamily: FONTS.bold, color: '#1A1A2E' },
+  statusText: { fontSize: 12, fontFamily: FONTS.medium, color: '#34C759', marginTop: 1 },
 
-  /* loading */
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingLabel: { fontFamily: FONTS.medium, fontSize: 13, color: '#999', marginTop: 12 },
-
-  /* list */
-  listContent: { paddingHorizontal: 12, paddingTop: 16, paddingBottom: 8 },
-
-  /* empty state */
+  listContent: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 20 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 60 },
-  emptyIconCircle: {
-    width: 88, height: 88, borderRadius: 44,
-    backgroundColor: 'rgba(255,92,0,0.08)',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 20
-  },
-  emptyTitle: { fontFamily: FONTS.semiBold, fontSize: 18, color: '#1A1A2E', marginBottom: 6 },
-  emptySubtitle: { fontFamily: FONTS.regular, fontSize: 13, color: '#999', textAlign: 'center' },
-
-  /* time chip */
-  timeChipRow: { alignItems: 'center', marginVertical: 14 },
-  timeChip: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12
-  },
-  timeChipText: { fontFamily: FONTS.medium, fontSize: 11, color: '#888' },
-
-  /* message row */
-  msgRow: { flexDirection: 'row', marginBottom: 6, paddingHorizontal: 4 },
+  emptyIconCircle: { width: 88, height: 88, borderRadius: 44, backgroundColor: COLORS.primary + '10', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  emptyTitle: { fontFamily: FONTS.bold, fontSize: 18, color: '#1A1A2E', marginBottom: 6 },
+  emptySubtitle: { fontFamily: FONTS.regular, fontSize: 14, color: '#999', textAlign: 'center', paddingHorizontal: 40 },
+  timeChipRow: { alignItems: 'center', marginVertical: 20 },
+  timeChip: { backgroundColor: 'rgba(0,0,0,0.05)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12 },
+  timeChipText: { fontFamily: FONTS.bold, fontSize: 11, color: '#888' },
+  msgRow: { flexDirection: 'row', marginBottom: 12 },
   msgRowRight: { justifyContent: 'flex-end' },
   msgRowLeft: { justifyContent: 'flex-start' },
-  msgAvatar: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#EEE', overflow: 'hidden',
-    justifyContent: 'center', alignItems: 'center',
-    marginRight: 6, marginTop: 2
-  },
-  msgAvatarImg: { width: 28, height: 28, borderRadius: 14 },
-
-  /* bubble */
-  bubble: {
-    maxWidth: SCREEN_W * 0.75,
-    paddingHorizontal: 12, paddingTop: 8, paddingBottom: 4,
-    borderRadius: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04, shadowRadius: 2, elevation: 1
-  },
-  bubbleMine: {
-    backgroundColor: COLORS.primary,
-    borderBottomRightRadius: 4,
-    elevation: 2,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-  },
-  bubbleOther: {
-    backgroundColor: '#FFF',
-    borderBottomLeftRadius: 4,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  msgText: { fontFamily: FONTS.regular, fontSize: 16, lineHeight: 22, color: '#1A1A2E' },
+  bubble: { maxWidth: SCREEN_W * 0.78, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 24, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
+  bubbleMine: { backgroundColor: COLORS.primary, borderBottomRightRadius: 4 },
+  bubbleOther: { backgroundColor: '#FFF', borderBottomLeftRadius: 4 },
+  msgText: { fontFamily: FONTS.medium, fontSize: 15, lineHeight: 21, color: '#1A1A2E' },
   msgTextMine: { color: '#FFF' },
-  bubbleFooter: {
-    alignSelf: 'flex-end',
-    marginTop: 2,
-    minWidth: 40,
-    alignItems: 'flex-end'
-  },
-  bubbleTime: {
-    fontFamily: FONTS.regular, fontSize: 10, color: 'rgba(0,0,0,0.3)',
-  },
+  bubbleFooter: { flexDirection: 'row', alignSelf: 'flex-end', marginTop: 4, alignItems: 'center' },
+  bubbleTime: { fontFamily: FONTS.regular, fontSize: 10, color: 'rgba(0,0,0,0.4)' },
   bubbleTimeMine: { color: 'rgba(255,255,255,0.7)' },
-
-  /* typing indicator */
-  typingRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, marginTop: 4 },
-  typingBubble: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFF', borderRadius: 18,
-    paddingHorizontal: 14, paddingVertical: 10,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06, shadowRadius: 3, elevation: 1
-  },
-  typingDot: {
-    width: 8, height: 8, borderRadius: 4,
-    backgroundColor: COLORS.primary, marginHorizontal: 2
-  },
-
-  /* input bar */
-  inputBarOuter: {
-    paddingHorizontal: 12,
-    paddingTop: 6,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0,0,0,0.06)'
-  },
-  inputBar: {
-    flexDirection: 'row', alignItems: 'flex-end',
-    backgroundColor: '#F4F5F7',
-    borderRadius: 26, paddingHorizontal: 6, paddingVertical: 4,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)'
-  },
-  attachBtn: { padding: 8 },
-  input: {
-    flex: 1,
-    fontFamily: FONTS.regular,
-    fontSize: 15, color: '#1A1A2E',
-    paddingHorizontal: 8,
-    paddingTop: Platform.OS === 'ios' ? 10 : 8,
-    paddingBottom: Platform.OS === 'ios' ? 10 : 8,
-    maxHeight: 110, minHeight: 38
-  },
-  sendBtn: {
-    width: 38, height: 38, borderRadius: 19,
-    overflow: 'hidden', marginBottom: 1
-  },
-  sendBtnActive: {},
-  sendGradient: {
-    width: '100%', height: '100%',
-    justifyContent: 'center', alignItems: 'center'
-  }
+  typingRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 12 },
+  typingBubble: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, elevation: 1, shadowOpacity: 0.05 },
+  typingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary, marginHorizontal: 2 },
+  inputBarOuter: { backgroundColor: '#FFF', paddingHorizontal: 16, paddingTop: 12, paddingBottom: Platform.OS === 'ios' ? 34 : 12, borderTopWidth: 1, borderTopColor: '#F0F2F5' },
+  inputBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 28, paddingHorizontal: 4, paddingVertical: 4 },
+  attachBtn: { padding: 10 },
+  input: { flex: 1, fontFamily: FONTS.regular, fontSize: 15, color: '#1A1A2E', paddingHorizontal: 12, maxHeight: 120, minHeight: 40 },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden' },
+  sendGradient: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
 });
 
 export default ChatScreen;
