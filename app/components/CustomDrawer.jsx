@@ -42,12 +42,31 @@ const CustomDrawer = (props) => {
   const drawerStatus = useDrawerStatus();
 
   const loadProfile = async () => {
-    const name = await storage.getItem("customerName");
-    const pic = await storage.getItem("profilePictureUrl");
-    const phone = await storage.getItem("customerPhone");
+    // 1. Read from storage immediately for instant display
+    const name = await storage.getItem('customerName');
+    const pic = await storage.getItem('profilePictureUrl');
+    const phone = await storage.getItem('customerPhone');
     if (name) setUserName(name);
     if (pic) setProfilePic(pic);
     if (phone) setUserPhone(phone);
+
+    // 2. Fetch fresh data from server in the background
+    try {
+      const userId = await storage.getItem('userId');
+      if (userId) {
+        await authService.syncProfile(userId);
+        // Re-read from storage after sync
+        const freshName = await storage.getItem('customerName');
+        const freshPic = await storage.getItem('profilePictureUrl');
+        const freshPhone = await storage.getItem('customerPhone');
+        if (freshName) setUserName(freshName);
+        if (freshPic) setProfilePic(freshPic);
+        if (freshPhone) setUserPhone(freshPhone);
+      }
+    } catch (e) {
+      // Non-critical — drawer still shows cached data
+      console.warn('[Drawer] Profile sync failed:', e);
+    }
   };
 
   // Load on mount
@@ -57,7 +76,7 @@ const CustomDrawer = (props) => {
 
   // Reload when drawer opens
   useEffect(() => {
-    if (drawerStatus === "open") {
+    if (drawerStatus === 'open') {
       loadProfile();
     }
   }, [drawerStatus]);

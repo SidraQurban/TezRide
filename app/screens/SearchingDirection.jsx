@@ -761,6 +761,7 @@ const SearchingDirection = ({ route }) => {
            {rideStatus === "assigned" || rideStatus === "driver_selected" || rideStatus === "driver_arrived" || rideStatus === "in_transit" ? (
             <ArrivingCard
               driver={assignedDriver}
+              rideId={rideId}
               pickup={pickup}
               destination={destination}
               rideStatus={rideStatus}

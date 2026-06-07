@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import i18n from "../locales/i18n";
 
-const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus, telemetry }) => {
+const ArrivingCard = ({ onClose, driver, rideId, pickup, destination, rideStatus, telemetry }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
   
@@ -240,7 +240,7 @@ const ArrivingCard = ({ onClose, driver, pickup, destination, rideStatus, teleme
         {/* CHAT */}
         <TouchableOpacity
           onPress={() => navigation.navigate("Chat", { 
-            rideId: driver?.rideId || driver?.RideId, 
+            rideId: rideId || driver?.rideId || driver?.RideId, 
             driverName: driver?.driverName || driver?.DriverName,
             profilePicUrl: driver?.profilePicUrl || driver?.ProfilePicUrl,
             phoneNumber: driver?.phoneNumber || driver?.PhoneNumber

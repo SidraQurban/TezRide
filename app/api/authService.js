@@ -187,6 +187,31 @@ const authService = {
   },
 
   /**
+   * Fetches the latest profile and syncs it to local storage.
+   * The profile endpoint returns { firstName, lastName, profilePictureUrl, phoneNumber, ... }
+   * which is different from the login response, so we handle the mapping here.
+   */
+  syncProfile: async (userId) => {
+    try {
+      const response = await authService.getUserProfile(userId);
+      if (response.succeeded && response.data) {
+        const d = response.data;
+        // Persist name — profile returns firstName/lastName, not username
+        const fullName = `${d.firstName || ''} ${d.lastName || ''}`.trim();
+        if (fullName) await storage.setItem('customerName', fullName);
+        if (d.phoneNumber) await storage.setItem('customerPhone', d.phoneNumber);
+        if (d.profilePictureUrl) await storage.setItem('profilePictureUrl', d.profilePictureUrl);
+        if (d.gender !== null && d.gender !== undefined) await storage.setItem('customerGender', String(d.gender));
+        if (d.id) await storage.setItem('userId', d.id);
+        return d;
+      }
+    } catch (error) {
+      console.warn('[Auth] Failed to sync profile:', error);
+    }
+    return null;
+  },
+
+  /**
    * Update user profile details.
    * PUT /api/user/profile
    */
@@ -235,6 +260,12 @@ const authService = {
     }
     if (data.riderStatus) {
       await storage.setItem('riderStatus', data.riderStatus);
+    }
+    if (data.phoneNumber) {
+      await storage.setItem('customerPhone', data.phoneNumber);
+    }
+    if (data.profilePictureUrl) {
+      await storage.setItem('profilePictureUrl', data.profilePictureUrl);
     }
 
     console.log('[Auth] Session persisted. userId:', data.id || 'preserved');

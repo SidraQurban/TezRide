@@ -131,6 +131,7 @@ const ConfirmRide = () => {
   const [predictions, setPredictions] = useState([]);
   const [searching, setSearching] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const debounceTimer = useRef(null);
   const ignoreNextRegionChange = useRef(false);
 
@@ -468,17 +469,17 @@ const ConfirmRide = () => {
   };
 
   const handlePickupDragEnd = async (coords) => {
+    setIsResolvingAddress(true);
     const data = await reverseGeocode(coords);
-    if (data) {
-      setPickup(data);
-    }
+    if (data) setPickup(data);
+    setIsResolvingAddress(false);
   };
 
   const handleDestinationDragEnd = async (coords) => {
+    setIsResolvingAddress(true);
     const data = await reverseGeocode(coords);
-    if (data) {
-      setDestination(data);
-    }
+    if (data) setDestination(data);
+    setIsResolvingAddress(false);
   };
 
   const handleLocationConfirm = () => {
@@ -730,11 +731,13 @@ const ConfirmRide = () => {
                 ignoreNextRegionChange.current = false;
                 return;
               }
+              setIsResolvingAddress(true);
               const data = await reverseGeocode(region);
               if (data) {
                 if (selectionType === "pickup") setPickup(data);
                 else setDestination(data);
               }
+              setIsResolvingAddress(false);
             }}
           />
 
@@ -827,17 +830,27 @@ const ConfirmRide = () => {
       >
         <TouchableOpacity
           onPress={isSelectionMode ? handleLocationConfirm : handleConfirmRide}
-          disabled={loading}
+          disabled={loading || (isSelectionMode && isResolvingAddress)}
           activeOpacity={0.8}
         >
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.mainConfirmBtn}
+            style={[
+              styles.mainConfirmBtn,
+              isSelectionMode && isResolvingAddress && { opacity: 0.6 }
+            ]}
           >
             {loading ? (
               <ActivityIndicator color={COLORS.white} />
+            ) : isSelectionMode && isResolvingAddress ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <ActivityIndicator color={COLORS.white} size="small" />
+                <Text style={styles.mainConfirmBtnText}>
+                  {t('resolving_address', 'Resolving address...')}
+                </Text>
+              </View>
             ) : (
               <Text style={styles.mainConfirmBtnText}>
                 {isSelectionMode 

@@ -54,27 +54,45 @@ class ChatHub {
   }
 
   async joinRideChat(rideId) {
-    await this.start();
-    if (!this.isConnected()) {
-      console.warn('[ChatHub] Cannot join chat: Not connected.');
-      return;
+    try {
+      await this.start();
+      if (!this.isConnected()) {
+        console.warn('[ChatHub] Cannot join chat: Not connected.');
+        return;
+      }
+      const response = await this.connection.invoke('JoinRideChat', rideId);
+      console.log('[ChatHub] Successfully joined ride chat:', rideId);
+      return response;
+    } catch (err) {
+      console.error('[ChatHub] JoinRideChat failed:', rideId);
     }
-    return this.connection.invoke('JoinRideChat', rideId);
   }
 
   async sendMessage(rideId, content) {
-    await this.start();
-    if (!this.isConnected()) {
-      console.warn('[ChatHub] Cannot send message: Not connected.');
-      return;
+    try {
+      await this.start();
+      if (!this.isConnected()) {
+        console.warn('[ChatHub] Cannot send message: Not connected.');
+        return;
+      }
+      // Parameters: Guid rideId, string content
+      return await this.connection.invoke('SendMessage', rideId, content);
+    } catch (err) {
+      console.error('[ChatHub] SendMessage failed:', err);
+      throw err;
     }
-    return this.connection.invoke('SendMessage', rideId, content);
   }
 
   async typing(rideId) {
-    await this.start();
-    if (!this.isConnected()) return;
-    return this.connection.invoke('Typing', rideId);
+    try {
+      await this.start();
+      if (!this.isConnected()) return;
+      // Parameters: Guid rideId
+      return await this.connection.invoke('Typing', rideId);
+    } catch (err) {
+      // Silent fail for typing as it's non-critical
+      console.warn('[ChatHub] Typing indicator failed:', err);
+    }
   }
 
   isConnected() {

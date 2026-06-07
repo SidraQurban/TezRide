@@ -117,9 +117,10 @@ const VerifyCodeScreen = ({ navigation, route }) => {
       const response = await authService.verifyOTP(phoneNumber, finalCode, "Customer");
 
       if (response.succeeded) {
-        // Register for push notifications after successful login
+        // Register for push notifications and fetch profile after successful login
         if (response.data?.id) {
           NotificationService.registerForPushNotifications(response.data.id, "Customer");
+          await authService.syncProfile(response.data.id);
         }
         
         navigation.reset({

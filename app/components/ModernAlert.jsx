@@ -100,7 +100,7 @@ const ModernAlert = ({
               style={{ flex: 1 }}
             >
               <LinearGradient
-                colors={type === 'warning' ? ['#F59E0B', '#D97706'] : [COLORS.primary, COLORS.secondary]}
+                colors={[COLORS.primary, COLORS.secondary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.okButton}

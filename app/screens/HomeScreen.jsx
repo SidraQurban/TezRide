@@ -84,28 +84,26 @@ const HomeScreen = ({ navigation, route }) => {
       okText: t("delete", "Delete"),
       cancelText: t("cancel", "Cancel"),
       onOk: async () => {
+        // ── TRUE OPTIMISTIC UPDATE: Remove immediately before API call ──
+        setPreferences(current =>
+          current.filter(p => {
+            const pk = (p.key || p.Key || '').toString().trim().toLowerCase();
+            return pk !== key.toString().trim().toLowerCase();
+          })
+        );
+
         try {
           const response = await preferenceService.deletePreference(key);
           if (response.succeeded || response.Succeeded) {
-            // Stronger optimistic update: filter by trimmed key and also attempt ID match if possible
-            setPreferences(current => {
-              return current.filter(p => {
-                const pk = (p.key || p.Key || "").toString().trim().toLowerCase();
-                const targetKey = key.toString().trim().toLowerCase();
-                return pk !== targetKey;
-              });
-            });
-
             showToast(t("preference_deleted", "Location deleted successfully"), 'success');
-
-            // Wait slightly before refreshing from backend to avoid stale cache data
-            setTimeout(() => {
-              fetchUserPreferences();
-            }, 1500);
           } else {
+            // Rollback on failure
+            fetchUserPreferences();
             showToast(response.message || t("delete_failed", "Failed to delete"), 'error');
           }
         } catch (error) {
+          // Rollback on error
+          fetchUserPreferences();
           console.warn("Failed to delete preference", error);
           showToast(t("something_went_wrong"), 'error');
         }

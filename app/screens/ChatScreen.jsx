@@ -18,7 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { FONTS } from '../constants/theme';
 import chatHub from '../api/chatHub';
@@ -115,48 +115,39 @@ const ChatScreen = () => {
 
   const flatListRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const lastTypingTimeRef = useRef(0);
   const sendScale = useSharedValue(1);
 
   /* ── init ── */
   useEffect(() => {
-    const init = async () => {
+    const loadId = async () => {
       const uId = await storage.getItem('userId');
       setUserId(uId);
-
-      // Non-blocking hub start
-      chatHub.start().then(() => chatHub.joinRideChat(rideId));
-
-      try {
-        const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://api.tezride.pk';
-        const res = await fetch(`${apiUrl}/api/conversation/history/${rideId}`, {
-          headers: { Authorization: `Bearer ${await storage.getItem('jwToken')}` }
-        });
-        if (res.ok) {
-          const text = await res.text();
-          if (text) {
-            const json = JSON.parse(text);
-            if (json.succeeded && json.data) {
-              setMessages(json.data.reverse());
-            }
-          }
-        }
-      } catch (e) {
-        console.error('[ChatScreen] history error', e);
-      } finally {
-        setLoading(false);
-      }
     };
-    init();
+    loadId();
+
+    chatHub.start().then(() => chatHub.joinRideChat(rideId));
 
     const onMsg = (p) => {
       const pRideId = p.rideId || p.RideId;
       if (String(pRideId) === String(rideId)) {
-        setMessages(prev => [...prev, {
-          id: `${Date.now()}-${Math.random()}`,
-          senderId: p.senderId || p.SenderId || p.userId || p.UserId,
-          content: p.content || p.Content || p.text || p.Text,
-          timestamp: p.timestamp || p.Timestamp || new Date().toISOString()
-        }]);
+        const senderId = p.senderId || p.SenderId || p.userId || p.UserId;
+        const content = p.content || p.Content || p.text || p.Text;
+        
+        setMessages(prev => {
+          // Check if message already exists (optimistic reconciliation)
+          const exists = prev.some(m => 
+            (m.content === content && m.senderId === senderId && (Math.abs(new Date(m.timestamp) - new Date(p.timestamp || new Date())) < 10000))
+          );
+          if (exists) return prev;
+
+          return [...prev, {
+            id: p.id || p.Id || `${Date.now()}-${Math.random()}`,
+            senderId: senderId,
+            content: content,
+            timestamp: p.timestamp || p.Timestamp || new Date().toISOString()
+          }];
+        });
         setIsTyping(false);
       }
     };
@@ -179,20 +170,85 @@ const ChatScreen = () => {
     };
   }, [rideId]);
 
+  // Refresh history on focus
+  useFocusEffect(
+    useCallback(() => {
+      const fetchHistory = async () => {
+        try {
+          const uId = await storage.getItem('userId');
+          if (uId) setUserId(uId);
+
+          const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'https://api.tezride.pk'}/api/conversation/history/${rideId}`, {
+            headers: { Authorization: `Bearer ${await storage.getItem('jwToken')}` }
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.succeeded && json.data) {
+              // Map the data into local message format
+              // The API returns newest first, so we reverse it for chronological display
+              const historyMessages = json.data.reverse().map(m => ({
+                id: m.id || m.Id || `${Date.now()}-${Math.random()}`,
+                senderId: m.senderId || m.SenderId || m.userId || m.UserId,
+                content: (m.content || m.Content || m.text || m.Text || "").trim(),
+                timestamp: m.timestamp || m.Timestamp || new Date().toISOString(),
+                isRead: m.isRead ?? m.IsRead
+              }));
+              setMessages(historyMessages);
+            }
+          }
+        } catch (e) {
+          console.warn('[ChatScreen] History fetch failed:', e);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchHistory();
+    }, [rideId])
+  );
+
   /* ── actions ── */
   const sendMessage = useCallback(async () => {
     if (!inputText.trim()) return;
     const text = inputText;
+    const tempId = `${Date.now()}-me`;
+    
+    // Optimistic Update
+    const newMessage = {
+      id: tempId,
+      senderId: userId,
+      content: text,
+      timestamp: new Date().toISOString(),
+      sending: true
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
     setInputText('');
+    
     sendScale.value = withSpring(0.85, {}, () => {
       sendScale.value = withSpring(1);
     });
-    await chatHub.sendMessage(rideId, text);
-  }, [inputText, rideId]);
+
+    try {
+      await chatHub.sendMessage(rideId, text);
+      // Mark as sent
+      setMessages(prev => prev.map(m => m.id === tempId ? { ...m, sending: false } : m));
+    } catch (e) {
+      console.error('[ChatScreen] send error', e);
+      // Mark as failed or remove?
+      setMessages(prev => prev.map(m => m.id === tempId ? { ...m, sending: false, error: true } : m));
+    }
+  }, [inputText, rideId, userId]);
 
   const onTextChange = useCallback((text) => {
     setInputText(text);
-    chatHub.typing(rideId);
+    
+    // Throttle typing events: only send once every 2.5 seconds
+    const now = Date.now();
+    if (now - lastTypingTimeRef.current > 2500) {
+      lastTypingTimeRef.current = now;
+      chatHub.typing(rideId);
+    }
   }, [rideId]);
 
   const handleCall = () => {
@@ -231,9 +287,9 @@ const ChatScreen = () => {
     const isMe = String(item.senderId).toLowerCase() === String(userId).toLowerCase();
     const consecutive = isConsecutive(index);
     const showTime = shouldShowTimestamp(index);
-    const entering = isMe
-      ? SlideInRight.delay(30).springify().damping(18)
-      : SlideInLeft.delay(30).springify().damping(18);
+    
+    // Use subtle fade and scale instead of slide for a more premium feel
+    const entering = FadeIn.duration(300);
 
     return (
       <View key={item.id}>
@@ -270,6 +326,14 @@ const ChatScreen = () => {
               <Text style={[styles.bubbleTime, isMe && styles.bubbleTimeMine]}>
                 {formatTime(item.timestamp)}
               </Text>
+              {isMe && (
+                <Ionicons 
+                  name={item.error ? "alert-circle" : (item.sending ? "time-outline" : "checkmark-done")} 
+                  size={12} 
+                  color={item.error ? "#FF3B30" : "rgba(255,255,255,0.7)"} 
+                  style={{ marginLeft: 4 }}
+                />
+              )}
             </View>
           </View>
         </Animated.View>
@@ -330,7 +394,7 @@ const ChatScreen = () => {
       </SafeAreaView>
 
       {/* ── Message list ── */}
-      {loading ? (
+      {loading || !userId ? (
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingLabel}>{t('loading') || 'Loading'}...</Text>
