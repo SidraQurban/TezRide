@@ -303,7 +303,7 @@ const RidesSlider = ({
       <View
         style={{
           marginHorizontal: responsiveWidth(3),
-          padding: responsiveWidth(4.5),
+          padding: responsiveWidth(3.5),
           backgroundColor: "#FFF",
           borderRadius: 22,
           elevation: 5,
@@ -317,9 +317,7 @@ const RidesSlider = ({
         }}
       >
         {/* Pickup Row */}
-        <TouchableOpacity 
-          onPress={onEditPickup}
-          activeOpacity={0.7}
+        <View 
           style={{ width: '100%', paddingVertical: 4 }}
         >
           <View
@@ -335,7 +333,7 @@ const RidesSlider = ({
                   width: responsiveWidth(2),
                   height: responsiveWidth(2),
                   borderRadius: responsiveWidth(1),
-                  backgroundColor: "#10B981",
+                  backgroundColor: COLORS.primary,
                   marginRight: responsiveWidth(2),
                 }}
               />
@@ -380,7 +378,7 @@ const RidesSlider = ({
               {pickup?.address || t("select_pickup")}
             </Text>
           </View>
-        </TouchableOpacity>
+        </View>
 
         {/* Connector line */}
         <View
@@ -396,7 +394,7 @@ const RidesSlider = ({
           <Animated.View
             style={{
               width: 2,
-              height: 12,
+              height: 15,
               backgroundColor: COLORS.primary,
               transform: [{ translateY: lineTranslateY }],
               opacity: lineOpacity,
@@ -405,16 +403,15 @@ const RidesSlider = ({
         </View>
 
         {/* Destination Row */}
-        <TouchableOpacity 
-          onPress={onEditDestination}
-          activeOpacity={0.7}
-          style={{ width: '100%', paddingVertical: 4 }}
+        <View 
+          style={{ width: '100%'}}
         >
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
+            
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
@@ -422,7 +419,7 @@ const RidesSlider = ({
                 name="location-sharp"
                 size={18}
                 color="#FF6B00"
-                style={{ marginRight: 6 }}
+                style={{ marginRight: responsiveWidth(2),marginLeft: responsiveWidth(-1) }}
               />
               <Text
                 style={{
@@ -476,7 +473,7 @@ const RidesSlider = ({
               {destination?.address || t("select_destination")}
             </Text>
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

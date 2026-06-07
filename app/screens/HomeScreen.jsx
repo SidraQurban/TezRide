@@ -753,8 +753,7 @@ const HomeScreen = ({ navigation, route }) => {
               <Text style={{ color: '#fff', fontFamily: FONTS.bold, fontSize: 12, marginRight: 5 }}>
                 {t("open", "Open")}
               </Text>
-              <Ionicons name="arrow-forward" size={14} color="#fff" />
-            </View>
+                </View>
           </TouchableOpacity>
       )}
 

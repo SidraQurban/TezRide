@@ -118,14 +118,14 @@ const ContactUsScreen = () => {
             <ContactCard
               icon="call-outline"
               title={t("phone")}
-              value="+92 321 1234567"
+              // value="+92 321 1234567"
               onPress={() => openLink("tel:+923211234567")}
             />
             <ContactCard
               icon="whatsapp"
               iconType="Material"
               title={t("whatsapp")}
-              value="+92 321 1234567"
+              // value="+92 321 1234567"
               onPress={() => openLink("whatsapp://send?phone=+923211234567")}
             />
             <ContactCard
@@ -137,7 +137,7 @@ const ContactUsScreen = () => {
             <ContactCard
               icon="location-outline"
               title={t("our_office")}
-              value="Saddar, Karachi, Pakistan"
+              // value="Saddar, Karachi, Pakistan"
               onPress={() => openLink("https://maps.google.com/?q=Saddar,Karachi")}
             />
           </View>

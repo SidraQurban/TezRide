@@ -130,6 +130,7 @@ const ConfirmRide = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [predictions, setPredictions] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const debounceTimer = useRef(null);
   const ignoreNextRegionChange = useRef(false);
 
@@ -740,13 +741,28 @@ const ConfirmRide = () => {
           {/* FLOAT SEARCH BAR IN SELECTION MODE */}
           {isSelectionMode && (
             <View style={styles.floatingSearchContainer}>
-              <View style={[styles.searchBox, searching && { borderColor: COLORS.primary, borderWidth: 1 }]}>
-                <Ionicons name="search" size={20} color={COLORS.primary} style={{ marginRight: 10 }} />
+              <View style={[
+                styles.searchBox, 
+                (searching || isFocused) && { borderColor: COLORS.primary, borderWidth: 1.5 }
+              ]}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setIsSelectionMode(false);
+                    bottomSheetRef.current?.snapToIndex(0);
+                    setSearchQuery("");
+                    setPredictions([]);
+                  }}
+                  style={styles.selectionBackBtn}
+                >
+                  <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+                </TouchableOpacity>
                 <TextInput
                   style={styles.searchInput}
                   placeholder={selectionType === "pickup" ? "Enter Pickup" : "Enter Destination"}
                   value={searchQuery}
                   onChangeText={handleSearchChange}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
                   placeholderTextColor="#9CA3AF"
                 />
                 {(searchQuery.length > 0 || searching) && (
@@ -795,20 +811,7 @@ const ConfirmRide = () => {
             </View>
           )}
 
-          {/* BACK BUTTON IN SELECTION MODE */}
-          {isSelectionMode && (
-            <TouchableOpacity 
-              style={styles.selectionBackBtn} 
-              onPress={() => {
-                setIsSelectionMode(false);
-                bottomSheetRef.current?.snapToIndex(0);
-                setSearchQuery("");
-                setPredictions([]);
-              }}
-            >
-              <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-            </TouchableOpacity>
-          )}
+
         </View>
       </View>
 
@@ -1553,6 +1556,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
     fontSize: responsiveFontSize(1.8),
     color: '#1F2937',
+    marginLeft: responsiveWidth(2)
   },
   predictionsList: {
     backgroundColor: '#FFF',
@@ -1595,12 +1599,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   selectionBackBtn: {
-    position: 'absolute',
-    top: 25,
-    left: 20,
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1609,9 +1610,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    zIndex: 110,
     borderWidth: 1,
-    borderColor: '#F3F4F6'
+    borderColor: '#F3F4F6',
+    marginLeft: responsiveWidth(-2),
+    
   },
 });
 

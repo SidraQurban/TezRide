@@ -713,9 +713,9 @@ const HireDriverScreen = () => {
                       duration === d && styles.activeText,
                     ]}
                   >
-                    {d}h
+                    {d} hours
                   </Text>
-                  <Text
+                  {/* <Text
                     style={[
                       styles.durationSubText,
                       duration === d && styles.activeSubText,
@@ -725,7 +725,7 @@ const HireDriverScreen = () => {
                     {d >= 24
                       ? `${Math.floor(d / 24)}d ${d % 24 > 0 ? (d % 24) + "h" : ""}`
                       : `${d} ${t("hrs", "hrs")}`}
-                  </Text>
+                  </Text> */}
                 </TouchableOpacity>
               ))}
               <TouchableOpacity
@@ -1381,7 +1381,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   durationRow: {
-    marginTop: 12,
+    marginTop: 1,
     paddingVertical: 8,
   },
   durationCard: {
@@ -1406,8 +1406,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
   },
   durationText: {
-    fontSize: responsiveFontSize(2.2),
-    fontFamily: FONTS.bold,
+    fontSize: responsiveFontSize(1.8),
+    fontFamily: FONTS.medium,
     color: COLORS.black,
   },
   durationSubText: {
