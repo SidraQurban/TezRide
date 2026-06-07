@@ -15,7 +15,7 @@ import {
   StatusBar,
   Keyboard
 } from 'react-native';
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -105,6 +105,7 @@ const ChatScreen = () => {
   const route = useRoute();
   const { rideId, driverName, profilePicUrl, phoneNumber } = route.params;
   const { t, i18n } = useTranslation();
+  const insets = useSafeAreaInsets();
   const isRTL = false;
 
   const [messages, setMessages] = useState([]);
@@ -318,7 +319,7 @@ const ChatScreen = () => {
             <Text style={[
               styles.msgText, 
               isMe && styles.msgTextMine,
-              { textAlign: isRTL ? 'right' : 'left' }
+              { textAlign: i18n.language === 'ur' ? 'right' : 'left' }
             ]}>
               {item.content}
             </Text>
@@ -417,10 +418,9 @@ const ChatScreen = () => {
 
       {/* ── Input bar ── */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.inputBarOuter}>
+        <View style={[styles.inputBarOuter, { paddingBottom: Math.max(insets.bottom, 12) + 8 }]}>
           <View style={styles.inputBar}>
             <TouchableOpacity style={styles.attachBtn} activeOpacity={0.6}>
               <Ionicons name="add-circle-outline" size={26} color="#999" />
@@ -428,10 +428,11 @@ const ChatScreen = () => {
 
             <TextInput
               style={styles.input}
-              placeholder={t('type_message') === 'type_message' ? 'Type a message...' : t('type_message')}
+              placeholder={t('type_message', 'Type a message...')}
               placeholderTextColor="#B0B0B0"
               value={inputText}
               onChangeText={onTextChange}
+              textAlign={i18n.language === 'ur' ? 'right' : 'left'}
               multiline
               maxLength={1000}
             />
@@ -449,9 +450,10 @@ const ChatScreen = () => {
                 end={{ x: 1, y: 1 }}
               >
                 <Ionicons
-                  name="send"
+                  name={isRTL ? "send-outline" : "send"}
                   size={17}
                   color="#FFF"
+                  style={isRTL ? { transform: [{ rotate: "180deg" }] } : null}
                 />
               </LinearGradient>
             </AnimatedTouchable>
@@ -477,7 +479,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -516,7 +518,7 @@ const styles = StyleSheet.create({
   typingRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 12 },
   typingBubble: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, elevation: 1, shadowOpacity: 0.05 },
   typingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary, marginHorizontal: 2 },
-  inputBarOuter: { backgroundColor: '#FFF', paddingHorizontal: 16, paddingTop: 12, paddingBottom: Platform.OS === 'ios' ? 34 : 12, borderTopWidth: 1, borderTopColor: '#F0F2F5' },
+  inputBarOuter: { backgroundColor: '#FFF', paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F0F2F5' },
   inputBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 28, paddingHorizontal: 4, paddingVertical: 4 },
   attachBtn: { padding: 10 },
   input: { flex: 1, fontFamily: FONTS.regular, fontSize: 15, color: '#1A1A2E', paddingHorizontal: 12, maxHeight: 120, minHeight: 40 },

@@ -70,7 +70,7 @@ const PAYMENT_METHODS = [
 
 const HireDriverScreen = () => {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { showAlert, showToast } = useAlert();
 
   // Location state
@@ -399,6 +399,8 @@ const HireDriverScreen = () => {
         title: t("error"),
         message: t("please_select_pickup", "Please select a pickup location."),
         type: "error",
+        okText: t("ok_btn", "OK"),
+        cancelText: t("cancel_btn", "Cancel"),
       });
       return;
     }
@@ -449,7 +451,7 @@ const HireDriverScreen = () => {
         showAlert({
           title: t("error"),
           message: msg.includes("Insufficient wallet balance")
-            ? t("insufficient_balance_msg", msg)
+            ? t("insufficient_balance_msg")
             : msg.includes("Female driver requests")
               ? t(
                   "female_only_error",
@@ -458,6 +460,8 @@ const HireDriverScreen = () => {
               : msg ||
                 t("ride_request_failed", "Request failed. Please try again."),
           type: "error",
+          okText: t("ok_btn", "OK"),
+          cancelText: t("cancel_btn", "Cancel"),
           icon:
             paymentMethod === "Wallet" ? (
               <Ionicons
@@ -552,7 +556,11 @@ const HireDriverScreen = () => {
         >
         <View style={styles.bannerContainer}>
             <Image
-            source={require("../../assets/Hiredriver.png")}
+            source={
+              i18n.language === 'ur'
+                ? require("../../assets/HiredriverUr.png")
+                : require("../../assets/Hiredriver.png")
+            }
             style={styles.bannerImage}
             resizeMode="cover"
           />
@@ -577,6 +585,20 @@ const HireDriverScreen = () => {
                 style={styles.input}
                 placeholderTextColor="#999"
               />
+              {/* Clear button — visible when there is text */}
+              {pickup.length > 0 && !geoLoading && !searchLoading && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setPickup("");
+                    setPickupData(null);
+                    setPredictions([]);
+                    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+                  }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              )}
               {(geoLoading || searchLoading) && (
                 <ActivityIndicator size="small" color={COLORS.primary} />
               )}
@@ -639,20 +661,30 @@ const HireDriverScreen = () => {
                 />
               </View>
               <View style={styles.vehicleInfoBox}>
-                <TextInput
-                  style={styles.vehicleCardInput}
-                  value={vehicleModel}
-                  onChangeText={setVehicleModel}
-                  placeholder={t("car_model_placeholder", "e.g. Sedan Car (Toyota Corolla)")}
-                  placeholderTextColor="#999"
-                />
-                <TextInput
-                  style={styles.vehicleCardPlate}
-                  value={vehiclePlate}
-                  onChangeText={setVehiclePlate}
-                  placeholder={t("lic_placeholder", "Lic: BR5-23930")}
-                  placeholderTextColor="#999"
-                />
+                {/* Editable model row */}
+                <View style={styles.vehicleEditRow}>
+                  <TextInput
+                    style={styles.vehicleCardInput}
+                    value={vehicleModel}
+                    onChangeText={setVehicleModel}
+                    placeholder={t("car_model_placeholder", "e.g. Sedan Car (Toyota Corolla)")}
+                    placeholderTextColor="#bbb"
+                    textAlign="left"
+                  />
+                  <Ionicons name="pencil" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                </View>
+                {/* Editable plate row */}
+                <View style={[styles.vehicleEditRow, { marginTop: 6 }]}>
+                  <TextInput
+                    style={styles.vehicleCardPlate}
+                    value={vehiclePlate}
+                    onChangeText={setVehiclePlate}
+                    placeholder={t("lic_placeholder", "Lic: BR5-23930")}
+                    placeholderTextColor="#bbb"
+                    textAlign="left"
+                  />
+                  <Ionicons name="pencil" size={12} color="#aaa" style={{ marginLeft: 4 }} />
+                </View>
               </View>
             </View>
           </View>
@@ -713,19 +745,10 @@ const HireDriverScreen = () => {
                       duration === d && styles.activeText,
                     ]}
                   >
-                    {d} hours
+                    {i18n.language === 'ur'
+                      ? `${d === 2 ? '۲' : d === 4 ? '۴' : d === 6 ? '۶' : d} ${t('hours', 'گھنٹے')}`
+                      : `${d} ${t('hours', 'Hours')}`}
                   </Text>
-                  {/* <Text
-                    style={[
-                      styles.durationSubText,
-                      duration === d && styles.activeSubText,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {d >= 24
-                      ? `${Math.floor(d / 24)}d ${d % 24 > 0 ? (d % 24) + "h" : ""}`
-                      : `${d} ${t("hrs", "hrs")}`}
-                  </Text> */}
                 </TouchableOpacity>
               ))}
               <TouchableOpacity
@@ -750,7 +773,7 @@ const HireDriverScreen = () => {
                     { marginTop: 2 }
                   ]}
                 >
-                  {t("custom", "Custom")}
+                  {t('custom', i18n.language === 'ur' ? 'اپنی مرضی' : 'Custom')}
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -1318,6 +1341,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     color: COLORS.black,
     marginBottom: 10,
+    textAlign: 'left',
+    writingDirection: 'ltr',
   },
   inputWrapper: {
     flexDirection: "row",
@@ -1337,6 +1362,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     color: COLORS.black,
     paddingVertical: 0,
+    textAlign: 'left',
+    writingDirection: 'ltr',
   },
   dropdown: {
     backgroundColor: COLORS.white,
@@ -1814,18 +1841,30 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 16,
   },
+  vehicleEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingBottom: 2,
+  },
   vehicleCardInput: {
+    flex: 1,
     fontSize: responsiveFontSize(1.6),
     fontFamily: FONTS.medium,
-    color: "#555",
+    color: COLORS.black,
     padding: 0,
-    marginBottom: 2,
+    textAlign: 'left',
+    writingDirection: 'ltr',
   },
   vehicleCardPlate: {
+    flex: 1,
     fontSize: responsiveFontSize(1.4),
     fontFamily: FONTS.regular,
-    color: "#888",
+    color: '#666',
     padding: 0,
+    textAlign: 'left',
+    writingDirection: 'ltr',
   },
 });
 

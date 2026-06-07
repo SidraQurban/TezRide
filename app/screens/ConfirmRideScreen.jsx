@@ -428,6 +428,8 @@ const ConfirmRide = () => {
             ? t("insufficient_balance_msg") 
             : (msg || t("ride_request_failed")),
           type: 'error',
+          okText: t("ok_btn", "OK"),
+          cancelText: t("cancel", "Cancel"),
           icon: paymentMethod === 'Wallet' 
             ? <Ionicons name="wallet-outline" size={60} color={COLORS.primary} />
             : <Ionicons name="alert-circle-outline" size={60} color={COLORS.primary} />
@@ -438,6 +440,8 @@ const ConfirmRide = () => {
         title: t("error"),
         message: error.message || t("something_went_wrong"),
         type: 'error',
+        okText: t("ok_btn", "OK"),
+        cancelText: t("cancel", "Cancel"),
         icon: <Ionicons name="alert-circle-outline" size={60} color={COLORS.primary} />
       });
     } finally {

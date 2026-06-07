@@ -303,7 +303,7 @@
   "verification_success_msg": "Your details have been successfully submitted for review.",
   "verification_guide_title": "Why Verify?",
   "verification_guide_desc": "To ensure a safe and comfortable environment for our female community, we require identity verification. This process helps us maintain a trustworthy community by confirming the identity of all users requesting women-only ride preferences.",
-  "insufficient_balance_msg": "Insufficient wallet balance. Please top up your wallet.",
+  "insufficient_balance_msg": "Insufficient wallet balance. You need more to pay from wallet.",
   "could_not_create_ride": "Could not create ride. Please try again.",
   "wait_for_otp": "Please wait before requesting another OTP",
   "data_security_msg": "Your data is encrypted and protected following the highest security standards.",
@@ -345,5 +345,12 @@
   "delete_location": "Delete Location",
   "delete_location_msg": "Are you sure you want to delete this saved location?",
   "delete": "Delete",
-  "saved_places": "Saved Places"
+  "saved_places": "Saved Places",
+  "please_select_pickup": "Please select a pickup location.",
+  "type_message": "Type a message...",
+  "typing": "Typing",
+  "online": "Online",
+  "loading": "Loading",
+  "start_conversation": "Start a conversation",
+  "send_first_message": "Say hi to your driver!"
 }
