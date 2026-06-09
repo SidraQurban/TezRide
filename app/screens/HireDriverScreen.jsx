@@ -558,8 +558,8 @@ const HireDriverScreen = () => {
             <Image
             source={
               i18n.language === 'ur'
-                ? require("../../assets/HiredriverUr.png")
-                : require("../../assets/Hiredriver.png")
+                ? require("../../assets/hiredriverUr.png")
+                : require("../../assets/hiredriver.png")
             }
             style={styles.bannerImage}
             resizeMode="cover"
