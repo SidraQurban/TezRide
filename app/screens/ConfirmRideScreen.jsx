@@ -422,9 +422,11 @@ const ConfirmRide = () => {
         });
       } else {
         const msg = response.message || "";
+        const isInsufficient = msg.toLowerCase().includes("insufficient");
+        
         showAlert({
           title: t("error"),
-          message: msg.includes("Insufficient wallet balance") 
+          message: isInsufficient 
             ? t("insufficient_balance_msg") 
             : (msg || t("ride_request_failed")),
           type: 'error',
@@ -436,9 +438,14 @@ const ConfirmRide = () => {
         });
       }
     } catch (error) {
+      const msg = error.message || "";
+      const isInsufficient = msg.toLowerCase().includes("insufficient");
+
       showAlert({
         title: t("error"),
-        message: error.message || t("something_went_wrong"),
+        message: isInsufficient 
+          ? t("insufficient_balance_msg") 
+          : (msg || t("something_went_wrong")),
         type: 'error',
         okText: t("ok_btn", "OK"),
         cancelText: t("cancel", "Cancel"),
@@ -546,11 +553,21 @@ const ConfirmRide = () => {
           });
         }
       }
-    } catch (error) {
+    } catch (err) {
+      const msg = err.message || "";
+      const isInsufficient = msg.toLowerCase().includes("insufficient") && msg.toLowerCase().includes("balance");
+
       showAlert({
         title: t("error"),
-        message: error.message || t("something_went_wrong"),
-        type: 'error'
+        message: isInsufficient ? t("insufficient_balance_msg") : (msg || t("something_went_wrong")),
+        type: "error",
+        icon: (
+          <Ionicons
+            name="alert-circle-outline"
+            size={60}
+            color={COLORS.primary}
+          />
+        ),
       });
     } finally {
       setStatusLoading(false);
@@ -1070,7 +1087,7 @@ const ConfirmRide = () => {
           style={styles.modalOverlay}
           onPress={() => setGModalVisible(false)}
         >
-          <TouchableOpacity activeOpacity={1} style={[styles.modalContent, { paddingBottom: 15 }]}>
+          <TouchableOpacity activeOpacity={1} style={[styles.modalContent, { paddingBottom: responsiveHeight(6) }]}>
             <View style={styles.modalIndicator} />
             <Ionicons name="shield-checkmark" size={60} color={COLORS.primary} style={{ alignSelf: "center", marginBottom: 15 }} />
             <Text style={styles.modalTitle}>{t("verification_guide_title")}</Text>

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import {
   responsiveFontSize,
@@ -206,10 +207,18 @@ const RideHistoryScreen = ({ navigation }) => {
               </View>
 
               <TouchableOpacity 
-                style={styles.modalCloseButton} 
+                activeOpacity={0.8}
                 onPress={() => setModalVisible(false)}
+                style={{ marginTop: 10 }}
               >
-                <Text style={styles.modalCloseButtonText}>{t("close", "Close")}</Text>
+                <LinearGradient
+                  colors={[COLORS.primary, COLORS.secondary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.modalCloseButton}
+                >
+                  <Text style={styles.modalCloseButtonText}>{t("close", "Close")}</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </ScrollView>
           )}
@@ -735,11 +744,9 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   modalCloseButton: {
-    backgroundColor: COLORS.primary,
     borderRadius: 15,
     padding: 15,
     alignItems: "center",
-    marginTop: 10,
   },
   modalCloseButtonText: {
     color: COLORS.white,

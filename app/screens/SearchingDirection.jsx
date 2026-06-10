@@ -366,9 +366,12 @@ const SearchingDirection = ({ route }) => {
       if (String(pRideId) !== String(rideId)) return;
       
       if (rideStatusRef.current !== "searching") return;
+      const reason = payload.reason || payload.Reason || "";
+      const isInsufficient = reason.toLowerCase().includes("insufficient") && reason.toLowerCase().includes("balance");
+
       showAlert({
         title: t("error"),
-        message: payload.reason || payload.Reason || t("selection_failed"),
+        message: isInsufficient ? t("insufficient_balance_msg") : (reason || t("selection_failed")),
         type: 'error'
       });
     };
@@ -515,9 +518,12 @@ const SearchingDirection = ({ route }) => {
     } catch (error) {
       selectionSentRef.current = false; // allow retry on network error
       setRideStatus("searching"); // rollback UI on error
+      const msg = error.message || "";
+      const isInsufficient = msg.toLowerCase().includes("insufficient") && msg.toLowerCase().includes("balance");
+
       showAlert({
         title: t("error"),
-        message: error.message || t("something_went_wrong"),
+        message: isInsufficient ? t("insufficient_balance_msg") : (msg || t("something_went_wrong")),
         type: 'error'
       });
     }

@@ -448,9 +448,11 @@ const HireDriverScreen = () => {
         });
       } else {
         const msg = response.message || "";
+        const isInsufficient = msg.toLowerCase().includes("insufficient") && msg.toLowerCase().includes("balance");
+
         showAlert({
           title: t("error"),
-          message: msg.includes("Insufficient wallet balance")
+          message: isInsufficient
             ? t("insufficient_balance_msg")
             : msg.includes("Female driver requests")
               ? t(
@@ -479,9 +481,12 @@ const HireDriverScreen = () => {
         });
       }
     } catch (err) {
+      const msg = err.message || "";
+      const isInsufficient = msg.toLowerCase().includes("insufficient") && msg.toLowerCase().includes("balance");
+
       showAlert({
         title: t("error"),
-        message: err.message || t("something_went_wrong"),
+        message: isInsufficient ? t("insufficient_balance_msg") : (msg || t("something_went_wrong")),
         type: "error",
         icon: (
           <Ionicons
