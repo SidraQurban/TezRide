@@ -991,34 +991,6 @@ const ConfirmRide = () => {
                 />
               </View>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t("gender")}</Text>
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  {["Male", "Female", "Other"].map((g) => (
-                    <TouchableOpacity
-                      key={g}
-                      style={[
-                        styles.prefItem,
-                        { flex: 1, justifyContent: "center", paddingVertical: 12, height: 50 },
-                        vForm.gender === g && styles.prefItemActive,
-                      ]}
-                      onPress={() => setVForm((prev) => ({ ...prev, gender: g }))}
-                    >
-                      <Text style={[
-                        { 
-                          fontSize: responsiveFontSize(1.6), 
-                          fontFamily: FONTS.medium, 
-                          color: "#374151", 
-                          textAlign: "center" 
-                        }, 
-                        vForm.gender === g && styles.prefLabelActive
-                      ]}>
-                        {g === "Male" ? t("male") : g === "Female" ? t("female") : t("other")}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-              <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>{t("cnic_number")}</Text>
                 <TextInput
                   style={styles.textInput}
