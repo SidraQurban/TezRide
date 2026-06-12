@@ -99,8 +99,9 @@ const HireDriverScreen = () => {
   const [selectedVehicle, setSelectedVehicle] = useState("Car");
   const [allowedVehicles, setAllowedVehicles] = useState([]);
   const [durations, setDurations] = useState(DEFAULT_DURATIONS); // dynamic durations
-  const [vehicleModel, setVehicleModel] = useState("Sedan Car (Toyota Corolla)");
-  const [vehiclePlate, setVehiclePlate] = useState("BR5-23930");
+  const [vehicleModel, setVehicleModel] = useState("");
+  const [vehiclePlate, setVehiclePlate] = useState("");
+  const [focusedField, setFocusedField] = useState(null);
 
   // Verification state
   const [customerStatus, setCustomerStatus] = useState(null);
@@ -667,28 +668,42 @@ const HireDriverScreen = () => {
               </View>
               <View style={styles.vehicleInfoBox}>
                 {/* Editable model row */}
-                <View style={styles.vehicleEditRow}>
+                <View style={[styles.vehicleEditRow, focusedField === 'model' && styles.activeEditRow]}>
+                  <Ionicons 
+                    name="car-outline" 
+                    size={16} 
+                    color={focusedField === 'model' ? COLORS.primary : "#9CA3AF"} 
+                    style={{ marginRight: 8 }} 
+                  />
                   <TextInput
                     style={styles.vehicleCardInput}
                     value={vehicleModel}
                     onChangeText={setVehicleModel}
+                    onFocus={() => setFocusedField('model')}
+                    onBlur={() => setFocusedField(null)}
                     placeholder={t("car_model_placeholder", "e.g. Sedan Car (Toyota Corolla)")}
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor="#D1D5DB"
                     textAlign="left"
                   />
-                  <Ionicons name="pencil" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
                 </View>
                 {/* Editable plate row */}
-                <View style={[styles.vehicleEditRow, { marginTop: 6 }]}>
+                <View style={[styles.vehicleEditRow, { marginTop: 10 }, focusedField === 'plate' && styles.activeEditRow]}>
+                  <MaterialCommunityIcons 
+                    name="card-text-outline" 
+                    size={16} 
+                    color={focusedField === 'plate' ? COLORS.primary : "#9CA3AF"} 
+                    style={{ marginRight: 8 }} 
+                  />
                   <TextInput
                     style={styles.vehicleCardPlate}
                     value={vehiclePlate}
                     onChangeText={setVehiclePlate}
+                    onFocus={() => setFocusedField('plate')}
+                    onBlur={() => setFocusedField(null)}
                     placeholder={t("lic_placeholder", "Lic: BR5-23930")}
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor="#D1D5DB"
                     textAlign="left"
                   />
-                  <Ionicons name="pencil" size={12} color="#aaa" style={{ marginLeft: 4 }} />
                 </View>
               </View>
             </View>
@@ -1850,8 +1865,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingBottom: 2,
+    borderBottomColor: '#F3F4F6',
+    paddingBottom: 4,
+  },
+  activeEditRow: {
+    borderBottomColor: COLORS.primary,
+    borderBottomWidth: 1.5,
   },
   vehicleCardInput: {
     flex: 1,

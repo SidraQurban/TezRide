@@ -389,7 +389,6 @@ const ProfileScreen = ({ navigation }) => {
                     profile.gender === g && styles.genderOptionActive,
                   ]}
                   onPress={() => setProfile((p) => ({ ...p, gender: g }))}
-                  disabled={true}
                 >
                   <Ionicons
                     name={g === "Male" ? "male" : "female"}
