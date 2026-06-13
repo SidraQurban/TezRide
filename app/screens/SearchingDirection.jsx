@@ -94,14 +94,17 @@ const SearchingDirection = ({ route }) => {
   const [driverAssignedInfo, setDriverAssignedInfo] = useState(null);
   const [interestedDrivers, setInterestedDrivers] = useState([]);
   const [assignedDriver, setAssignedDriver] = useState(route.params?.driverInfo || activeRide?.assignedDriver || null);
-  const [driverLocation, setDriverLocation] = useState(
-    (route.params?.driverInfo || activeRide?.assignedDriver)?.lat
-      ? {
-          latitude: parseFloat((route.params?.driverInfo || activeRide?.assignedDriver).lat),
-          longitude: parseFloat((route.params?.driverInfo || activeRide?.assignedDriver).lon),
-        }
-      : null
-  );
+  const [driverLocation, setDriverLocation] = useState(() => {
+    // Priority: route.params driverInfo → activeRide.assignedDriver lat/lon → activeRide.driverLocation (from session restore)
+    const d = route.params?.driverInfo || activeRide?.assignedDriver;
+    if (d?.lat && d?.lon) {
+      return { latitude: parseFloat(d.lat), longitude: parseFloat(d.lon) };
+    }
+    if (activeRide?.driverLocation?.latitude) {
+      return activeRide.driverLocation;
+    }
+    return null;
+  });
   // searching | driver_selected | assigned | no_drivers | completed | cancelled
   const [rideStatus, setRideStatus] = useState(route.params?.recoveredStatus || activeRide?.status || "searching");
   const [showCompletionModal, setShowCompletionModal] = useState(route.params?.recoveredStatus === "completed");
@@ -116,49 +119,74 @@ const SearchingDirection = ({ route }) => {
   const selectionSentRef = useRef(false);
 
   // ── Data Recovery ────────────────────────────────────────────────────────
+  // Runs ONLY when the screen has a rideId but NO pickup coords in route params
+  // AND no pickup in context — i.e., a partial navigation (deep link, notification tap).
+  // When AppNavigator restores a session → activeRide.pickup is already set → skipped.
+  // When a fresh booking navigates here → p_pickup is set → skipped.
   useEffect(() => {
     const recoverRide = async () => {
-      // If we have a rideId in params but no activeRide data, fetch it
-      if (rideId && !activeRide?.pickup) {
+      // p_pickup present = fresh booking: skip recovery entirely
+      // activeRide?.pickup present = AppNavigator restored: skip recovery
+      if (rideId && !p_pickup && !activeRide?.pickup) {
         try {
-          const res = await rideService.getRideDetails(rideId);
-          if (res.succeeded && res.data) {
-            const data = res.data;
-            const statusMap = {
-              1: "assigned",
-              2: "driver_arrived",
-              3: "in_transit",
-              4: "completed",
-              5: "cancelled",
-              6: "cancelled"
-            };
-            const mappedStatus = statusMap[data.status] || "searching";
-            
-            setActiveRide({
-              rideId: data.id,
-              status: mappedStatus,
-              pickup: { latitude: data.pickupLat, longitude: data.pickupLon, name: data.pickupAddress, address: data.pickupAddress },
-              destination: { latitude: data.dropoffLat, longitude: data.dropoffLon, name: data.dropoffAddress, address: data.dropoffAddress },
-              price: data.finalCost || data.fare,
-              vehicleType: data.vehicleType,
-              assignedDriver: data.assignedDriver,
-              finalFare: data.finalCost || data.fare,
-              currency: data.currency || "PKR",
-              distanceKm: data.distanceKm,
-              durationMinutes: data.durationMinutes
-            });
-            
-            setRideStatus(mappedStatus);
-            if (mappedStatus === "completed") {
-              setShowCompletionModal(true);
-            }
-            if (data.assignedDriver) {
-              setAssignedDriver(data.assignedDriver);
-              setDriverLocation({
-                latitude: parseFloat(data.assignedDriver.lat || data.assignedDriver.latitude),
-                longitude: parseFloat(data.assignedDriver.lon || data.assignedDriver.longitude),
-              });
-            }
+          const res = await rideService.getCurrentRide();
+          const data = res?.data?.data ?? res?.data ?? null;
+          if (!data || !data.rideId) return;
+
+          const statusMap = {
+            Searching: "searching",
+            Assigned: "assigned",
+            DriverArrived: "driver_arrived",
+            InTransit: "in_transit",
+            Completed: "completed",
+            CanceledByCustomer: "cancelled",
+            CanceledByDriver: "cancelled",
+          };
+          // isSearching takes precedence — backend uses Assigned as a sentinel for searching state
+          const mappedStatus = data.isSearching === true
+            ? "searching"
+            : (statusMap[data.status] ?? "searching");
+
+          const restoredPickup = data.pickupLat
+            ? { latitude: data.pickupLat, longitude: data.pickupLon, address: data.pickupAddress }
+            : null;
+          const restoredDest = data.dropoffLat
+            ? { latitude: data.dropoffLat, longitude: data.dropoffLon, address: data.dropoffAddress }
+            : null;
+
+          const restoredDriver = data.partnerDetail
+            ? {
+                driverId: data.partnerDetail.id,
+                driverName: [data.partnerDetail.firstName, data.partnerDetail.lastName]
+                  .filter(Boolean).join(" ") || "Driver",
+                profilePicUrl: data.partnerDetail.profilePictureUrl || null,
+                vehicleType: data.vehicleType,
+                vehiclePlateNumber: data.partnerDetail.vehicleNumber || "",
+                rating: data.partnerDetail.averageRating ?? null,
+                phoneNumber: data.partnerDetail.phoneNumber || "",
+              }
+            : null;
+
+          setActiveRide({
+            rideId: data.rideId,
+            status: mappedStatus,
+            pickup: restoredPickup,
+            destination: restoredDest,
+            price: data.estimatedFare,
+            vehicleType: data.vehicleType,
+            paymentMethod: data.paymentMethod || "Cash",
+            distance: data.estimatedDistanceKm,
+            duration: data.estimatedDurationMinutes,
+            assignedDriver: restoredDriver,
+          });
+
+          setRideStatus(mappedStatus);
+
+          if (mappedStatus === "completed") {
+            setShowCompletionModal(true);
+          }
+          if (restoredDriver) {
+            setAssignedDriver(restoredDriver);
           }
         } catch (err) {
           console.warn("[SearchingDirection] Failed to recover ride details:", err);
@@ -167,6 +195,7 @@ const SearchingDirection = ({ route }) => {
     };
     recoverRide();
   }, [rideId]);
+
 
   useEffect(() => {
     rideStatusRef.current = rideStatus;

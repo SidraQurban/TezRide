@@ -27,30 +27,140 @@ import ChatScreen from "../screens/ChatScreen";
 import NotificationHandler from "../components/NotificationHandler";
 
 import authService from "../api/authService";
+import rideService from "../api/rideService";
+import { useRide } from "../context/RideContext";
 import { COLORS } from "../constants";
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const { i18n } = useTranslation();
-  const isRtl = false; // Layout is always LTR
+  const { setActiveRide } = useRide();
 
-  // Determine the correct initial route based on stored token
-  const [initialRoute, setInitialRoute] = useState(null); // null = loading
+  // null = loading, string = ready
+  const [initialRoute, setInitialRoute] = useState(null);
+  const [restoredRideParams, setRestoredRideParams] = useState(null);
 
   useEffect(() => {
     (async () => {
       try {
+        // Step 1: Validate auth token
         const authenticated = await authService.ensureValidToken();
-        setInitialRoute(authenticated ? "MainDrawer" : "Onboarding");
+        if (!authenticated) {
+          setInitialRoute("Onboarding");
+          return;
+        }
+
+        // Step 2: Check backend for an active ride (Redis → PostgreSQL fallback)
+        try {
+          const response = await rideService.getCurrentRide();
+          const ride = response?.data?.data ?? response?.data ?? null;
+
+          if (ride && ride.rideId) {
+            // Map backend RideStatus enum strings → UI status strings
+            const statusMap = {
+              Searching: "searching",
+              Assigned: "assigned",
+              DriverArrived: "driver_arrived",
+              InTransit: "in_transit",
+              Completed: "completed",
+              CanceledByCustomer: "cancelled",
+              CanceledByDriver: "cancelled",
+            };
+            // isSearching flag takes precedence over the Status field.
+            // Backend sets Status = Assigned as a sentinel for searches; use isSearching to detect accurately.
+            const uiStatus = ride.isSearching === true
+              ? "searching"
+              : (statusMap[ride.status] ?? "searching");
+
+            // Skip if ride is already in a terminal state
+            if (uiStatus === "completed" || uiStatus === "cancelled") {
+              setInitialRoute("MainDrawer");
+              return;
+            }
+
+            // Map the API response into the shape SearchingDirection + context expect
+            const restoredActiveRide = {
+              rideId: ride.rideId,
+              status: uiStatus,
+              vehicleType: ride.vehicleType,
+              serviceType: ride.serviceType || "ride",
+              paymentMethod: ride.paymentMethod || "Cash",
+              price: ride.estimatedFare ?? null,
+              distance: ride.estimatedDistanceKm ?? null,
+              duration: ride.estimatedDurationMinutes ?? null,
+              pickup: ride.pickupLat
+                ? {
+                    latitude: ride.pickupLat,
+                    longitude: ride.pickupLon,
+                    address: ride.pickupAddress || "",
+                  }
+                : null,
+              destination: ride.dropoffLat
+                ? {
+                    latitude: ride.dropoffLat,
+                    longitude: ride.dropoffLon,
+                    address: ride.dropoffAddress || "",
+                  }
+                : null,
+              // Driver details for the assigned/in-transit card.
+              // UserMinimalDto field names: id, firstName, lastName, profilePictureUrl, phoneNumber, averageRating
+              // ArrivingCard expected prop names: driverName, profilePicUrl, rating, phoneNumber
+              assignedDriver: ride.partnerDetail
+                ? {
+                    driverId: ride.partnerDetail.id,
+                    driverName: [ride.partnerDetail.firstName, ride.partnerDetail.lastName]
+                      .filter(Boolean).join(" ") || "Driver",
+                    profilePicUrl: ride.partnerDetail.profilePictureUrl || null,
+                    vehicleType: ride.vehicleType,
+                    vehiclePlateNumber: ride.driverVehiclePlateNumber || ride.partnerDetail.vehicleNumber || "",
+                    rating: ride.partnerDetail.averageRating ?? null,
+                    phoneNumber: ride.partnerDetail.phoneNumber || "",
+                    // Last known GPS for the driver marker (populated from Redis)
+                    lat: ride.driverLat ?? null,
+                    lon: ride.driverLon ?? null,
+                  }
+                : null,
+              // Pre-seed driverLocation so SearchingDirection shows the marker immediately
+              driverLocation: (ride.driverLat && ride.driverLon)
+                ? { latitude: ride.driverLat, longitude: ride.driverLon }
+                : null,
+              restoredFromBackend: true,
+            };
+
+            // Hydrate context so SearchingDirection can read it
+            setActiveRide(restoredActiveRide);
+
+            // Pass minimal params to SearchingDirection (it reads the rest from context)
+            setRestoredRideParams({
+              rideId: ride.rideId,
+              pickup: restoredActiveRide.pickup,
+              destination: restoredActiveRide.destination,
+              vehicleType: ride.vehicleType,
+              price: ride.estimatedFare ?? null,
+              serviceType: ride.serviceType || "ride",
+              restoredFromBackend: true,
+              recoveredStatus: uiStatus,
+              isSearching: ride.isSearching === true,
+            });
+
+            setInitialRoute("SearchingDirection");
+            return;
+          }
+        } catch (rideError) {
+          // Non-fatal: if ride check fails, continue to home normally
+          console.warn("[AppNavigator] Could not check for active ride:", rideError?.message);
+        }
+
+        // Step 3: No active ride — go to home
+        setInitialRoute("MainDrawer");
       } catch (error) {
-        console.warn('[AppNavigator] Startup session recovery failed:', error);
+        console.warn("[AppNavigator] Startup session recovery failed:", error);
         setInitialRoute("Onboarding");
       }
     })();
   }, []);
 
-  // Show a neutral splash while we check storage
   if (initialRoute === null) {
     return (
       <View
@@ -92,7 +202,11 @@ const AppNavigator = () => {
           <Stack.Screen name="LocationDetails" component={LocationDetailsScreen} />
           <Stack.Screen name="Promo" component={PromoScreen} />
           <Stack.Screen name="ConfirmRide" component={ConfirmRideScreen} />
-          <Stack.Screen name="SearchingDirection" component={SearchingDirection} />
+          <Stack.Screen
+            name="SearchingDirection"
+            component={SearchingDirection}
+            initialParams={restoredRideParams ?? undefined}
+          />
           <Stack.Screen name="DriverProfile" component={DriverProfileScreen} />
           <Stack.Screen name="SearchDriver" component={SearchDriverScreen} />
           <Stack.Screen name="Wallet" component={WalletScreen} />
