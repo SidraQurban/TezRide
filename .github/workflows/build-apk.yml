@@ -20,7 +20,7 @@ jobs:
   build:
     name: Customer APK (${{ github.event.inputs.build_type || 'release' }})
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -67,8 +67,23 @@ jobs:
           };
           EOF
 
+      - name: Cache Expo prebuild
+        id: cache-prebuild
+        uses: actions/cache@v4
+        with:
+          path: android
+          key: expo-prebuild-${{ runner.os }}-${{ hashFiles('app.json', 'app.config.js', 'package-lock.json') }}
+          restore-keys: expo-prebuild-${{ runner.os }}-
+
+      - name: Expo Prebuild
+        if: steps.cache-prebuild.outputs.cache-hit != 'true'
+        run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
+
 
       - name: Cache Gradle build output
         uses: actions/cache@v4
