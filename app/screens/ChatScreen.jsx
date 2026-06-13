@@ -16,6 +16,7 @@ import {
   Keyboard
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import BackBtn from '../components/BackBtn';
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -351,19 +352,19 @@ const ChatScreen = () => {
 
   /* ──────────── render ──────────── */
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
       <StatusBar barStyle="dark-content" />
 
-      {/* ── Header ── */}
+      {/* ── Header (matches other screens: BackBtn + driver info + call) ── */}
       <SafeAreaView edges={['top']} style={styles.safeHeader}>
+        {/* Shared back button row (logo + arrow-back-outline) */}
+        <BackBtn />
+        {/* Driver info sub-header */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('MainDrawer')} 
-            style={styles.headerBtn} 
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chevron-back" size={24} color="#1A1A2E" />
-          </TouchableOpacity>
           <View style={styles.headerInfo}>
             <View style={styles.avatarContainer}>
               {profilePicUrl ? (
@@ -417,63 +418,62 @@ const ChatScreen = () => {
       )}
 
       {/* ── Input bar ── */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <View style={[styles.inputBarOuter, { paddingBottom: Math.max(insets.bottom, 12) + 8 }]}>
-          <View style={styles.inputBar}>
-            <TouchableOpacity style={styles.attachBtn} activeOpacity={0.6}>
-              <Ionicons name="add-circle-outline" size={26} color="#999" />
-            </TouchableOpacity>
+      <View style={[styles.inputBarOuter, { paddingBottom: Math.max(insets.bottom, 12) + 8 }]}>
+        <View style={styles.inputBar}>
+          <TouchableOpacity style={styles.attachBtn} activeOpacity={0.6}>
+            <Ionicons name="add-circle-outline" size={26} color="#999" />
+          </TouchableOpacity>
 
-            <TextInput
-              style={styles.input}
-              placeholder={t('type_message', 'Type a message...')}
-              placeholderTextColor="#B0B0B0"
-              value={inputText}
-              onChangeText={onTextChange}
-              textAlign={i18n.language === 'ur' ? 'right' : 'left'}
-              multiline
-              maxLength={1000}
-            />
+          <TextInput
+            style={styles.input}
+            placeholder={t('type_message', 'Type a message...')}
+            placeholderTextColor="#B0B0B0"
+            value={inputText}
+            onChangeText={onTextChange}
+            textAlign={i18n.language === 'ur' ? 'right' : 'left'}
+            multiline
+            maxLength={1000}
+          />
 
-            <AnimatedTouchable
-              style={[styles.sendBtn, sendBtnStyle]}
-              onPress={sendMessage}
-              disabled={!hasText}
-              activeOpacity={0.7}
+          <AnimatedTouchable
+            style={[styles.sendBtn, sendBtnStyle]}
+            onPress={sendMessage}
+            disabled={!hasText}
+            activeOpacity={0.7}
+          >
+            <LinearGradient
+              colors={hasText ? [COLORS.primary, '#FF7B33'] : ['#D5D5D5', '#BDBDBD']}
+              style={styles.sendGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
             >
-              <LinearGradient
-                colors={hasText ? [COLORS.primary, '#FF7B33'] : ['#D5D5D5', '#BDBDBD']}
-                style={styles.sendGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons
-                  name={isRTL ? "send-outline" : "send"}
-                  size={17}
-                  color="#FFF"
-                  style={isRTL ? { transform: [{ rotate: "180deg" }] } : null}
-                />
-              </LinearGradient>
-            </AnimatedTouchable>
-          </View>
+              <Ionicons
+                name={isRTL ? "send-outline" : "send"}
+                size={17}
+                color="#FFF"
+                style={isRTL ? { transform: [{ rotate: "180deg" }] } : null}
+              />
+            </LinearGradient>
+          </AnimatedTouchable>
         </View>
-      </KeyboardAvoidingView>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
 /* ════════════════════════════ STYLES ════════════════════════════ */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F2F5' },
+  safeHeaderWrapper: { backgroundColor: '#FFF' },
   safeHeader: { backgroundColor: '#FFF', elevation: 4, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F2F5',
   },
   headerBtn: {
     width: 44,
