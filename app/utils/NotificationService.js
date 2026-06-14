@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import apiClient from '../api/apiClient';
 
 /**
@@ -47,10 +48,18 @@ export const NotificationService = {
         return null;
       }
 
-      // Get the token
-      token = (await Notifications.getExpoPushTokenAsync({
-        projectId: '3757b012-d00a-4c03-9e38-189c26489153', // From app.json
-      })).data;
+      // Get the Expo push token — use Constants so it resolves correctly in
+      // both Expo Go and standalone APK builds.
+      const projectId =
+        Constants.expoConfig?.extra?.eas?.projectId ??
+        Constants.easConfig?.projectId;
+
+      if (!projectId) {
+        console.warn('[NotificationService] Expo projectId not found in app config. Push token will not be obtained.');
+        return null;
+      }
+
+      token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
 
       console.log('Expo Push Token:', token);
 

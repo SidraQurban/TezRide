@@ -30,7 +30,9 @@
         "INTERNET",
         "ACCESS_NETWORK_STATE",
         "VIBRATE",
-        "RECEIVE_BOOT_COMPLETED"
+        "RECEIVE_BOOT_COMPLETED",
+        "POST_NOTIFICATIONS",
+        "WAKE_LOCK"
       ],
       "config": {
         "googleMaps": {
