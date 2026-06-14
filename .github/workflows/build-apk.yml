@@ -1,6 +1,8 @@
 name: Build Customer APK
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
     inputs:
       build_type:
@@ -72,7 +74,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: android
-          key: expo-prebuild-${{ runner.os }}-${{ hashFiles('app.json', 'app.config.js', 'package-lock.json') }}
+          key: expo-prebuild-${{ runner.os }}-${{ hashFiles('app.json', 'app.config.js', 'package-lock.json', 'assets/**') }}
           restore-keys: expo-prebuild-${{ runner.os }}-
 
       - name: Expo Prebuild

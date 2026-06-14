@@ -62,14 +62,35 @@ export const NotificationService = {
         await NotificationService.sendTokenToBackend(userId, token, userType);
       }
 
-      // Setup Android Channel
+      // Setup Android Notification Channels
       if (Platform.OS === 'android') {
+        // Real-time ride events: driver assigned, arrived, trip started/completed/cancelled
         await Notifications.setNotificationChannelAsync('ride-requests', {
-          name: 'ride-requests',
+          name: 'TezRide',
+          description: 'Ride status updates and driver notifications',
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: '#FF5C00',
-          sound: 'notification_alert.mp3', // Corresponds to the name in app.json plugins
+          enableLights: true,
+          enableVibrate: true,
+          sound: 'notification_alert.mp3',
+        });
+
+        // General / catch-all
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'TezRide',
+          description: 'General TezRide notifications',
+          importance: Notifications.AndroidImportance.DEFAULT,
+          sound: 'default',
+        });
+
+        // Marketing & announcements — lower importance so they don't interrupt the user
+        await Notifications.setNotificationChannelAsync('promotions', {
+          name: 'TezRide Offers',
+          description: 'Promotions, discounts, and app announcements',
+          importance: Notifications.AndroidImportance.DEFAULT,
+          enableVibrate: false,
+          sound: 'default',
         });
       }
 

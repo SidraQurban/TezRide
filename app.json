@@ -17,13 +17,13 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "usesCleartextTraffic": true,
+      "package": "com.tezride.customer",
       "adaptiveIcon": {
         "backgroundColor": "#FF5C00",
-        "foregroundImage": "./assets/applogo.jpeg",
+        "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "monochromeImage": "./assets/notification_icon.png"
       },
-      "package": "com.anonymous.TezRide",
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
@@ -48,8 +48,11 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/applogo.jpeg",
+          "icon": "./assets/notification_icon.png",
           "color": "#FF5C00",
+          "defaultChannel": "ride-requests",
+          "androidMode": "default",
+          "androidCollapsedTitle": "TezRide",
           "sounds": [
             "./assets/notification_alert.mp3",
             "./assets/completed_ride_alert.mp3"
