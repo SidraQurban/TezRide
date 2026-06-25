@@ -117,21 +117,33 @@ const RidesSlider = ({
    * Dynamically build the list of displayed rides.
    * We prioritize slugs returned from the pricing API.
    */
+  // Defined display order — matches the rides array order in data.jsx
+  const SLUG_ORDER = ["bike", "rickshaw", "car", "ac-car", "premium-car"];
+
   const availableRides = useMemo(() => {
-    const slugs = Object.keys(priceMap).sort(); // Alphabetical sort to prevent jumping
+    const slugs = Object.keys(priceMap);
     if (slugs.length > 0) {
-      return slugs.map((slug) => {
+      // Sort by defined order; unknown slugs go to the end
+      const sorted = slugs.slice().sort((a, b) => {
+        const ai = SLUG_ORDER.indexOf(a);
+        const bi = SLUG_ORDER.indexOf(b);
+        const aIdx = ai === -1 ? 999 : ai;
+        const bIdx = bi === -1 ? 999 : bi;
+        return aIdx - bIdx;
+      });
+      return sorted.map((slug) => {
         const staticInfo = rides.find((r) => r.id === slug);
         return {
           id: slug,
           label: staticInfo?.label || (slug.charAt(0).toUpperCase() + slug.slice(1)),
           image: staticInfo?.image || require("../../assets/car.png"),
+          imageStyle: staticInfo?.imageStyle || {},
           eta: staticInfo?.eta || "5 mins",
         };
       });
     }
     // Fallback if priceMap is empty (during initial load)
-    return [...rides].sort((a, b) => a.id.localeCompare(b.id));
+    return [...rides];
   }, [priceMap]);
 
   return (
@@ -217,14 +229,13 @@ const RidesSlider = ({
               )}
 
               {/* Vehicle image - Larger and cleaner */}
-              <View style={{ height: responsiveHeight(7), justifyContent: 'center' }}>
+              <View style={{ height: responsiveHeight(7), justifyContent: 'center', overflow: 'hidden' }}>
                 <Image
                   source={service.image}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    resizeMode: "contain",
-                  }}
+                  style={[
+                    { width: '100%', height: '100%', resizeMode: "contain" },
+                    service.imageStyle,
+                  ]}
                 />
               </View>
 
@@ -240,7 +251,12 @@ const RidesSlider = ({
                     color: "#1F2937",
                   }}
                 >
-                  {t(service.label.toLowerCase())}
+                  {(() => {
+                    const key = service.label.toLowerCase();
+                    const translated = t(key);
+                    // If i18next returned the key unchanged, no translation exists — use the original label
+                    return translated === key ? service.label : translated;
+                  })()}
                 </Text>
 
                 <Text

@@ -191,6 +191,21 @@ export const rides = [
     eta: "5 mins",
     price: 280,
   },
+  {
+    id: "ac-car",
+    label: "AC Car",
+    image: require("../../assets/ac_car.png"),
+    imageStyle: { transform: [{ scale: 1.4 }] },
+    eta: "5 mins",
+    price: 350,
+  },
+  {
+    id: "premium-car",
+    label: "Premium Car",
+    image: require("../../assets/car-removebg.png"),
+    eta: "5 mins",
+    price: 450,
+  },
 ];
 
 export const categoriesData = [
